@@ -1,0 +1,100 @@
+.multi-image-uploader {
+  margin-bottom: 20px;
+}
+
+.multi-image-uploader-label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #212529;
+  font-size: 14px;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.image-item {
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f8f9fa;
+}
+
+.image-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-controls {
+  padding: 12px;
+  background-color: white;
+}
+
+.alt-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.alt-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.image-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.image-actions button {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ced4da;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.image-actions button:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+}
+
+.image-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.image-actions .remove-btn {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.image-actions .remove-btn:hover {
+  background-color: #c82333;
+  border-color: #c82333;
+}
+
+.upload-controls {
+  margin-top: 16px;
+}
+
+.multi-image-uploader-error {
+  margin-top: 8px;
+  color: #dc3545;
+  font-size: 13px;
+}

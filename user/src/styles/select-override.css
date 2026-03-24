@@ -1,0 +1,48 @@
+/* Custom select dropdown styling to match alpha theme */
+
+/* Override browser default select option colors */
+select option {
+  background-color: #F5F1E8 !important;
+  color: #2C2C2C !important;
+  padding: 8px 12px !important;
+}
+
+select option:hover {
+  background-color: rgba(44, 44, 44, 0.1) !important;
+  color: #2C2C2C !important;
+}
+
+select option:focus {
+  background-color: rgba(44, 44, 44, 0.1) !important;
+  color: #2C2C2C !important;
+  outline: none !important;
+}
+
+select option:checked,
+select option:active {
+  background-color: rgba(44, 44, 44, 0.15) !important;
+  color: #2C2C2C !important;
+}
+
+/* For webkit browsers (Chrome, Safari, Edge) */
+select option:checked {
+  background: linear-gradient(rgba(44, 44, 44, 0.15), rgba(44, 44, 44, 0.15)) !important;
+  color: #2C2C2C !important;
+}
+
+/* Remove default blue highlight */
+select:focus option:checked {
+  background: rgba(44, 44, 44, 0.15) !important;
+  color: #2C2C2C !important;
+}
+
+/* For Firefox */
+@-moz-document url-prefix() {
+  select option:hover {
+    background-color: rgba(44, 44, 44, 0.1) !important;
+  }
+  
+  select option:checked {
+    background-color: rgba(44, 44, 44, 0.15) !important;
+  }
+}

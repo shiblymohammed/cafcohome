@@ -1,0 +1,68 @@
+# =========================
+# 🔐 ENV FILES (IMPORTANT)
+# =========================
+.env
+.env.*
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =========================
+# 🐍 DJANGO / PYTHON
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+server/venv/
+server/env/
+
+# Django stuff
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# =========================
+# ⚛️ NEXT.JS (user/)
+# =========================
+user/node_modules/
+user/.next/
+user/out/
+user/build_output.txt
+user/tsconfig.tsbuildinfo
+
+# =========================
+# ⚡ VITE (admin/)
+# =========================
+admin/node_modules/
+admin/dist/
+
+# =========================
+# 📦 GENERAL NODE
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# 💻 OS / EDITOR
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# 🚀 BUILD FILES
+# =========================
+dist/
+build/

@@ -1,0 +1,27 @@
+.colors-page {
+  padding: 24px;
+}
+
+.color-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.color-picker-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.color-picker {
+  width: 60px;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-picker-group input[type="text"] {
+  flex: 1;
+}
