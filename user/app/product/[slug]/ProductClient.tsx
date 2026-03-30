@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ShoppingCart, Heart, Tag, Star } from "lucide-react";
-import { ProductCard, ProductCardImage, ProductCardImageContainer, ProductCardTitle, ProductCardDescription, ProductCardMeta, ProductCardWishlist, ProductCardBadgeGroup, ProductCardRating, ProductCardColorSwatches } from "@/src/components/ui/ProductCard";
+import { ProductCard, ProductCardImage, ProductCardImageContainer, ProductCardTitle, ProductCardDescription, ProductCardMeta, ProductCardWishlist, ProductCardBadgeGroup, ProductCardRating } from "@/src/components/ui/ProductCard";
 import { useCart } from "@/src/contexts/CartContext";
 import { useWishlist } from "@/src/contexts/WishlistContext";
 import { ProductReviews } from "@/src/components/reviews";
@@ -845,6 +845,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                         <ProductCardImageContainer>
                                             {relBadges.length > 0 && <ProductCardBadgeGroup badges={relBadges} />}
                                             <ProductCardImage src={mainImage} alt={p.name} />
+                                            <ProductCardWishlist product={p} />
                                         </ProductCardImageContainer>
                                         
                                         <div className="flex flex-col items-start px-1.5 md:px-2 py-2 md:py-3">
@@ -854,12 +855,10 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                             <ProductCardRating rating={p.average_rating || 0} reviewCount={p.review_count || 0} />
                                             <div className="flex items-center justify-between w-full mt-2">
                                                 <div className="flex items-center gap-2">
-                                                    <ProductCardColorSwatches colors={p.colors} />
                                                     {!p.is_in_stock && (
                                                         <span className="text-xs text-red-600 font-primary">Out of Stock</span>
                                                     )}
                                                 </div>
-                                                <ProductCardWishlist product={p} />
                                             </div>
                                         </div>
                                     </ProductCard>

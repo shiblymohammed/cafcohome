@@ -1,0 +1,96 @@
+app/api/clear-new-user/route.ts(14,34): error TS2322: Type 'Request' is not assignable to type 'NextApiRequest | (IncomingMessage & { cookies: Partial<{ [key: string]: string; }>; }) | NextRequest'.
+  Type 'Request' is missing the following properties from type 'NextRequest': cookies, nextUrl, page, ua
+app/api/revalidate/route.ts(19,5): error TS2554: Expected 2 arguments, but got 1.
+app/api/webhook/offers/route.ts(15,5): error TS2554: Expected 2 arguments, but got 1.
+app/api/webhook/offers/route.ts(19,7): error TS2554: Expected 2 arguments, but got 1.
+app/categories/[slug]/page.tsx(131,47): error TS2339: Property 'results' does not exist on type 'any[]'.
+app/categories/[slug]/page.tsx(142,53): error TS2339: Property 'results' does not exist on type 'any[]'.
+app/categories/page.tsx(34,37): error TS2339: Property 'results' does not exist on type 'any[]'.
+app/offers/page.tsx(29,48): error TS2339: Property 'results' does not exist on type 'never'.
+app/profile/ProfileClient.tsx(384,19): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void' is not assignable to type '(e: { target: { name: string; value: string; }; }) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type '{ target: { name: string; value: string; }; }' is missing the following properties from type 'ChangeEvent<HTMLInputElement | HTMLTextAreaElement>': nativeEvent, currentTarget, bubbles, cancelable, and 10 more.
+app/sitemap.ts(64,37): error TS2339: Property 'results' does not exist on type 'any[]'.
+app/sitemap.ts(75,43): error TS2339: Property 'results' does not exist on type 'any[]'.
+app/subcategories/[slug]/page.tsx(45,51): error TS2339: Property 'results' does not exist on type 'any[]'.
+src/components/auth/AuthModal.tsx(393,23): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void' is not assignable to type '(e: { target: { name: string; value: string; }; }) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type '{ target: { name: string; value: string; }; }' is missing the following properties from type 'ChangeEvent<HTMLInputElement | HTMLTextAreaElement>': nativeEvent, currentTarget, bubbles, cancelable, and 10 more.
+src/components/layout/MobileNav.tsx(280,10): error TS2322: Type 'RefObject<HTMLButtonElement | null>' is not assignable to type 'RefObject<HTMLElement>'.
+  Type 'HTMLButtonElement | null' is not assignable to type 'HTMLElement'.
+    Type 'null' is not assignable to type 'HTMLElement'.
+src/components/layout/Navbar.tsx(41,88): error TS2345: Argument of type 'RefObject<HTMLButtonElement | null>' is not assignable to parameter of type 'RefObject<HTMLElement> | (() => RefObject<HTMLElement>)'.
+  Type 'RefObject<HTMLButtonElement | null>' is not assignable to type 'RefObject<HTMLElement>'.
+    Type 'HTMLButtonElement | null' is not assignable to type 'HTMLElement'.
+      Type 'null' is not assignable to type 'HTMLElement'.
+src/components/layout/Navbar.tsx(64,28): error TS2345: Argument of type 'RefObject<HTMLButtonElement | null>' is not assignable to parameter of type 'SetStateAction<RefObject<HTMLElement>>'.
+  Type 'RefObject<HTMLButtonElement | null>' is not assignable to type 'RefObject<HTMLElement>'.
+    Type 'HTMLButtonElement | null' is not assignable to type 'HTMLElement'.
+      Type 'null' is not assignable to type 'HTMLElement'.
+src/components/layout/Navbar.tsx(200,40): error TS2345: Argument of type 'RefObject<HTMLButtonElement | null>' is not assignable to parameter of type 'SetStateAction<RefObject<HTMLElement>>'.
+  Type 'RefObject<HTMLButtonElement | null>' is not assignable to type 'RefObject<HTMLElement>'.
+    Type 'HTMLButtonElement | null' is not assignable to type 'HTMLElement'.
+      Type 'null' is not assignable to type 'HTMLElement'.
+src/components/modals/AddressModal.tsx(236,19): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void' is not assignable to type '(e: { target: { name: string; value: string; }; }) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type '{ target: { name: string; value: string; }; }' is missing the following properties from type 'ChangeEvent<HTMLInputElement | HTMLTextAreaElement>': nativeEvent, currentTarget, bubbles, cancelable, and 10 more.
+src/components/modals/SearchModal.tsx(39,25): error TS2554: Expected 1 arguments, but got 0.
+src/lib/api/client.ts(64,70): error TS2339: Property 'url' does not exist on type 'RequestInit'.
+src/lib/hooks/useAsync.ts(10,32): error TS2307: Cannot find module '@/lib/api' or its corresponding type declarations.
+src/lib/hooks/useAsync.ts(50,26): error TS18046: 'err' is of type 'unknown'.
+src/lib/hooks/useAsync.ts(53,15): error TS18046: 'err' is of type 'unknown'.
+src/lib/hooks/useAsync.ts(55,22): error TS18046: 'err' is of type 'unknown'.
+src/lib/hooks/useAsync.ts(55,63): error TS18046: 'err' is of type 'unknown'.
+src/lib/hooks/useAsync.ts(57,48): error TS18046: 'err' is of type 'unknown'.
+src/lib/hooks/useAsync.ts(58,54): error TS18046: 'errors' is of type 'unknown'.
+src/lib/hooks/useAsync.ts(121,28): error TS18046: 'err' is of type 'unknown'.
+src/lib/hooks/useAsync.ts(123,17): error TS18046: 'err' is of type 'unknown'.
+src/lib/seo/__tests__/manifest.test.ts(24,12): error TS18048: 'manifest.description' is possibly 'undefined'.
+src/lib/seo/__tests__/manifest.test.ts(45,12): error TS18048: 'manifest.icons' is possibly 'undefined'.
+src/lib/seo/__tests__/manifest.test.ts(48,21): error TS18048: 'manifest.icons' is possibly 'undefined'.
+src/lib/seo/__tests__/manifest.test.ts(54,21): error TS18048: 'manifest.icons' is possibly 'undefined'.
+src/lib/seo/__tests__/robots.test.ts(19,25): error TS2339: Property 'length' does not exist on type '{ userAgent?: string | string[] | undefined; allow?: string | string[] | undefined; disallow?: string | string[] | undefined; crawlDelay?: number | undefined; } | { userAgent: string | string[]; allow?: string | ... 1 more ... | undefined; disallow?: string | ... 1 more ... | undefined; crawlDelay?: number | undefin...'.
+  Property 'length' does not exist on type '{ userAgent?: string | string[] | undefined; allow?: string | string[] | undefined; disallow?: string | string[] | undefined; crawlDelay?: number | undefined; }'.
+src/lib/seo/__tests__/robots.test.ts(21,22): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{ userAgent?: string | string[] | undefined; allow?: string | string[] | undefined; disallow?: string | string[] | undefined; crawlDelay?: number | undefined; } | { userAgent: string | string[]; allow?: string | ... 1 more ... | undefined; disallow?: string | ... 1 more ... | undefined; crawlDelay?: number | undefin...'.
+  Property '0' does not exist on type '{ userAgent?: string | string[] | undefined; allow?: string | string[] | undefined; disallow?: string | string[] | undefined; crawlDelay?: number | undefined; } | { userAgent: string | string[]; allow?: string | ... 1 more ... | undefined; disallow?: string | ... 1 more ... | undefined; crawlDelay?: number | undefin...'.
+src/lib/seo/__tests__/seo-properties.test.ts(124,64): error TS2339: Property 'includes' does not exist on type 'string | URL | AlternateLinkDescriptor'.
+  Property 'includes' does not exist on type 'URL'.
+src/lib/seo/__tests__/seo-properties.test.ts(140,30): error TS2339: Property 'card' does not exist on type 'Twitter'.
+  Property 'card' does not exist on type 'TwitterMetadata'.
+src/lib/seo/__tests__/seo-properties.test.ts(177,64): error TS2339: Property 'includes' does not exist on type 'string | URL | AlternateLinkDescriptor'.
+  Property 'includes' does not exist on type 'URL'.
+src/lib/seo/__tests__/seo-properties.test.ts(211,64): error TS2339: Property 'includes' does not exist on type 'string | URL | AlternateLinkDescriptor'.
+  Property 'includes' does not exist on type 'URL'.
+src/lib/seo/__tests__/seo-properties.test.ts(249,64): error TS2339: Property 'includes' does not exist on type 'string | URL | AlternateLinkDescriptor'.
+  Property 'includes' does not exist on type 'URL'.
+src/lib/seo/__tests__/seo-properties.test.ts(256,32): error TS2339: Property 'type' does not exist on type 'OpenGraph'.
+  Property 'type' does not exist on type 'OpenGraphMetadata'.
+src/lib/seo/__tests__/seo-properties.test.ts(257,32): error TS2339: Property 'publishedTime' does not exist on type 'OpenGraph'.
+  Property 'publishedTime' does not exist on type 'OpenGraphMetadata'.
+src/lib/seo/__tests__/seo-properties.test.ts(258,32): error TS2339: Property 'modifiedTime' does not exist on type 'OpenGraph'.
+  Property 'modifiedTime' does not exist on type 'OpenGraphMetadata'.
+src/lib/seo/__tests__/seo-properties.test.ts(412,20): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(413,20): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(414,20): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(415,20): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(415,23): error TS2339: Property 'type' does not exist on type 'OpenGraph'.
+  Property 'type' does not exist on type 'OpenGraphMetadata'.
+src/lib/seo/__tests__/seo-properties.test.ts(416,20): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(417,20): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(418,27): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(419,13): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(420,13): error TS18047: 'og' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(420,26): error TS2339: Property 'url' does not exist on type 'OGImage'.
+  Property 'url' does not exist on type 'string'.
+src/lib/seo/__tests__/seo-properties.test.ts(451,14): error TS18047: 'twitter' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(451,22): error TS2339: Property 'card' does not exist on type 'Twitter'.
+  Property 'card' does not exist on type 'TwitterMetadata'.
+src/lib/seo/__tests__/seo-properties.test.ts(451,56): error TS18047: 'twitter' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(451,64): error TS2339: Property 'card' does not exist on type 'Twitter'.
+  Property 'card' does not exist on type 'TwitterMetadata'.
+src/lib/seo/__tests__/seo-properties.test.ts(452,20): error TS18047: 'twitter' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(453,20): error TS18047: 'twitter' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(454,27): error TS18047: 'twitter' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(455,13): error TS18047: 'twitter' is possibly 'null'.
+src/lib/seo/__tests__/seo-properties.test.ts(596,64): error TS2339: Property 'includes' does not exist on type 'string | URL | AlternateLinkDescriptor'.
+  Property 'includes' does not exist on type 'URL'.

@@ -79,40 +79,42 @@ class ProductListSerializer(serializers.ModelSerializer):
         """Get unique colors from active variants with hex codes."""
         from .models import Color
         
-        # Get unique color names from variants
-        color_names = set(
-            variant.color for variant in obj.variants.filter(is_active=True)
-        )
+        # Use prefetched variants to avoid query
+        active_variants = [v for v in obj.variants.all() if v.is_active]
+        color_names = set(variant.color for variant in active_variants)
         
-        # Look up hex codes from Color model
+        if not color_names:
+            return []
+        
+        # Batch fetch all colors in one query
+        color_objs = Color.objects.filter(name__in=color_names, is_active=True).only('name', 'hex_code')
+        color_map = {c.name: c.hex_code or '#CCCCCC' for c in color_objs}
+        
+        # Build colors data
         colors_data = []
         for color_name in color_names:
-            try:
-                color_obj = Color.objects.get(name=color_name, is_active=True)
-                colors_data.append({
-                    'name': color_obj.name,
-                    'hex': color_obj.hex_code or '#CCCCCC'  # Default gray if no hex code
-                })
-            except Color.DoesNotExist:
-                # If color not found in Color model, use default
-                colors_data.append({
-                    'name': color_name,
-                    'hex': '#CCCCCC'  # Default gray
-                })
+            colors_data.append({
+                'name': color_name,
+                'hex': color_map.get(color_name, '#CCCCCC')
+            })
         
         return colors_data
     
     def get_materials(self, obj):
         """Get unique materials from active variants."""
-        return list(set(
-            variant.material for variant in obj.variants.filter(is_active=True)
-        ))
+        # Use prefetched variants to avoid query
+        active_variants = [v for v in obj.variants.all() if v.is_active]
+        return list(set(variant.material for variant in active_variants))
     
     def get_images(self, obj):
         """Get images from default variant or first active variant."""
-        default_variant = obj.variants.filter(is_active=True, is_default=True).first()
-        if not default_variant:
-            default_variant = obj.variants.filter(is_active=True).first()
+        # Use prefetched variants to avoid query
+        active_variants = [v for v in obj.variants.all() if v.is_active]
+        
+        # Find default variant
+        default_variant = next((v for v in active_variants if v.is_default), None)
+        if not default_variant and active_variants:
+            default_variant = active_variants[0]
         
         if default_variant and default_variant.images:
             return default_variant.images
@@ -120,28 +122,38 @@ class ProductListSerializer(serializers.ModelSerializer):
     
     def get_is_in_stock(self, obj):
         """Check if any variant is in stock."""
-        return obj.variants.filter(is_active=True, stock_quantity__gt=0).exists()
+        # Use prefetched variants to avoid query
+        active_variants = [v for v in obj.variants.all() if v.is_active]
+        return any(v.stock_quantity > 0 for v in active_variants)
     
     def get_average_rating(self, obj):
         """Get average rating from approved reviews."""
-        from django.db.models import Avg
-        result = obj.reviews.filter(is_approved=True).aggregate(avg=Avg('rating'))
-        return round(result['avg'], 1) if result['avg'] else 0
+        # Use prefetched reviews to avoid query
+        approved_reviews = [r for r in obj.reviews.all() if r.is_approved]
+        if not approved_reviews:
+            return 0
+        avg = sum(r.rating for r in approved_reviews) / len(approved_reviews)
+        return round(avg, 1)
     
     def get_review_count(self, obj):
         """Get count of approved reviews."""
-        return obj.reviews.filter(is_approved=True).count()
+        # Use prefetched reviews to avoid query
+        return sum(1 for r in obj.reviews.all() if r.is_approved)
         
     def get_price(self, obj):
-        default_variant = obj.variants.filter(is_active=True, is_default=True).first()
-        if not default_variant:
-            default_variant = obj.variants.filter(is_active=True).first()
+        # Use prefetched variants to avoid query
+        active_variants = [v for v in obj.variants.all() if v.is_active]
+        default_variant = next((v for v in active_variants if v.is_default), None)
+        if not default_variant and active_variants:
+            default_variant = active_variants[0]
         return default_variant.price if default_variant else 0
 
     def get_mrp(self, obj):
-        default_variant = obj.variants.filter(is_active=True, is_default=True).first()
-        if not default_variant:
-            default_variant = obj.variants.filter(is_active=True).first()
+        # Use prefetched variants to avoid query
+        active_variants = [v for v in obj.variants.all() if v.is_active]
+        default_variant = next((v for v in active_variants if v.is_default), None)
+        if not default_variant and active_variants:
+            default_variant = active_variants[0]
         return default_variant.mrp if default_variant else 0
 
 
@@ -174,16 +186,21 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
     
     def get_variants(self, obj):
-        variants = obj.variants.filter(is_active=True)
-        return ProductVariantSerializer(variants, many=True).data
+        # Use prefetched variants to avoid query
+        active_variants = [v for v in obj.variants.all() if v.is_active]
+        return ProductVariantSerializer(active_variants, many=True).data
         
     def get_average_rating(self, obj):
-        from django.db.models import Avg
-        result = obj.reviews.filter(is_approved=True).aggregate(avg=Avg('rating'))
-        return round(result['avg'], 1) if result['avg'] else 0
+        # Use prefetched reviews to avoid query
+        approved_reviews = [r for r in obj.reviews.all() if r.is_approved]
+        if not approved_reviews:
+            return 0
+        avg = sum(r.rating for r in approved_reviews) / len(approved_reviews)
+        return round(avg, 1)
     
     def get_review_count(self, obj):
-        return obj.reviews.filter(is_approved=True).count()
+        # Use prefetched reviews to avoid query
+        return sum(1 for r in obj.reviews.all() if r.is_approved)
     
     def get_applicable_offers(self, obj):
         """Get active offers that apply to this product."""

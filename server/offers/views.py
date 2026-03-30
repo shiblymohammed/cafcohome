@@ -38,11 +38,21 @@ class OfferListCreateView(generics.ListCreateAPIView):
             is_active=True,
             start_date__lte=now,
             end_date__gte=now
+        ).prefetch_related(
+            'products',
+            'collections',
+            'categories',
+            'brands'
         ).order_by('-is_featured', '-created_at')
         
         # Admin can see all offers
         if self.request.user and self.request.user.is_authenticated and hasattr(self.request.user, 'role') and self.request.user.role == 'admin':
-            queryset = Offer.objects.all().order_by('-is_featured', '-created_at')
+            queryset = Offer.objects.all().prefetch_related(
+                'products',
+                'collections',
+                'categories',
+                'brands'
+            ).order_by('-is_featured', '-created_at')
             
             # Filter by active status
             is_active = self.request.query_params.get('is_active', None)
@@ -106,10 +116,20 @@ class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
                 is_active=True,
                 start_date__lte=now,
                 end_date__gte=now
+            ).prefetch_related(
+                'products',
+                'collections',
+                'categories',
+                'brands'
             )
         
         # Admin can see/modify all offers
-        return Offer.objects.all()
+        return Offer.objects.all().prefetch_related(
+            'products',
+            'collections',
+            'categories',
+            'brands'
+        )
     
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)

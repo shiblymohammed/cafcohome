@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ApiClient } from "@/src/lib/api/client";
 
 interface BlogPost {
@@ -16,24 +16,41 @@ interface BlogPost {
   published_at: string;
 }
 
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); obs.disconnect(); } },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+
+  return { ref, isVisible };
+}
+
 export default function BlogSection() {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const header = useInView(0.2);
+  const featured = useInView(0.1);
+  const sidebar = useInView(0.1);
+  const cta = useInView(0.2);
 
-  useEffect(() => {
-    fetchBlogs();
-  }, []);
+  useEffect(() => { fetchBlogs(); }, []);
 
   const fetchBlogs = async () => {
     try {
       const response = await ApiClient.getBlogPosts();
       const allBlogs = response.results || response;
-      
-      // Get featured blogs first, then fill with regular blogs to get 3 total
       const featuredBlogs = allBlogs.filter((blog: BlogPost) => blog.is_featured);
       const regularBlogs = allBlogs.filter((blog: BlogPost) => !blog.is_featured);
       const displayBlogs = [...featuredBlogs, ...regularBlogs].slice(0, 3);
-      
       setBlogs(displayBlogs);
     } catch (err) {
       console.error('Failed to fetch blogs:', err);
@@ -42,12 +59,8 @@ export default function BlogSection() {
     }
   };
 
-  // Don't show section while loading
-  if (loading) {
-    return null;
-  }
+  if (loading) return null;
 
-  // Show empty state if no blogs available
   if (blogs.length === 0) {
     return (
       <section className="bg-creme border-t border-black/5">
@@ -59,7 +72,7 @@ export default function BlogSection() {
             <h2 className="text-4xl md:text-6xl font-secondary text-alpha tracking-tight mb-8">
               Design Notes
             </h2>
-            
+
             <div className="py-12 md:py-16">
               <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-alpha/5 flex items-center justify-center">
                 <svg className="w-8 h-8 text-alpha/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,23 +86,6 @@ export default function BlogSection() {
                 We're curating inspiring stories about design, craftsmanship, and the art of creating beautiful living spaces.
               </p>
             </div>
-
-            {/* Newsletter CTA */}
-            <div className="mt-8 pt-8 border-t border-black/5">
-              <p className="text-xs font-primary uppercase tracking-wider text-alpha/50 mb-4">
-                Be the first to know
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-white border border-black/10 text-alpha placeholder:text-alpha/40 text-sm font-primary focus:outline-none focus:border-alpha/30 transition-colors"
-                />
-                <button className="px-6 py-3 bg-alpha text-creme text-xs uppercase tracking-wider font-primary hover:bg-alpha/90 transition-colors">
-                  Subscribe
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -99,94 +95,155 @@ export default function BlogSection() {
   const featuredBlog = blogs[0];
   const sidebarBlogs = blogs.slice(1);
 
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
   return (
-    <section className="bg-creme border-t border-black/5">
+    <section className="bg-creme border-t border-black/5 overflow-hidden">
 
       {/* Editorial Header */}
-      <div className="max-w-[1920px] mx-auto px-4 py-16 md:py-24 text-center border-b border-black/5">
-        <span className="block text-xs font-primary uppercase tracking-[0.25em] text-alpha/60 mb-1.5">
+      <div
+        ref={header.ref}
+        className={`max-w-[1920px] mx-auto px-4 pt-20 pb-12 md:pt-28 md:pb-16 text-center border-b border-black/5 transition-all duration-1000 ease-out ${
+          header.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+      >
+        <span className="inline-flex items-center gap-3 text-[10px] font-primary uppercase tracking-[0.3em] text-alpha/50 mb-3">
+          <span className={`h-[1px] bg-alpha/30 transition-all duration-1000 delay-300 ${header.isVisible ? 'w-10' : 'w-0'}`} />
           The Journal
+          <span className={`h-[1px] bg-alpha/30 transition-all duration-1000 delay-300 ${header.isVisible ? 'w-10' : 'w-0'}`} />
         </span>
-        <h2 className="text-4xl md:text-6xl font-secondary text-alpha tracking-tight">
-          Design Notes
+        <h2 className="text-4xl md:text-6xl lg:text-7xl font-secondary text-alpha tracking-tight">
+          Design <span className="italic font-light">Notes</span>
         </h2>
       </div>
 
       {/* Magazine Grid */}
       <div className="max-w-[1920px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-black/5 border-b border-black/5">
+        <div className="grid grid-cols-1 md:grid-cols-3 border-b border-black/5">
 
-          {/* Main Feature - Spans 2 cols on desktop */}
-          <Link href={`/blogs/${featuredBlog.slug}`} className="md:col-span-2 group relative cursor-pointer md:min-h-[80vh] block">
-            <div className="relative h-[60vh] md:h-full w-full overflow-hidden">
-              <Image
-                src={featuredBlog.featured_image_url}
-                alt={featuredBlog.title}
-                fill
-                className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-alpha/10 group-hover:bg-alpha/0 transition-colors duration-700" />
+          {/* Main Feature — Spans 2 cols on desktop */}
+          <div
+            ref={featured.ref}
+            className={`md:col-span-2 transition-all duration-1000 delay-200 ease-out ${
+              featured.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}
+          >
+            <Link href={`/blogs/${featuredBlog.slug}`} className="group relative cursor-pointer block md:min-h-[80vh] overflow-hidden">
+              <div className="relative h-[60vh] md:h-full w-full overflow-hidden">
+                <Image
+                  src={featuredBlog.featured_image_url}
+                  alt={featuredBlog.title}
+                  fill
+                  className="object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-alpha/70 via-alpha/20 to-transparent" />
 
-              {/* Overlay Content */}
-              <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end">
-                <div className="max-w-xl text-creme transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
-                  <div className="flex items-center gap-4 mb-4 text-xs font-primary uppercase tracking-widest opacity-90">
-                    {featuredBlog.author_name && <span>{featuredBlog.author_name}</span>}
-                    <span className="w-8 h-[1px] bg-creme/60" />
-                    <span>{new Date(featuredBlog.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                  </div>
-                  <h3 className="text-3xl md:text-5xl font-secondary leading-tight mb-6">
-                    {featuredBlog.title}
-                  </h3>
-                  <p className="text-sm md:text-base font-primary leading-relaxed opacity-90 hidden md:block max-w-md">
-                    {featuredBlog.excerpt}
-                  </p>
-                  <div className="mt-8 inline-flex items-center gap-2 text-xs uppercase tracking-widest border-b border-transparent group-hover:border-creme transition-colors duration-500">
-                    Read Story
+                {/* Overlay Content */}
+                <div className="absolute inset-0 p-6 md:p-12 lg:p-16 flex flex-col justify-end">
+                  <div className="max-w-xl text-creme">
+                    {/* Tag */}
+                    <span className="inline-block px-3 py-1 mb-4 text-[9px] uppercase tracking-[0.2em] bg-white/15 backdrop-blur-sm border border-white/20 font-primary">
+                      Featured Story
+                    </span>
+
+                    <div className="flex items-center gap-4 mb-4 text-[10px] font-primary uppercase tracking-widest opacity-80">
+                      {featuredBlog.author_name && <span>{featuredBlog.author_name}</span>}
+                      <span className="w-6 h-[1px] bg-creme/50" />
+                      <span>{formatDate(featuredBlog.published_at)}</span>
+                    </div>
+
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-secondary leading-[1.1] mb-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-700">
+                      {featuredBlog.title}
+                    </h3>
+
+                    <p className="text-sm md:text-base font-primary leading-relaxed opacity-80 hidden md:block max-w-md mb-6">
+                      {featuredBlog.excerpt}
+                    </p>
+
+                    <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-primary group/link">
+                      <span className="relative pb-0.5 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-creme group-hover:after:w-full after:transition-all after:duration-500">
+                        Read Story
+                      </span>
+                      <svg className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
 
-          {/* Sidebar Column - Stacked Items */}
-          <div className="md:col-span-1 flex flex-col divide-y divide-black/5">
-            {/* Sidebar blogs - hidden on mobile, visible on desktop */}
-            {sidebarBlogs.length > 0 && sidebarBlogs.map((blog) => (
-              <Link href={`/blogs/${blog.slug}`} key={blog.id} className="hidden md:block group relative flex-1 min-h-[40vh] md:min-h-0 cursor-pointer overflow-hidden bg-white hover:bg-ivory transition-colors duration-500">
-                <div className="relative h-2/3 overflow-hidden">
+          {/* Sidebar Column */}
+          <div
+            ref={sidebar.ref}
+            className={`md:col-span-1 flex flex-col border-t md:border-t-0 md:border-l border-black/5 transition-all duration-1000 delay-500 ease-out ${
+              sidebar.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}
+          >
+            {/* Sidebar Blogs */}
+            {sidebarBlogs.length > 0 && sidebarBlogs.map((blog, i) => (
+              <Link
+                href={`/blogs/${blog.slug}`}
+                key={blog.id}
+                className={`hidden md:flex group relative flex-1 cursor-pointer overflow-hidden bg-white hover:bg-ivory transition-all duration-700 flex-col border-b border-black/5 last:border-b-0 ${
+                  sidebar.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+                }`}
+                style={{ transitionDelay: `${600 + i * 200}ms` }}
+              >
+                <div className="relative h-48 lg:h-56 overflow-hidden">
                   <Image
                     src={blog.featured_image_url}
                     alt={blog.title}
                     fill
-                    className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105"
+                    className="object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
                   />
+                  <div className="absolute inset-0 bg-alpha/5 group-hover:bg-alpha/0 transition-colors duration-700" />
                 </div>
-                <div className="p-8 h-1/3 flex flex-col justify-center">
-                  <div className="flex items-center gap-3 mb-3 text-[0.6rem] font-primary uppercase tracking-widest text-alpha/60">
+                <div className="p-6 lg:p-8 flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-2.5 text-[9px] font-primary uppercase tracking-[0.2em] text-alpha/40">
                     {blog.author_name && <span>{blog.author_name}</span>}
                     <span>•</span>
-                    <span>{new Date(blog.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span>{formatDate(blog.published_at)}</span>
                   </div>
-                  <h3 className="text-xl md:text-2xl font-secondary text-alpha mb-3 group-hover:text-tango transition-colors duration-300">
+                  <h3 className="text-lg lg:text-xl font-secondary text-alpha mb-2 group-hover:text-tango transition-colors duration-500 leading-snug">
                     {blog.title}
                   </h3>
-                  <p className="text-xs text-alpha/70 font-primary leading-relaxed line-clamp-2">
+                  <p className="text-xs text-alpha/50 font-primary leading-relaxed line-clamp-2">
                     {blog.excerpt}
                   </p>
                 </div>
               </Link>
             ))}
 
-            {/* Empty state for sidebar when only 1 blog exists */}
+            {/* Sidebar blog cards on mobile - horizontal scroll */}
+            {sidebarBlogs.length > 0 && (
+              <div className="md:hidden flex gap-4 px-4 py-6 overflow-x-auto scrollbar-hide">
+                {sidebarBlogs.map((blog) => (
+                  <Link
+                    href={`/blogs/${blog.slug}`}
+                    key={blog.id}
+                    className="group flex-shrink-0 w-[75vw] cursor-pointer"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden mb-3">
+                      <Image src={blog.featured_image_url} alt={blog.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                    </div>
+                    <div className="flex items-center gap-2 mb-1.5 text-[9px] font-primary uppercase tracking-[0.15em] text-alpha/40">
+                      <span>{formatDate(blog.published_at)}</span>
+                    </div>
+                    <h3 className="text-base font-secondary text-alpha leading-snug">
+                      {blog.title}
+                    </h3>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state for sidebar when only 1 blog */}
             {sidebarBlogs.length === 0 && (
               <div className="hidden md:flex flex-1 bg-white items-center justify-center p-12 text-center">
                 <div className="max-w-xs">
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-alpha/5 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-alpha/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
                   <p className="text-xs text-alpha/40 font-primary uppercase tracking-wider">
                     More stories coming soon
                   </p>
@@ -195,38 +252,46 @@ export default function BlogSection() {
             )}
 
             {/* Newsletter Block */}
-            <div className="flex-1 bg-alpha text-creme p-8 md:p-12 flex flex-col justify-center items-center text-center">
-              <span className="text-[0.6rem] font-primary uppercase tracking-[0.3em] mb-6 opacity-60">
+            <div
+              ref={cta.ref}
+              className={`bg-alpha text-creme p-8 md:p-10 lg:p-12 flex flex-col justify-center items-center text-center transition-all duration-1000 delay-700 ease-out ${
+                cta.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+            >
+              <span className="text-[9px] font-primary uppercase tracking-[0.3em] mb-5 opacity-50">
                 Newsletter
               </span>
-              <h3 className="text-2xl md:text-3xl font-secondary mb-6 italic">
+              <h3 className="text-xl md:text-2xl font-secondary mb-4 italic leading-snug">
                 Join the Inner Circle
               </h3>
-              <p className="text-xs font-primary leading-relaxed opacity-70 mb-8 max-w-xs mx-auto">
+              <p className="text-[11px] font-primary leading-relaxed opacity-50 mb-6 max-w-[240px] mx-auto">
                 Subscribe for exclusive access to new drops, events, and design stories.
               </p>
-              <div className="w-full max-w-xs relative">
+              <div className="w-full max-w-[240px] relative group">
                 <input
                   suppressHydrationWarning
                   type="email"
                   placeholder="Email Address"
-                  className="w-full bg-transparent border-b border-creme/30 py-2 text-xs uppercase tracking-wider placeholder:text-creme/30 focus:outline-none focus:border-creme transition-colors duration-300 text-center"
+                  className="w-full bg-transparent border-b border-creme/20 py-2 text-[10px] uppercase tracking-wider placeholder:text-creme/25 focus:outline-none focus:border-creme/50 transition-colors duration-500 text-center"
                 />
-                <button suppressHydrationWarning className="absolute right-0 top-0 bottom-0 text-[0.6rem] uppercase tracking-widest hover:text-creme/70 transition-colors">
+                <button suppressHydrationWarning className="absolute right-0 top-0 bottom-0 text-[9px] uppercase tracking-widest opacity-50 hover:opacity-100 transition-opacity duration-300">
                   Submit
                 </button>
               </div>
             </div>
-
           </div>
-
         </div>
       </div>
 
-      {/* Footer Link - hidden on mobile, visible on desktop */}
-      <div className="hidden md:block mt-12 text-center pb-12">
-        <Link href="/blogs" className="inline-block text-xs uppercase tracking-widest border-b border-alpha/30 pb-1 hover:border-alpha transition-colors duration-300">
-          Read All Stories
+      {/* View All Stories Link */}
+      <div className="hidden md:block py-12 text-center">
+        <Link href="/blogs" className="group inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-primary text-alpha/60 hover:text-alpha transition-colors duration-500">
+          <span className="relative pb-0.5 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-alpha/20 group-hover:after:bg-alpha after:transition-colors after:duration-500">
+            Read All Stories
+          </span>
+          <svg className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
         </Link>
       </div>
     </section>

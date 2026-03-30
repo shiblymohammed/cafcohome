@@ -91,7 +91,9 @@ WSGI_APPLICATION = 'cafcohome_api.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL', default='postgres://postgres:postgres@localhost:5432/cafcohome_db')
+        default=config('DATABASE_URL', default='postgres://postgres:postgres@localhost:5432/cafcohome_db'),
+        conn_max_age=600,  # Connection pooling: keep connections alive for 10 minutes
+        conn_health_checks=True,  # Check connection health before reusing
     )
 }
 
@@ -150,6 +152,23 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'EXCEPTION_HANDLER': 'utils.exceptions.custom_exception_handler',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+}
+
+# Caching Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'cafcohome-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
 }
 
 # CORS Configuration

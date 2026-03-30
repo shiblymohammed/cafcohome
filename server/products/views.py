@@ -120,6 +120,9 @@ class ProductListView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True).select_related(
             'category', 'subcategory', 'brand'
+        ).prefetch_related(
+            'variants',  # Prefetch all variants to avoid N+1
+            'reviews'    # Prefetch reviews for rating calculations
         )
         
         # Filter by category
@@ -188,7 +191,14 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         return ProductDetailSerializer
     
     def get_queryset(self):
-        return Product.objects.select_related('category', 'subcategory', 'brand')
+        return Product.objects.select_related(
+            'category', 'subcategory', 'brand'
+        ).prefetch_related(
+            'variants',
+            'reviews',
+            'frequently_bought_together__variants',
+            'frequently_bought_together__reviews'
+        )
 
 
 

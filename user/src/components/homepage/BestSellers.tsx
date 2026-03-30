@@ -20,7 +20,6 @@ import {
   ProductCardWishlist,
   ProductCardQuickAdd,
   ProductCardInfo,
-  ProductCardColorSwatches,
 } from "@/src/components/ui/ProductCard";
 
 function ProductCardItem({ product }: { product: Product }) {
@@ -39,6 +38,7 @@ function ProductCardItem({ product }: { product: Product }) {
       <ProductCardImageContainer>
         {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
         <ProductCardImage src={mainImage} alt={product.name} />
+        <ProductCardWishlist product={product} />
       </ProductCardImageContainer>
       
       <div className="flex flex-col items-start px-1.5 md:px-2 py-2 md:py-3">
@@ -51,12 +51,10 @@ function ProductCardItem({ product }: { product: Product }) {
         <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
         <div className="flex items-center justify-between w-full mt-2">
           <div className="flex items-center gap-3">
-            <ProductCardColorSwatches colors={product.colors} />
             {!product.is_in_stock && (
               <span className="text-xs text-red-600 font-primary">Out of Stock</span>
             )}
           </div>
-          <ProductCardWishlist product={product} />
         </div>
       </div>
     </ProductCard>
@@ -103,9 +101,9 @@ export default function BestSellers() {
             <div key={i} className="flex-none w-[55%] sm:w-[40%] md:w-[30%] lg:w-[22%] flex flex-col gap-3 group animate-pulse">
               <div className="relative aspect-[3/4] w-full bg-alpha/5 overflow-hidden"></div>
               <div className="space-y-2 mt-2">
-                <div className="h-4 bg-alpha/10 w-3/4 rounded-sm"></div>
-                <div className="h-3 bg-alpha/10 w-1/2 rounded-sm"></div>
-                <div className="h-3 bg-alpha/10 w-1/4 rounded-sm mt-3"></div>
+                <div className="h-4 bg-alpha/10 w-3/4"></div>
+                <div className="h-3 bg-alpha/10 w-1/2"></div>
+                <div className="h-3 bg-alpha/10 w-1/4 mt-3"></div>
               </div>
             </div>
           ))}
@@ -158,7 +156,7 @@ export default function BestSellers() {
         </div>
         <a
           href="/products?bestseller=true"
-          className="hidden md:inline-flex items-center gap-2 px-5 py-2 text-xs text-alpha border-2 border-alpha/20 rounded-lg hover:bg-alpha hover:text-creme hover:border-alpha transition-all duration-300 tracking-wider group font-medium absolute right-0 top-1/2 -translate-y-1/2"
+          className="hidden md:inline-flex items-center gap-2 px-5 py-2 text-xs text-alpha border border-alpha/20 hover:bg-alpha hover:text-creme hover:border-alpha transition-all duration-300 tracking-wider group font-medium absolute right-0 top-1/2 -translate-y-1/2"
         >
           View All
           <svg
@@ -181,7 +179,7 @@ export default function BestSellers() {
       <div className="animate-fade-in">
         <Swiper
           modules={[FreeMode, Pagination]}
-          spaceBetween={8}
+          spaceBetween={4}
           slidesPerView={1.4}
           slidesOffsetBefore={0}
           slidesOffsetAfter={0}
@@ -194,31 +192,31 @@ export default function BestSellers() {
           breakpoints={{
             480: {
               slidesPerView: 1.8,
-              spaceBetween: 8,
+              spaceBetween: 4,
               slidesOffsetBefore: 0,
               slidesOffsetAfter: 0,
             },
             640: {
               slidesPerView: 2.3,
-              spaceBetween: 10,
+              spaceBetween: 6,
               slidesOffsetBefore: 32,
               slidesOffsetAfter: 32,
             },
             768: {
               slidesPerView: 3,
-              spaceBetween: 12,
+              spaceBetween: 8,
               slidesOffsetBefore: 32,
               slidesOffsetAfter: 32,
             },
             1024: {
               slidesPerView: 4,
-              spaceBetween: 16,
+              spaceBetween: 8,
               slidesOffsetBefore: 32,
               slidesOffsetAfter: 32,
             },
             1280: {
               slidesPerView: 4,
-              spaceBetween: 20,
+              spaceBetween: 10,
               slidesOffsetBefore: 32,
               slidesOffsetAfter: 32,
             },
@@ -240,7 +238,7 @@ export default function BestSellers() {
       <div className="md:hidden flex justify-center mt-2.5 px-container">
         <a
           href="/products?bestseller=true"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-alpha text-creme text-xs rounded-lg hover:bg-alpha/90 transition-all duration-300 tracking-wider group shadow-lg font-medium uppercase"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-alpha text-creme text-xs hover:bg-alpha/90 transition-all duration-300 tracking-wider group font-medium uppercase"
         >
           View All Products
           <svg

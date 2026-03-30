@@ -1,10 +1,16 @@
-/* Blog Content Styling */
+/* ════════════════════════════════════════════════
+   BLOG CONTENT STYLING — Premium Editorial
+   ════════════════════════════════════════════════ */
+
 .blog-content {
-  @apply space-y-6 text-base text-alpha/70 font-primary leading-loose;
+  @apply text-base md:text-body text-alpha/65 font-primary;
+  line-height: 1.9;
 }
 
+/* Headings */
 .blog-content h2 {
-  @apply text-2xl md:text-3xl font-secondary text-alpha mt-12 mb-6 leading-tight;
+  @apply text-2xl md:text-3xl font-secondary text-alpha mt-14 mb-6 leading-tight;
+  letter-spacing: -0.01em;
 }
 
 .blog-content h3 {
@@ -15,51 +21,85 @@
   @apply text-lg md:text-xl font-secondary text-alpha mt-8 mb-3 leading-tight;
 }
 
+/* First h2 — no top margin */
+.blog-content > h2:first-child {
+  @apply mt-0;
+}
+
+/* Paragraphs */
 .blog-content p {
-  @apply mb-6 leading-relaxed;
+  @apply mb-6;
+  line-height: 1.9;
 }
 
+/* Links */
 .blog-content a {
-  @apply text-alpha underline hover:text-tango transition-colors;
+  @apply text-alpha underline decoration-alpha/20 underline-offset-4 hover:decoration-alpha/60 transition-all duration-300;
 }
 
+/* Lists */
 .blog-content ul,
 .blog-content ol {
-  @apply ml-6 mb-6 space-y-2;
+  @apply ml-6 mb-8 space-y-3;
 }
 
 .blog-content ul {
-  @apply list-disc;
+  list-style: none;
+}
+
+.blog-content ul li {
+  @apply relative pl-5;
+}
+
+.blog-content ul li::before {
+  content: '';
+  @apply absolute left-0 top-[0.7em] w-1.5 h-1.5 bg-alpha/20 rounded-full;
 }
 
 .blog-content ol {
   @apply list-decimal;
 }
 
+.blog-content ol li {
+  @apply pl-1;
+}
+
 .blog-content li {
-  @apply leading-relaxed;
+  line-height: 1.8;
 }
 
+/* Blockquotes — editorial pull-quote style */
 .blog-content blockquote {
-  @apply border-l-2 border-alpha/20 pl-6 italic text-alpha/60 my-8;
+  @apply relative my-12 px-8 py-6;
+  border-left: 2px solid rgba(38, 37, 36, 0.12);
 }
 
+.blog-content blockquote p {
+  @apply text-lg md:text-xl font-secondary italic text-alpha/50 mb-0;
+  line-height: 1.7;
+}
+
+/* Images */
 .blog-content img {
-  @apply w-full rounded-lg my-8;
+  @apply w-full my-10;
 }
 
+/* Code */
 .blog-content code {
-  @apply bg-alpha/5 px-2 py-1 rounded text-sm font-mono;
+  @apply bg-alpha/[0.04] px-2 py-0.5 text-sm font-mono text-alpha/70;
+  border: 1px solid rgba(38, 37, 36, 0.06);
 }
 
 .blog-content pre {
-  @apply bg-alpha/5 p-4 rounded-lg overflow-x-auto my-6;
+  @apply bg-alpha/[0.03] p-5 overflow-x-auto my-8;
+  border: 1px solid rgba(38, 37, 36, 0.06);
 }
 
 .blog-content pre code {
-  @apply bg-transparent p-0;
+  @apply bg-transparent p-0 border-0;
 }
 
+/* Strong & Em */
 .blog-content strong {
   @apply font-semibold text-alpha;
 }
@@ -68,19 +108,154 @@
   @apply italic;
 }
 
+/* Horizontal Rule */
 .blog-content hr {
-  @apply border-t border-alpha/10 my-12;
+  @apply border-0 my-14;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(38, 37, 36, 0.1), transparent);
 }
 
+/* Tables */
 .blog-content table {
-  @apply w-full border-collapse my-8;
+  @apply w-full my-10;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .blog-content th,
 .blog-content td {
-  @apply border border-alpha/10 px-4 py-2 text-left;
+  @apply px-5 py-3 text-left text-sm;
+  border-bottom: 1px solid rgba(38, 37, 36, 0.08);
 }
 
 .blog-content th {
-  @apply bg-alpha/5 font-semibold;
+  @apply font-primary font-semibold text-alpha/70 uppercase tracking-wider text-xs;
+  border-bottom: 2px solid rgba(38, 37, 36, 0.1);
+}
+
+.blog-content td {
+  @apply text-alpha/60;
+}
+
+.blog-content tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* ════════════════════════════════════════════════
+   BLOG ANIMATIONS
+   ════════════════════════════════════════════════ */
+
+/* Scroll indicator line */
+@keyframes blog-scroll-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+.animate-blog-scroll-line {
+  animation: blog-scroll-line 2s ease-in-out infinite;
+}
+
+/* Image reveal clip */
+@keyframes blog-image-reveal {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-blog-image-reveal {
+  animation: blog-image-reveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Fade up stagger */
+@keyframes blog-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-blog-fade-up {
+  animation: blog-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Width expand */
+@keyframes blog-expand {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-blog-expand {
+  animation: blog-expand 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+
+/* ════════════════════════════════════════════════
+   DROP CAP — First paragraph styling
+   ════════════════════════════════════════════════ */
+
+.blog-content > p:first-of-type::first-letter {
+  @apply font-secondary text-alpha float-left;
+  font-size: 3.5em;
+  line-height: 0.85;
+  padding-right: 0.1em;
+  margin-top: 0.05em;
+}
+
+
+/* ════════════════════════════════════════════════
+   RESPONSIVE REFINEMENTS
+   ════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .blog-content h2 {
+    @apply text-xl mt-10 mb-4;
+  }
+
+  .blog-content h3 {
+    @apply text-lg mt-8 mb-3;
+  }
+
+  .blog-content blockquote {
+    @apply px-5 py-4 my-8;
+  }
+
+  .blog-content blockquote p {
+    @apply text-base;
+  }
+
+  .blog-content > p:first-of-type::first-letter {
+    font-size: 2.8em;
+  }
+
+  .blog-content ul,
+  .blog-content ol {
+    @apply ml-4 mb-6;
+  }
+}
+
+@media (max-width: 480px) {
+  .blog-content {
+    @apply text-sm;
+    line-height: 1.85;
+  }
+
+  .blog-content > p:first-of-type::first-letter {
+    font-size: 2.4em;
+  }
 }

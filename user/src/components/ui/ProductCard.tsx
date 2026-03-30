@@ -24,7 +24,7 @@ export function ProductCard({
     return (
       <Link
         href={href}
-        className={`group cursor-pointer relative bg-productcardbg block transition-all duration-300 rounded-2xl shadow-product-card hover:shadow-product-card-hover h-full flex flex-col ${className}`}
+        className={`group cursor-pointer relative bg-productcardbg block transition-all duration-300 h-full flex flex-col ${className}`}
         onClick={onClick}
       >
         {children}
@@ -34,7 +34,7 @@ export function ProductCard({
 
   return (
     <div
-      className={`group cursor-pointer relative bg-productcardbg transition-all duration-300 rounded-2xl shadow-product-card hover:shadow-product-card-hover h-full flex flex-col ${className}`}
+      className={`group cursor-pointer relative bg-productcardbg transition-all duration-300 h-full flex flex-col ${className}`}
       onClick={onClick}
     >
       {children}
@@ -56,17 +56,17 @@ export function ProductCardImage({
 }: ProductCardImageProps) {
   return (
     <div
-      className={`relative aspect-square overflow-hidden bg-sand w-full rounded-lg ${className}`}
+      className={`relative aspect-[4/5] overflow-hidden bg-sand w-full ${className}`}
     >
       <Image
         src={src}
         alt={alt}
         fill
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105 rounded-lg"
+        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
       />
       {/* Cinematic overlay */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 rounded-lg" />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
     </div>
   );
 }
@@ -98,7 +98,7 @@ export function ProductCardQuickAdd({
     <button
       suppressHydrationWarning
       onClick={handleClick}
-      className={`bg-alpha text-creme rounded-full lg:rounded-lg transition-all duration-300 hover:bg-alpha/90 flex items-center justify-center
+      className={`bg-alpha text-creme transition-all duration-300 hover:bg-alpha/90 flex items-center justify-center
         w-9 h-9 md:w-10 md:h-10 
         lg:px-6 lg:py-3 lg:w-auto lg:h-auto lg:gap-2 
         ${className}`}
@@ -254,7 +254,7 @@ export function ProductCardBadge({
   className = "",
 }: ProductCardBadgeProps) {
   const baseStyles =
-    "absolute top-[12px] left-[12px] md:top-[16px] md:left-[16px] lg:top-[20px] lg:left-[20px] z-20 px-2 py-1 md:px-2.5 md:py-1.5 lg:px-3 lg:py-1.5 text-[0.6rem] md:text-[0.65rem] lg:text-xs uppercase tracking-wider font-bold rounded-full shadow-md backdrop-blur-md";
+    "absolute top-[8px] left-[8px] md:top-[12px] md:left-[12px] z-20 px-1.5 py-0.5 md:px-2 md:py-1 text-[0.5rem] md:text-[0.55rem] uppercase tracking-widest font-bold backdrop-blur-md border";
   
   // Luxury variants with glassmorphism
   const variantStyles = {
@@ -314,12 +314,12 @@ export function ProductCardBadgeGroup({
   };
 
   return (
-    <div className={`absolute top-[12px] left-[12px] md:top-[16px] md:left-[16px] lg:top-[20px] lg:left-[20px] z-20 ${className}`}>
+    <div className={`absolute top-[8px] left-[8px] md:top-[12px] md:left-[12px] z-20 ${className}`}>
       <div className="relative" style={{ perspective: "400px" }}>
         {badges.map((badge, index) => (
           <div
             key={`${badge.variant}-${index}`}
-            className={`px-2 py-1 md:px-2.5 md:py-1.5 lg:px-3 lg:py-1.5 text-[0.6rem] md:text-[0.65rem] lg:text-xs uppercase tracking-wider font-bold rounded-full shadow-md backdrop-blur-md whitespace-nowrap ${variantStyles[badge.variant]} ${
+            className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[0.5rem] md:text-[0.55rem] uppercase tracking-widest font-bold backdrop-blur-md whitespace-nowrap border ${variantStyles[badge.variant]} ${
               index === activeIndex
                 ? "opacity-100"
                 : "opacity-0 absolute top-0 left-0 pointer-events-none"
@@ -372,15 +372,15 @@ export function ProductCardWishlist({
     <button
       suppressHydrationWarning
       onClick={handleClick}
-      className={`w-7 h-7 md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-full transition-all duration-300 ${
+      className={`absolute top-[8px] right-[8px] md:top-[12px] md:right-[12px] z-30 p-1 flex items-center justify-center transition-all duration-300 ${
         inWishlist
-          ? "bg-alpha text-creme"
-          : "bg-sand text-alpha hover:bg-alpha hover:text-creme"
+          ? "text-red-500 scale-110"
+          : "text-alpha hover:text-red-500 hover:scale-110"
       } ${className}`}
       aria-label="Add to wishlist"
     >
       <svg
-        className="w-3.5 h-3.5 md:w-5 md:h-5 lg:w-6 lg:h-6"
+        className="w-4 h-4 md:w-5 md:h-5 drop-shadow-sm"
         fill={inWishlist ? "currentColor" : "none"}
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -407,7 +407,7 @@ export function ProductCardImageContainer({
   className = "",
 }: ProductCardImageContainerProps) {
   return (
-    <div className={`relative p-1.5 md:p-2 lg:p-2.5 pb-1 ${className}`}>
+    <div className={`relative w-full ${className}`}>
       {children}
     </div>
   );
@@ -430,101 +430,13 @@ export function ProductCardInfo({
   );
 }
 
-// Product Color Swatches - Color variant display
-interface ProductCardColorSwatchesProps {
-  colors: Array<{ name: string; hex: string }>;
-  selectedColor?: string;
-  onColorSelect?: (color: string) => void;
-  className?: string;
-}
 
-export function ProductCardColorSwatches({
-  colors,
-  selectedColor,
-  onColorSelect,
-  className = "",
-}: ProductCardColorSwatchesProps) {
-  if (!colors || !Array.isArray(colors) || colors.length === 0) return null;
-
-  // Ensure we can get a valid active color
-  // Color name to hex mapping for cases where API returns names or fallback hex
-  const COLOR_MAP: Record<string, string> = {
-    "Navy Blue": "#000080",
-    "Emerald Green": "#50C878",
-    "Charcoal Grey": "#36454F",
-    "Cream White": "#FFFDD0",
-    "Walnut Brown": "#773F1A",
-    "Mustard Yellow": "#FFDB58",
-    "Blush Pink": "#FE828C",
-    "Jet Black": "#0A0A0A",
-    "Midnight": "#191970",
-    "Ivory": "#FFFFF0",
-    "Charcoal": "#36454F",
-    "Forest": "#228B22",
-    "Cream": "#FFFDD0",
-    "Navy": "#000080",
-    "Sand": "#C2B280",
-    "Graphite": "#383838",
-    "Natural Oak": "#D6C09F",
-    "Cognac": "#9A463D",
-    "Taupe": "#483C32",
-    "Emerald": "#50C878",
-    "Blush": "#FE828C",
-    "Sage": "#BCB88A",
-    "Terracotta": "#E2725B",
-    "Mustard": "#FFDB58",
-    "Walnut": "#773F1A",
-    "Oak": "#D6C09F",
-    "Black": "#000000",
-    "White": "#FFFFFF",
-    "Natural": "#D2B48C",
-  };
-
-  const getColName = (c: any) => (typeof c === 'string' ? c : c?.name || '');
-  const getColHex = (c: any) => {
-    if (typeof c === 'string') {
-      return COLOR_MAP[c] || c;
-    }
-    const hex = c?.hex || '#ccc';
-    // If we have a name but the hex is the default #ccc, try mapping the name
-    if (hex === '#ccc' || hex === '#CCCCCC') {
-      const name = c?.name || '';
-      return COLOR_MAP[name] || hex;
-    }
-    return hex;
-  };
-
-  const activeColor = selectedColor || (colors.length > 0 ? getColName(colors[0]) : null);
-
-  return (
-    <div className={`flex items-center gap-1.5 md:gap-2 flex-wrap ${className}`}>
-      {colors.map((color, index) => {
-        const name = getColName(color);
-        const hex = getColHex(color);
-        const uniqueKey = name ? `${name}-${index}` : `color-${index}`;
-        
-        return (
-          <div
-            key={uniqueKey}
-            className={`w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 rounded-full border transition-all ${
-              activeColor === name 
-                ? "border-alpha ring-1 ring-alpha ring-offset-1" 
-                : "border-alpha/20"
-            }`}
-            style={{ backgroundColor: hex }}
-            title={name}
-          />
-        );
-      })}
-    </div>
-  );
-}
 
 // Skeleton - Minimalist
 export function ProductCardSkeleton({ className = "" }: { className?: string }) {
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="aspect-[3/4] bg-sand/30 animate-pulse" />
+      <div className="aspect-[4/5] bg-sand/30 animate-pulse" />
       <div className="space-y-2 px-1">
         <div className="h-4 bg-sand/30 w-2/3 animate-pulse" />
         <div className="h-3 bg-sand/20 w-1/3 animate-pulse" />

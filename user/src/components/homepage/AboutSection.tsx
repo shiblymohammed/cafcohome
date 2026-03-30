@@ -1,104 +1,114 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useRef, useState, useEffect } from "react";
+
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, visible };
+}
 
 export default function AboutSection() {
+  const section = useInView(0.1);
+  const image = useInView(0.08);
+  const text = useInView(0.1);
+
   return (
-    <section className="bg-creme py-16 md:py-32 relative overflow-hidden">
-      <div className="max-w-[1920px] mx-auto px-4 md:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center">
+    <section className="bg-creme overflow-hidden border-t border-alpha/[0.05]">
+      <div
+        ref={section.ref}
+        className="max-w-[1440px] mx-auto px-4 md:px-12 py-20 md:py-32 lg:py-40"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
 
-          {/* Left - Visual Narrative */}
-          <div className="relative order-2 lg:order-1">
-            {/* Mobile: Modern decorative element instead of image */}
-            <div className="block lg:hidden">
-              <div className="relative py-8">
-                {/* Decorative accent lines */}
-                <div className="flex items-center justify-center gap-6">
-                  <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-alpha/30"></div>
-                  <div className="w-3 h-3 border border-alpha/20 rotate-45"></div>
-                  <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-alpha/30"></div>
-                </div>
-                
-                {/* Stats highlight for mobile */}
-                <div className="mt-8 flex justify-center gap-8">
-                  <div className="text-center px-6 py-4 border border-alpha/10 rounded-sm">
-                    <span className="block text-2xl font-secondary text-alpha">38+</span>
-                    <span className="text-[0.6rem] uppercase tracking-widest text-alpha/50">Years</span>
-                  </div>
-                  <div className="text-center px-6 py-4 border border-alpha/10 rounded-sm">
-                    <span className="block text-2xl font-secondary text-alpha">100%</span>
-                    <span className="text-[0.6rem] uppercase tracking-widest text-alpha/50">Handcrafted</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop: Original image layout */}
-            <div className="hidden lg:block relative aspect-[4/5] overflow-hidden group">
-              {/* Main Image */}
+          {/* Left — Minimal Image Block */}
+          <div
+            ref={image.ref}
+            className={`lg:col-span-5 transition-all duration-[1.2s] ease-[cubic-bezier(0.22,1,0.36,1)] ${image.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          >
+            {/* Desktop image */}
+            <div className="hidden lg:block relative aspect-[3/4] overflow-hidden">
               <Image
-                src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2600&auto=format&fit=crop"
-                alt="Artisan at work"
+                src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1200&auto=format&fit=crop"
+                alt="Artisan workspace"
                 fill
-                className="object-cover transition-transform duration-[1.8s] ease-out group-hover:scale-105"
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-[1.5s] ease-[cubic-bezier(0.22,1,0.36,1)]"
               />
-              <div className="absolute inset-0 bg-alpha/5 group-hover:bg-alpha/0 transition-colors duration-700" />
+            </div>
 
-              {/* Floating Detail Image */}
-              <div className="absolute -bottom-10 -right-10 w-2/3 aspect-square border-8 border-creme overflow-hidden parallax-element">
-                <Image
-                  src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=800&auto=format&fit=crop"
-                  alt="Wood texture detail"
-                  fill
-                  className="object-cover hover:scale-110 transition-transform duration-700"
-                />
-              </div>
+            {/* Mobile — compact stats row */}
+            <div className="flex lg:hidden justify-center gap-px">
+              {[
+                { val: "38+", label: "Years" },
+                { val: "40+", label: "Artisans" },
+                { val: "100%", label: "Handcrafted" },
+              ].map((s) => (
+                <div key={s.label} className="flex-1 text-center py-6 border border-alpha/[0.06]">
+                  <span className="block text-xl font-secondary text-alpha">{s.val}</span>
+                  <span className="text-[8px] uppercase tracking-[0.2em] text-alpha/30 font-primary">{s.label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right - Editorial Content */}
-          <div className="order-1 lg:order-2 text-left">
-            <div className="animate-slide-up">
-              <span className="block text-xs font-primary uppercase tracking-[0.25em] text-alpha/60 mb-2 flex items-center gap-4">
-                <span className="w-12 h-[1px] bg-alpha/30"></span>
-                The Philosophy
-              </span>
+          {/* Right — Text */}
+          <div
+            ref={text.ref}
+            className={`lg:col-span-6 lg:col-start-7 transition-all duration-[1.2s] delay-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${text.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          >
+            <span className={`text-[10px] font-primary uppercase tracking-[0.3em] text-alpha/30 mb-6 block transition-all duration-1000 delay-400 ${text.visible ? 'opacity-100' : 'opacity-0'}`}>
+              About Us
+            </span>
 
-              <h2 className="text-4xl md:text-6xl lg:text-7xl font-secondary text-alpha leading-[0.9] tracking-tight mb-10 md:mb-16">
-                Crafting <br />
-                <span className="italic font-light text-alpha/80">Legacy.</span>
-              </h2>
+            <h2 className="text-3xl md:text-5xl lg:text-[3.5rem] font-secondary text-alpha leading-[1.05] tracking-tight mb-8">
+              Crafting{" "}
+              <em className="font-light not-italic text-alpha/60">Legacy.</em>
+            </h2>
 
-              <blockquote className="text-lg md:text-xl text-alpha/80 font-secondary leading-relaxed mb-8 border-l-2 border-alpha/10 pl-6 italic">
-                &ldquo;We believe furniture should be more than functional. It should be a tactile expression of art, bringing silence and beauty to the modern home.&rdquo;
-              </blockquote>
+            <p className="text-sm text-alpha/45 font-primary leading-[1.9] max-w-md mb-6">
+              Since 1985, CAFCO has preserved the art of traditional joinery while exploring organic, contemporary forms. Each piece is a quiet dialogue between material and maker.
+            </p>
 
-              <p className="text-sm font-primary text-alpha/60 leading-loose max-w-md mb-12">
-                Founded in 1985, CAFCO has dedicated decades to the preservation of traditional joinery and the exploration of organic forms. Each piece is a dialogue between the raw material and the artisan&apos;s hand, designed to age gracefully alongside generations.
-              </p>
+            <p className="text-sm text-alpha/45 font-primary leading-[1.9] max-w-md mb-10">
+              We design furniture not for trends, but for lifetimes — pieces that grow more beautiful with age and use.
+            </p>
 
-              <div className="hidden lg:flex items-center gap-12">
-                <div className="flex flex-col">
-                  <span className="text-3xl font-secondary">1985</span>
-                  <span className="text-[0.6rem] uppercase tracking-widest text-alpha/50 mt-1">Established</span>
+            {/* Stats — desktop */}
+            <div className="hidden lg:flex items-center gap-10 mb-10 pb-10 border-b border-alpha/[0.06]">
+              {[
+                { val: "1985", label: "Established" },
+                { val: "40+", label: "Artisans" },
+                { val: "25", label: "Countries" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <span className="block text-2xl font-secondary text-alpha">{s.val}</span>
+                  <span className="text-[8px] uppercase tracking-[0.2em] text-alpha/30 font-primary">{s.label}</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-3xl font-secondary">40+</span>
-                  <span className="text-[0.6rem] uppercase tracking-widest text-alpha/50 mt-1">Artisans</span>
-                </div>
-              </div>
-
-              <div className="mt-12">
-                <a href="/about" className="inline-flex items-center gap-3 text-xs uppercase tracking-widest font-semibold border-b border-alpha pb-1 hover:text-tango hover:border-tango transition-colors duration-300">
-                  Read Our Story
-                  <span className="transform transition-transform duration-300 group-hover:translate-x-1">→</span>
-                </a>
-              </div>
-
+              ))}
             </div>
-          </div>
 
+            <Link
+              href="/about"
+              className="group inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-primary text-alpha/50 hover:text-alpha transition-colors duration-500"
+            >
+              Our Story
+              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

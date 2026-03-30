@@ -19,7 +19,6 @@ import {
   ProductCardWishlist,
   ProductCardQuickAdd,
   ProductCardInfo,
-  ProductCardColorSwatches,
 } from "@/src/components/ui/ProductCard";
 
 function ProductCardItem({ product }: { product: Product }) {
@@ -39,6 +38,7 @@ function ProductCardItem({ product }: { product: Product }) {
       <ProductCardImageContainer>
         <ProductCardImage src={mainImage} alt={product.name} />
         {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
+        <ProductCardWishlist product={product} />
       </ProductCardImageContainer>
       
       <ProductCardInfo>
@@ -51,9 +51,12 @@ function ProductCardItem({ product }: { product: Product }) {
           category={product.subcategory_name}
         />
         <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
-        <div className="flex items-center justify-between gap-2 mt-3">
-          <ProductCardColorSwatches colors={product.colors} />
-          <ProductCardWishlist product={product} />
+        <div className="flex items-center justify-between gap-2 mt-3 text-xs">
+          {product.is_in_stock ? (
+            <span className="text-green-600 font-primary">In Stock</span>
+          ) : (
+            <span className="text-red-600 font-primary">Out of Stock</span>
+          )}
         </div>
       </ProductCardInfo>
     </ProductCard>
@@ -63,11 +66,11 @@ function ProductCardItem({ product }: { product: Product }) {
 function ProductCardSkeleton() {
   return (
     <div className="flex flex-col gap-3 group animate-pulse h-full">
-      <div className="relative aspect-[4/5] w-full bg-alpha/5 overflow-hidden rounded-sm"></div>
+      <div className="relative aspect-[4/5] w-full bg-alpha/5 overflow-hidden"></div>
       <div className="space-y-2 mt-2">
-        <div className="h-4 bg-alpha/10 w-3/4 rounded-sm"></div>
-        <div className="h-3 bg-alpha/10 w-1/2 rounded-sm"></div>
-        <div className="h-3 bg-alpha/10 w-1/4 rounded-sm mt-3"></div>
+        <div className="h-4 bg-alpha/10 w-3/4"></div>
+        <div className="h-3 bg-alpha/10 w-1/2"></div>
+        <div className="h-3 bg-alpha/10 w-1/4 mt-3"></div>
       </div>
     </div>
   );
@@ -170,14 +173,14 @@ export default function HotSelling() {
           <div className="pl-4">
             <Swiper
               modules={[FreeMode]}
-              spaceBetween={4}
+              spaceBetween={2}
               slidesPerView={1.6}
               speed={600}
               freeMode={{ enabled: true, sticky: false, momentumRatio: 0.5 }}
               grabCursor={true}
               breakpoints={{
-                480: { slidesPerView: 2.1, spaceBetween: 4 },
-                640: { slidesPerView: 2.5, spaceBetween: 5 },
+                480: { slidesPerView: 2.1, spaceBetween: 2 },
+                640: { slidesPerView: 2.5, spaceBetween: 4 },
               }}
               className="!overflow-visible"
             >
@@ -265,7 +268,7 @@ export default function HotSelling() {
             </div>
 
             <div className="p-8 xl:p-12">
-              <div className="grid grid-cols-2 gap-2 md:gap-3 xl:gap-4">
+              <div className="grid grid-cols-2 gap-1 md:gap-2 xl:gap-2">
                 {loading ? (
                   [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
                 ) : hotProducts.length > 0 ? (

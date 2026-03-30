@@ -16,7 +16,6 @@ import {
   ProductCardRating,
   ProductCardWishlist,
   ProductCardBadgeGroup,
-  ProductCardColorSwatches,
 } from "@/src/components/ui/ProductCard";
 
 interface Subcategory {
@@ -515,6 +514,7 @@ function ProductItem({ product }: { product: Product }) {
       <ProductCardImageContainer>
         {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
         <ProductCardImage src={mainImage} alt={product.name} />
+        <ProductCardWishlist product={product} />
       </ProductCardImageContainer>
       <div className="flex flex-col items-start px-1.5 md:px-2 py-2 md:py-3">
         <ProductCardTitle>{product.name}</ProductCardTitle>
@@ -523,12 +523,10 @@ function ProductItem({ product }: { product: Product }) {
         <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
         <div className="flex items-center justify-between w-full mt-2">
           <div className="flex items-center gap-2">
-            <ProductCardColorSwatches colors={product.colors} />
             {!product.is_in_stock && (
               <span className="text-xs text-red-600 font-primary">Out of Stock</span>
             )}
           </div>
-          <ProductCardWishlist product={product} />
         </div>
       </div>
     </ProductCard>

@@ -15,7 +15,6 @@ import {
   ProductCardMeta,
   ProductCardBadgeGroup,
   ProductCardWishlist,
-  ProductCardColorSwatches,
 } from "@/src/components/ui/ProductCard";
 
 interface OfferClientProps {
@@ -295,6 +294,7 @@ export default function OfferClient({ offer, products }: OfferClientProps) {
                             src={product.images?.[0]?.url || "https://images.unsplash.com/photo-1550226891-ef816aed4a98?q=80&w=1200&auto=format&fit=crop"} 
                             alt={product.name} 
                          />
+                         <ProductCardWishlist product={product} />
                       </ProductCardImageContainer>
                       <div className="flex flex-col items-start px-1.5 md:px-2 py-2 md:py-3 w-full">
                          <ProductCardTitle>{product.name}</ProductCardTitle>
@@ -304,12 +304,10 @@ export default function OfferClient({ offer, products }: OfferClientProps) {
                          )}
                          <div className="flex items-center justify-between w-full mt-2">
                             <div className="flex flex-col items-start gap-1">
-                               <ProductCardColorSwatches colors={product.colors} />
-                               <span className="text-[7px] md:text-[10px] font-primary uppercase tracking-widest text-tango pt-0.5 md:pt-1 border-t border-alpha/10">
+                               <span className="text-[7px] md:text-[10px] font-primary uppercase tracking-widest text-tango">
                                   Quote upon checkout
                                </span>
                             </div>
-                            <ProductCardWishlist product={product} />
                          </div>
                       </div>
                    </ProductCard>
