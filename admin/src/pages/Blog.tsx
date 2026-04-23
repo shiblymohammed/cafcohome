@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import apiClient, { extractData } from '../utils/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import ImageUploader from '../components/ImageUploader';
+import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
+import { IMAGE_CONFIGS } from '../config/imageConfig';
 import RichTextEditor from '../components/RichTextEditor';
 import './Blog.css';
 
@@ -357,11 +358,12 @@ const Blog = () => {
           </div>
 
           <div className="form-group">
-            <ImageUploader
+            <ImageCropperWithUpload
               label="Featured Image *"
               value={formData.featured_image_url}
               onChange={(url) => setFormData({ ...formData, featured_image_url: url })}
               error={formErrors.featured_image_url}
+              aspectRatio={IMAGE_CONFIGS.blog.aspectRatio}
             />
           </div>
 

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import apiClient, { extractData } from '../utils/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import ImageUploader from '../components/ImageUploader';
+import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
+import { IMAGE_CONFIGS } from '../config/imageConfig';
 import './Brands.css';
 
 interface Brand {
@@ -214,11 +215,12 @@ const Brands = () => {
             )}
           </div>
 
-          <ImageUploader
+          <ImageCropperWithUpload
             label="Brand Logo *"
             value={formData.logo_url}
             onChange={(url) => setFormData({ ...formData, logo_url: url })}
             error={formErrors.logo_url}
+            aspectRatio={IMAGE_CONFIGS.brand.aspectRatio}
           />
 
           <div className="form-group checkbox-group">

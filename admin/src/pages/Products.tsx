@@ -2,18 +2,19 @@ import { useState, useEffect } from 'react';
 import apiClient, { extractData } from '../utils/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import MultiImageUploader from '../components/MultiImageUploader';
+import MultiImageCropperWithUpload from '../components/MultiImageCropperWithUpload';
+import { IMAGE_CONFIGS } from '../config/imageConfig';
 import './Products.css';
-
-interface Collection {
-  id: number;
-  name: string;
-}
 
 interface Category {
   id: number;
   name: string;
-  collection: number;
+}
+
+interface Subcategory {
+  id: number;
+  name: string;
+  category: number;
 }
 
 interface Brand {
@@ -93,8 +94,8 @@ interface ProductFormData {
   name: string;
   description: string;
   dimensions: { length: number; width: number; height: number; unit: string };
-  collection: number | '';
   category: number | '';
+  subcategory: number | '';
   brand: number | '';
   is_bestseller: boolean;
   is_hot_selling: boolean;
@@ -104,15 +105,15 @@ interface ProductFormData {
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [collections, setCollections] = useState<Collection[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCollection, setFilterCollection] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterSubcategory, setFilterSubcategory] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
@@ -120,8 +121,8 @@ const Products = () => {
     name: '',
     description: '',
     dimensions: { length: 0, width: 0, height: 0, unit: 'cm' },
-    collection: '',
     category: '',
+    subcategory: '',
     brand: '',
     is_bestseller: false,
     is_hot_selling: false,
@@ -144,7 +145,8 @@ const Products = () => {
   const [newMaterialDesc, setNewMaterialDesc] = useState('');
 
   useEffect(() => {
-    fetchCollections();
+    fetchCategories();
+    fetchSubcategories(); // Fetch all subcategories for filters
     fetchBrands();
     fetchColors();
     fetchMaterials();
@@ -152,31 +154,31 @@ const Products = () => {
   }, []);
 
   useEffect(() => {
-    if (formData.collection) {
-      fetchCategories(formData.collection as number);
+    if (formData.category) {
+      fetchSubcategories(formData.category as number);
     }
-  }, [formData.collection]);
+  }, [formData.category]);
 
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, filterCollection, filterCategory]);
+  }, [searchTerm, filterCategory, filterSubcategory]);
 
-  const fetchCollections = async () => {
+  const fetchCategories = async () => {
     try {
-      const response = await apiClient.get('/collections/');
-      setCollections(extractData(response.data));
-    } catch (error) {
-      console.error('Failed to fetch collections:', error);
-    }
-  };
-
-  const fetchCategories = async (collectionId?: number) => {
-    try {
-      const params = collectionId ? { collection: collectionId } : {};
-      const response = await apiClient.get('/categories/', { params });
+      const response = await apiClient.get('/categories/');
       setCategories(extractData(response.data));
     } catch (error) {
       console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  const fetchSubcategories = async (categoryId?: number) => {
+    try {
+      const params = categoryId ? { category: categoryId } : {};
+      const response = await apiClient.get('/subcategories/', { params });
+      setSubcategories(extractData(response.data));
+    } catch (error) {
+      console.error('Failed to fetch subcategories:', error);
     }
   };
 
@@ -212,8 +214,8 @@ const Products = () => {
       setLoading(true);
       const params: any = {};
       if (searchTerm) params.search = searchTerm;
-      if (filterCollection) params.collection = filterCollection;
       if (filterCategory) params.category = filterCategory;
+      if (filterSubcategory) params.subcategory = filterSubcategory;
       
       const response = await apiClient.get('/products/', { params });
       setProducts(extractData(response.data));
@@ -232,8 +234,8 @@ const Products = () => {
       name: '',
       description: '',
       dimensions: { length: 0, width: 0, height: 0, unit: 'cm' },
-      collection: '',
       category: '',
+      subcategory: '',
       brand: '',
       is_bestseller: false,
       is_hot_selling: false,
@@ -312,8 +314,8 @@ const Products = () => {
           name: detailedProduct.name,
           description: detailedProduct.description,
           dimensions: detailedProduct.dimensions,
-          collection: detailedProduct.collection,
           category: detailedProduct.category,
+          subcategory: detailedProduct.subcategory,
           brand: detailedProduct.brand || '',
           is_bestseller: detailedProduct.is_bestseller,
           is_hot_selling: detailedProduct.is_hot_selling,
@@ -351,8 +353,8 @@ const Products = () => {
     if (step === 1) {
       if (!formData.name.trim()) errors.name = 'Name is required';
       if (!formData.description.trim()) errors.description = 'Description is required';
-      if (!formData.collection) errors.collection = 'Collection is required';
       if (!formData.category) errors.category = 'Category is required';
+      if (!formData.subcategory) errors.subcategory = 'Subcategory is required';
       if (materialColorSelections.length === 0) {
         errors.variants = 'At least one material-color combination is required';
       }
@@ -497,8 +499,8 @@ const Products = () => {
         name: formData.name,
         description: formData.description,
         dimensions: formData.dimensions,
-        collection: formData.collection,
         category: formData.category,
+        subcategory: formData.subcategory,
         brand: formData.brand || null,
         is_bestseller: formData.is_bestseller,
         is_hot_selling: formData.is_hot_selling,
@@ -748,31 +750,31 @@ const Products = () => {
           className="search-input"
         />
         <select
-          value={filterCollection}
+          value={filterCategory}
           onChange={(e) => {
-            setFilterCollection(e.target.value);
-            setFilterCategory('');
+            setFilterCategory(e.target.value);
+            setFilterSubcategory('');
           }}
           className="filter-select"
         >
-          <option value="">All Collections</option>
-          {collections.map((collection) => (
-            <option key={collection.id} value={collection.id}>
-              {collection.name}
+          <option value="">All Categories</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
             </option>
           ))}
         </select>
         <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
+          value={filterSubcategory}
+          onChange={(e) => setFilterSubcategory(e.target.value)}
           className="filter-select"
         >
-          <option value="">All Categories</option>
-          {categories
-            .filter((cat) => !filterCollection || cat.collection === parseInt(filterCollection))
-            .map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
+          <option value="">All Subcategories</option>
+          {subcategories
+            .filter((sub) => !filterCategory || sub.category === parseInt(filterCategory))
+            .map((subcategory) => (
+              <option key={subcategory.id} value={subcategory.id}>
+                {subcategory.name}
               </option>
             ))}
         </select>
@@ -842,50 +844,50 @@ const Products = () => {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="collection">Collection *</label>
-                    <select
-                      id="collection"
-                      value={formData.collection}
-                      onChange={(e) => {
-                        const collectionId = parseInt(e.target.value) || '';
-                        setFormData({ ...formData, collection: collectionId, category: '' });
-                      }}
-                      className={formErrors.collection ? 'error' : ''}
-                    >
-                      <option value="">Select collection</option>
-                      {collections.map((collection) => (
-                        <option key={collection.id} value={collection.id}>
-                          {collection.name}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.collection && (
-                      <span className="error-message">{formErrors.collection}</span>
-                    )}
-                  </div>
-
-                  <div className="form-group">
                     <label htmlFor="category">Category *</label>
                     <select
                       id="category"
                       value={formData.category}
-                      onChange={(e) =>
-                        setFormData({ ...formData, category: parseInt(e.target.value) || '' })
-                      }
+                      onChange={(e) => {
+                        const categoryId = parseInt(e.target.value) || '';
+                        setFormData({ ...formData, category: categoryId, subcategory: '' });
+                      }}
                       className={formErrors.category ? 'error' : ''}
-                      disabled={!formData.collection}
                     >
                       <option value="">Select category</option>
-                      {categories
-                        .filter((cat) => cat.collection === formData.collection)
-                        .map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
                     </select>
                     {formErrors.category && (
                       <span className="error-message">{formErrors.category}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="subcategory">Subcategory *</label>
+                    <select
+                      id="subcategory"
+                      value={formData.subcategory}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subcategory: parseInt(e.target.value) || '' })
+                      }
+                      className={formErrors.subcategory ? 'error' : ''}
+                      disabled={!formData.category}
+                    >
+                      <option value="">Select subcategory</option>
+                      {subcategories
+                        .filter((sub) => sub.category === formData.category)
+                        .map((subcategory) => (
+                          <option key={subcategory.id} value={subcategory.id}>
+                            {subcategory.name}
+                          </option>
+                        ))}
+                    </select>
+                    {formErrors.subcategory && (
+                      <span className="error-message">{formErrors.subcategory}</span>
                     )}
                   </div>
                 </div>
@@ -1064,7 +1066,7 @@ const Products = () => {
                         <h4>{variant.materialName} - {variant.colorName}</h4>
                       </div>
                     </div>
-                    <MultiImageUploader
+                    <MultiImageCropperWithUpload
                       label={`Images for ${variant.materialName} - ${variant.colorName}`}
                       value={variant.images}
                       onChange={(images) => {
@@ -1073,6 +1075,7 @@ const Products = () => {
                         setFormData({ ...formData, variants: updatedVariants });
                       }}
                       error={formErrors[`variant_${index}_images`]}
+                      aspectRatio={IMAGE_CONFIGS.product.aspectRatio}
                     />
                   </div>
                 ))}

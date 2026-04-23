@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import apiClient, { extractData } from '../utils/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import ImageUploader from '../components/ImageUploader';
+import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
+import { IMAGE_CONFIGS } from '../config/imageConfig';
 import './Offers.css';
 
 interface Product {
@@ -443,9 +444,10 @@ const Offers = () => {
 
           <div className="form-group">
             <label>Offer Image</label>
-            <ImageUploader
+            <ImageCropperWithUpload
               value={formData.image_url}
               onChange={(url) => setFormData({ ...formData, image_url: url })}
+              aspectRatio={IMAGE_CONFIGS.offer.aspectRatio}
             />
           </div>
 

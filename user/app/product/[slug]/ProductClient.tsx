@@ -405,16 +405,20 @@ export default function ProductClient({ product, variants = [], relatedProducts 
 
             {/* Product Section */}
             <section className="max-w-[1600px] mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-8 xl:gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-6 xl:gap-8">
 
-                    {/* Left: Gallery */}
-                    <div className="lg:col-span-1">
-                        <div className="p-0 md:p-6 lg:p-8 lg:pr-0">
+                    {/* Left: Gallery - Sticky Container (5 columns) */}
+                    <div className="lg:col-span-5">
+                        <div className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-hidden p-0 md:p-4 lg:p-6 lg:pr-0">
 
-                            {/* Main Image */}
+                            {/* Main Image - Exact 4:5 ratio */}
                             <div
                                 ref={imageContainerRef}
-                                className="relative w-full aspect-square overflow-hidden bg-white md:rounded-lg md:shadow-sm group md:cursor-crosshair md:border md:border-alpha/5"
+                                className="relative w-full overflow-hidden bg-white md:rounded-lg md:shadow-sm group md:cursor-crosshair md:border md:border-alpha/5"
+                                style={{ 
+                                    aspectRatio: '4/5',
+                                    maxHeight: 'calc(100vh - 16rem)' 
+                                }}
                                 onMouseEnter={handleMouseEnter}
                                 onMouseLeave={handleMouseLeave}
                                 onMouseMove={handleMouseMove}
@@ -492,21 +496,22 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                             </div>
 
                             {/* Thumbnails - hidden on mobile, shown on tablet+ */}
-                            <div className="hidden md:flex gap-3 overflow-x-auto pt-4 pb-2 scrollbar-hide">
+                            <div className="hidden md:flex gap-2 lg:gap-3 overflow-x-auto pt-3 lg:pt-4 pb-2 scrollbar-hide">
                                 {productImages.map((img, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setCurrentImageIndex(i)}
-                                        className={`relative w-20 h-20 flex-shrink-0 overflow-hidden bg-white rounded-md transition-all duration-200 border-2 ${currentImageIndex === i
+                                        className={`relative w-12 lg:w-14 flex-shrink-0 overflow-hidden bg-white rounded-md transition-all duration-200 border-2 ${currentImageIndex === i
                                             ? 'border-alpha shadow-md scale-105'
                                             : 'border-alpha/10 opacity-70 hover:opacity-100 hover:border-alpha/30'
                                             }`}
+                                        style={{ aspectRatio: '4/5' }}
                                     >
                                         <Image
                                             src={img}
                                             alt={`Thumbnail ${i + 1}`}
                                             fill
-                                            sizes="80px"
+                                            sizes="56px"
                                             className="object-cover"
                                         />
                                     </button>
@@ -515,9 +520,9 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                         </div>
                     </div>
 
-                    {/* Right: Details */}
-                    <div className="lg:col-span-1 relative">
-                        <div className="lg:sticky lg:top-24 px-4 py-6 md:px-8 lg:px-8 lg:py-8 flex flex-col bg-white lg:bg-transparent rounded-t-2xl lg:rounded-none -mt-4 lg:mt-0 shadow-lg lg:shadow-none border-t border-alpha/10 lg:border-0">
+                    {/* Right: Details - Scrollable (7 columns) */}
+                    <div className="lg:col-span-7 relative">
+                        <div className="px-4 py-6 md:px-6 lg:px-8 lg:py-8 flex flex-col bg-white lg:bg-transparent rounded-t-2xl lg:rounded-none -mt-4 lg:mt-0 shadow-lg lg:shadow-none border-t border-alpha/10 lg:border-0">
 
                             {/* Header */}
                             <div className="mb-6 md:mb-8 pb-6 border-b border-alpha/10">

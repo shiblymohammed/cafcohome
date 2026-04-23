@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import apiClient, { extractData } from '../utils/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import ImageUploader from '../components/ImageUploader';
+import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
+import { IMAGE_CONFIGS } from '../config/imageConfig';
 import './Categories.css';
 
 interface Category {
@@ -513,11 +514,12 @@ const CategoriesManagement = () => {
             )}
           </div>
 
-          <ImageUploader
+          <ImageCropperWithUpload
             label="Category Image *"
             value={categoryFormData.image_url}
             onChange={(url) => setCategoryFormData({ ...categoryFormData, image_url: url })}
             error={formErrors.image_url}
+            aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
           />
 
           <div className="form-group">
@@ -613,18 +615,20 @@ const CategoriesManagement = () => {
 
           <div className="form-group">
             <label>Subcategory Image</label>
-            <ImageUploader
+            <ImageCropperWithUpload
               value={subcategoryFormData.image_url}
               onChange={(url) => setSubcategoryFormData({ ...subcategoryFormData, image_url: url })}
+              aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
             />
             <small className="form-hint">Main subcategory image for subcategory pages</small>
           </div>
 
           <div className="form-group">
             <label>Featured Icon (SVG/PNG)</label>
-            <ImageUploader
+            <ImageCropperWithUpload
               value={subcategoryFormData.featured_icon_url}
               onChange={(url) => setSubcategoryFormData({ ...subcategoryFormData, featured_icon_url: url })}
+              aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
             />
             <small className="form-hint">Icon displayed in homepage featured subcategories section</small>
           </div>
