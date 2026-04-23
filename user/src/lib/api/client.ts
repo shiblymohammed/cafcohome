@@ -426,6 +426,16 @@ export class ApiClient {
     );
   }
 
+  // Shop By Room
+  static async getShopByRooms() {
+    return request<any>(
+      "/v1/shop-by-rooms/",
+      {},
+      {},
+      { revalidate: 300, tags: ['shop-by-rooms'] }
+    );
+  }
+
   // Orders
   static async createOrder(orderData: any, token: string) {
     return request<any>("/v1/orders/create/", {

@@ -36,9 +36,9 @@ export default function Navbar() {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showNewUserModal, setShowNewUserModal] = useState(false);
-  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const searchButtonRef = useRef<any>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [activeSearchRef, setActiveSearchRef] = useState<React.RefObject<HTMLElement>>(searchButtonRef);
+  const [activeSearchRef, setActiveSearchRef] = useState<React.RefObject<any>>(searchButtonRef);
 
   // Check if user just signed up with Google and needs to complete profile
   useEffect(() => {
@@ -131,22 +131,17 @@ export default function Navbar() {
   return (
     <>
       <nav 
-        className="hidden md:flex flex-col fixed top-0 left-0 right-0 z-50 overflow-hidden"
+        className={`hidden md:flex flex-col fixed top-0 left-0 right-0 z-50 transition-all duration-500 will-change-transform ${
+          isScrolled ? "py-1" : "py-2"
+        }`}
       >
-        {/* First Row Background - Slides from Top */}
+        {/* Unified Glass Background */}
         <div 
-          className="absolute top-0 left-0 right-0 h-14 bg-creme will-change-transform"
+          className="absolute inset-0 bg-creme/85 backdrop-blur-md will-change-transform shadow-[0_4px_30px_rgba(38,37,36,0.03)] border-b border-alpha/10"
           style={{
             transform: showSolidNavbar ? 'translateY(0)' : 'translateY(-100%)',
-            transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        />
-        {/* Second Row Background - Slides from Bottom */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-[calc(100%-3.5rem)] bg-creme will-change-transform shadow-md"
-          style={{
-            transform: showSolidNavbar ? 'translateY(0)' : 'translateY(100%)',
-            transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s',
+            opacity: showSolidNavbar ? 1 : 0,
+            transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease',
           }}
         />
         

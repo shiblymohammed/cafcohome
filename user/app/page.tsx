@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
 import Hero from "@/src/components/homepage/Hero";
+import ShopByRoom from "@/src/components/homepage/ShopByRoom";
 import BestSellers from "@/src/components/homepage/BestSellers";
+import ShoppableLookbook from "@/src/components/homepage/ShoppableLookbook";
+import CraftsmanshipSection from "@/src/components/homepage/CraftsmanshipSection";
 import HotSelling from "@/src/components/homepage/HotSelling";
 import Categories from "@/src/components/homepage/Categories";
 import Offers from "@/src/components/homepage/Offers";
@@ -33,7 +36,10 @@ export default function HomePage() {
         <div className="relative">
           <BestSellers />
           <Categories />
+          <ShopByRoom />
           <HotSelling />
+          <ShoppableLookbook />
+          <CraftsmanshipSection />
           <Offers />
           <AboutSection />
           <BlogSection />
