@@ -25,6 +25,7 @@ const menuItems: MenuItem[] = [
   { path: '/users', label: 'Users', icon: '👥', adminOnly: true },
   { path: '/staff', label: 'Staff', icon: '👨‍💼', adminOnly: true },
   { path: '/blog', label: 'Blog', icon: '📝', adminOnly: true },
+  { path: '/shop-by-room', label: 'Shop By Room', icon: '🏠', adminOnly: true },
 ];
 
 const Sidebar = ({ userRole, isOpen, onClose }: SidebarProps) => {

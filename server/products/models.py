@@ -41,6 +41,32 @@ class Material(models.Model):
         return self.name
 
 
+class ShopByRoom(models.Model):
+    """Curated products grouped by room type, e.g., Living, Bedroom."""
+    
+    ROOM_CHOICES = (
+        ('living', 'Living Room'),
+        ('bedroom', 'Bedroom'),
+        ('dining', 'Dining Room'),
+        ('office', 'Home Office'),
+    )
+    
+    room_type = models.CharField(max_length=20, choices=ROOM_CHOICES, unique=True, help_text="Select one of the fixed room types.")
+    products = models.ManyToManyField('Product', related_name='shop_by_rooms', blank=True, help_text="Select products to feature in this room.")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'shop_by_rooms'
+        ordering = ['room_type']
+        verbose_name = 'Shop by Room'
+        verbose_name_plural = 'Shop by Rooms'
+    
+    def __str__(self):
+        return self.get_room_type_display()
+
+
 class Category(models.Model):
     """Top-level product grouping (e.g., Living, Dining, Bedroom)."""
     

@@ -15,7 +15,9 @@ from .views import (
     ColorListView,
     ColorDetailView,
     MaterialListView,
-    MaterialDetailView
+    MaterialDetailView,
+    ShopByRoomListView,
+    ShopByRoomDetailView
 )
 
 app_name = 'products'
@@ -50,4 +52,8 @@ urlpatterns = [
     # Materials
     path('materials/', MaterialListView.as_view(), name='material-list'),
     path('materials/<int:pk>/', MaterialDetailView.as_view(), name='material-detail'),
+    
+    # Shop By Rooms
+    path('shop-by-rooms/', ShopByRoomListView.as_view(), name='shop-by-room-list'),
+    path('shop-by-rooms/<int:pk>/', ShopByRoomDetailView.as_view(), name='shop-by-room-detail'),
 ]

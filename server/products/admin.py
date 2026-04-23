@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Subcategory, Brand, Product, ProductVariant, Color, Material
+from .models import Category, Subcategory, Brand, Product, ProductVariant, Color, Material, ShopByRoom
 
 
 @admin.register(Category)
@@ -116,3 +116,11 @@ class MaterialAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'created_at')
     search_fields = ('name', 'description')
     ordering = ('name',)
+
+@admin.register(ShopByRoom)
+class ShopByRoomAdmin(admin.ModelAdmin):
+    """Admin interface for ShopByRoom model."""
+    list_display = ('get_room_type_display', 'is_active', 'created_at')
+    list_filter = ('room_type', 'is_active')
+    filter_horizontal = ('products',)
+    ordering = ('room_type',)

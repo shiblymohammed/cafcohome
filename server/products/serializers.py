@@ -372,11 +372,14 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     
     variants = ProductVariantCreateSerializer(many=True, write_only=True)
     
+    frequently_bought_together = serializers.PrimaryKeyRelatedField(many=True, queryset=Product.objects.all(), required=False)
+
     class Meta:
         model = Product
         fields = [
             'name', 'description', 'dimensions',
             'category', 'subcategory', 'brand',
+            'frequently_bought_together',
             'is_bestseller', 'is_hot_selling', 'is_active',
             'variants'
         ]
@@ -404,7 +407,11 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         variants_data = validated_data.pop('variants')
+        fbt_data = validated_data.pop('frequently_bought_together', [])
         product = Product.objects.create(**validated_data)
+        
+        if fbt_data:
+            product.frequently_bought_together.set(fbt_data)
         
         # Create variants
         for idx, variant_data in enumerate(variants_data):
@@ -417,11 +424,15 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         variants_data = validated_data.pop('variants', None)
+        fbt_data = validated_data.pop('frequently_bought_together', None)
         
         # Update product fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+        
+        if fbt_data is not None:
+            instance.frequently_bought_together.set(fbt_data)
         
         # Update variants if provided
         if variants_data is not None:
@@ -455,3 +466,21 @@ class MaterialSerializer(serializers.ModelSerializer):
         model = Material
         fields = ['id', 'name', 'description', 'is_active', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+class ShopByRoomSerializer(serializers.ModelSerializer):
+    """Serializer for ShopByRoom model."""
+    room_type_display = serializers.CharField(source='get_room_type_display', read_only=True)
+    products = ProductListSerializer(many=True, read_only=True)
+    product_ids = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        queryset=Product.objects.all(), 
+        source='products', 
+        write_only=True,
+        required=False
+    )
+    
+    class Meta:
+        from .models import ShopByRoom
+        model = ShopByRoom
+        fields = ['id', 'room_type', 'room_type_display', 'is_active', 'products', 'product_ids']
+        read_only_fields = ['id']

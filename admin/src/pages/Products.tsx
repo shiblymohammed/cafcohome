@@ -101,6 +101,7 @@ interface ProductFormData {
   is_hot_selling: boolean;
   is_active: boolean;
   variants: VariantFormData[];
+  frequently_bought_together: number[];
 }
 
 const Products = () => {
@@ -128,6 +129,7 @@ const Products = () => {
     is_hot_selling: false,
     is_active: true,
     variants: [],
+    frequently_bought_together: [],
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -241,6 +243,7 @@ const Products = () => {
       is_hot_selling: false,
       is_active: true,
       variants: [],
+      frequently_bought_together: [],
     });
     setMaterialColorSelections([]);
     setSelectedMaterialId('');
@@ -321,6 +324,7 @@ const Products = () => {
           is_hot_selling: detailedProduct.is_hot_selling,
           is_active: detailedProduct.is_active,
           variants: variants,
+          frequently_bought_together: detailedProduct.frequently_bought_together ? detailedProduct.frequently_bought_together.map((p: any) => typeof p === 'object' ? p.id : p) : [],
         });
         setSelectedMaterialId('');
         setSelectedColorIds([]);
@@ -506,6 +510,7 @@ const Products = () => {
         is_hot_selling: formData.is_hot_selling,
         is_active: formData.is_active,
         variants: formattedVariants,
+        frequently_bought_together: formData.frequently_bought_together,
       };
 
       console.log('Submitting product data:', JSON.stringify(submitData, null, 2));
@@ -1254,6 +1259,30 @@ const Products = () => {
                       <option value="inch">inch</option>
                       <option value="m">m</option>
                     </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Frequently Bought Together (Cross-Sell / Complete The Look)</label>
+                  <p style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>Select the products that visually pair best with this one to show on its page.</p>
+                  <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px', borderRadius: '4px', background: '#fafafa' }}>
+                    {products.filter(p => !editingProduct || p.id !== editingProduct.id).map(p => (
+                      <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px', cursor: 'pointer', borderBottom: '1px solid #eee' }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.frequently_bought_together.includes(p.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({ ...formData, frequently_bought_together: [...formData.frequently_bought_together, p.id] });
+                            } else {
+                              setFormData({ ...formData, frequently_bought_together: formData.frequently_bought_together.filter(id => id !== p.id) });
+                            }
+                          }}
+                        />
+                        <span style={{ fontSize: '13px' }}>{p.name} <span style={{ color: '#888' }}>({p.category_name})</span></span>
+                      </label>
+                    ))}
+                    {products.length <= 1 && <span style={{ fontSize: '12px', color: '#999' }}>No other products available.</span>}
                   </div>
                 </div>
 

@@ -16,6 +16,7 @@ import OrderDetail from './pages/OrderDetail';
 import Users from './pages/Users';
 import Staff from './pages/Staff';
 import Blog from './pages/Blog';
+import ShopByRoom from './pages/ShopByRoom';
 
 function App() {
   return (
@@ -102,6 +103,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <Blog />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="shop-by-room"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ShopByRoom />
                 </ProtectedRoute>
               }
             />

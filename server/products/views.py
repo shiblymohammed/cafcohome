@@ -399,8 +399,44 @@ class MaterialDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Retrieve, update or delete a material."""
     
     permission_classes = [IsAdminOrReadOnly]
-    serializer_class = MaterialSerializer
+    
+    def get_serializer_class(self):
+        from .serializers import MaterialSerializer
+        return MaterialSerializer
     
     def get_queryset(self):
         from .models import Material
         return Material.objects.all()
+
+class ShopByRoomListView(generics.ListCreateAPIView):
+    """List or create ShopByRoom settings."""
+    permission_classes = [IsAdminOrReadOnly]
+    
+    def get_serializer_class(self):
+        from .serializers import ShopByRoomSerializer
+        return ShopByRoomSerializer
+
+    def get_queryset(self):
+        from .models import ShopByRoom
+        queryset = ShopByRoom.objects.all().prefetch_related(
+            'products', 
+            'products__variants', 
+            'products__brand',
+            'products__category',
+            'products__subcategory'
+        )
+        if not (self.request.user and self.request.user.is_authenticated and hasattr(self.request.user, 'role') and self.request.user.role == 'admin'):
+            queryset = queryset.filter(is_active=True)
+        return queryset
+
+class ShopByRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Update ShopByRoom config."""
+    permission_classes = [IsAdminOrReadOnly]
+    
+    def get_serializer_class(self):
+        from .serializers import ShopByRoomSerializer
+        return ShopByRoomSerializer
+        
+    def get_queryset(self):
+        from .models import ShopByRoom
+        return ShopByRoom.objects.all()
