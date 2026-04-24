@@ -22,6 +22,18 @@ interface Order {
   subtotal: string;
   discount: string;
   total: string;
+  order_summary: {
+    total_items: number;
+    unique_products: number;
+    total_mrp: number | null;
+    total_offer_price: number | null;
+    total_discount: number;
+    has_offers: boolean;
+    active_offers_count: number;
+    final_total: number;
+    total_mrp_savings: number;
+    total_offer_savings: number;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +111,47 @@ const Orders = () => {
     navigate(`/orders/${order.order_number}`);
   };
 
+  const handleQuickSendQuotation = (order: Order) => {
+    // Generate a simplified quotation message for quick send
+    const message = generateQuickQuotationMessage(order);
+    
+    // Clean phone number
+    const phoneNumber = order.phone_number.replace(/[^\d+]/g, '');
+    
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const generateQuickQuotationMessage = (order: Order): string => {
+    const summary = order.order_summary;
+    let message = `🏠 *CAFCO FURNITURE*\n\n`;
+    
+    message += `Hi ${order.user.name}!\n\n`;
+    message += `📋 Your Order #${order.order_number}\n`;
+    message += `📅 ${new Date(order.created_at).toLocaleDateString()}\n\n`;
+    
+    message += `🛋️ Items: ${summary?.total_items || 0} items (${summary?.unique_products || 0} products)\n\n`;
+    
+    if (parseFloat(order.total) > 0) {
+      if (summary?.total_mrp && summary.total_mrp > parseFloat(order.total)) {
+        message += `💰 Total: ₹${parseFloat(order.total).toLocaleString()}\n`;
+        message += `💚 You Save: ₹${(summary.total_mrp - parseFloat(order.total)).toLocaleString()}\n\n`;
+      } else {
+        message += `💰 Total: ₹${parseFloat(order.total).toLocaleString()}\n\n`;
+      }
+    } else {
+      message += `💰 Total: As per discussion\n\n`;
+    }
+    
+    message += `📞 For details, please reply or call us.\n`;
+    message += `Thank you for choosing CAFCO! 🙏`;
+    
+    return message;
+  };
+
   const getStageLabel = (stage: string): string => {
     const labels: Record<string, string> = {
       order_received: 'Order Received',
@@ -147,11 +200,53 @@ const Orders = () => {
       ),
     },
     {
+      key: 'items',
+      label: 'Items',
+      render: (item: Order) => (
+        <div className="order-items-info">
+          <div className="items-count">
+            {item.order_summary?.total_items || 0} items
+          </div>
+          <div className="products-count">
+            {item.order_summary?.unique_products || 0} products
+          </div>
+        </div>
+      ),
+    },
+    {
       key: 'total',
       label: 'Total',
-      render: (item: Order) => (
-        <span className="order-total">₹{parseFloat(item.total).toLocaleString()}</span>
-      ),
+      render: (item: Order) => {
+        const total = parseFloat(item.total);
+        const summary = item.order_summary;
+        return (
+          <div className="order-pricing">
+            <div className="order-total">
+              {total > 0 ? `₹${total.toLocaleString()}` : 'Quotation Pending'}
+            </div>
+            {summary?.has_offers && (
+              <div className="has-offers">
+                🏷️ {summary.active_offers_count} Offers Applied
+              </div>
+            )}
+            {summary?.total_mrp && summary.total_mrp > total && (
+              <div className="mrp-info">
+                MRP: ₹{summary.total_mrp.toLocaleString()}
+              </div>
+            )}
+            {summary?.total_offer_price && summary.total_offer_price !== summary.total_mrp && (
+              <div className="offer-price-info">
+                Offer: ₹{summary.total_offer_price.toLocaleString()}
+              </div>
+            )}
+            {(summary?.total_mrp_savings > 0 || summary?.total_offer_savings > 0) && (
+              <div className="savings-info">
+                Discount: ₹{(summary.total_mrp_savings + summary.total_offer_savings).toLocaleString()}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'stage',
@@ -178,6 +273,30 @@ const Orders = () => {
         <div className="order-date">
           <div>{new Date(item.created_at).toLocaleDateString()}</div>
           <div className="order-time">{new Date(item.created_at).toLocaleTimeString()}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (item: Order) => (
+        <div className="order-actions">
+          <button
+            className="btn-view"
+            onClick={() => handleViewOrder(item)}
+          >
+            View
+          </button>
+          <button
+            className="btn-send-quotation-small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQuickSendQuotation(item);
+            }}
+            title="Send Quotation via WhatsApp"
+          >
+            📱
+          </button>
         </div>
       ),
     },

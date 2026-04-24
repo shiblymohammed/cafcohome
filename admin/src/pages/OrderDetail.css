@@ -481,3 +481,250 @@
     align-self: flex-start;
   }
 }
+/* Enhanced item pricing styles */
+.item-sku {
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #666;
+}
+
+.item-offer {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+  border-left: 3px solid #ff9800;
+}
+
+.pricing-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.item-mrp {
+  font-size: 12px;
+  color: #999;
+  text-decoration: line-through;
+}
+
+.discount-badge {
+  background: #4caf50;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.item-subtotal {
+  font-size: 13px;
+  color: #666;
+}
+
+.item-total {
+  font-weight: 600;
+  color: #2d7a3e;
+  font-size: 15px;
+}
+
+/* Enhanced order summary styles */
+.mrp-row {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.offers-applied {
+  color: #e65100;
+  font-weight: 500;
+}
+
+.summary-divider {
+  height: 1px;
+  background: #ddd;
+  margin: 8px 0;
+}
+
+.savings-amount {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.summary-row.savings {
+  color: #4caf50;
+  font-weight: 500;
+  border-top: 1px solid #e8f5e9;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+/* Current offer information */
+.item-current-offer {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+  border-left: 3px solid #4caf50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.offer-applied {
+  background: #4caf50;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.offer-not-applied {
+  background: #ff9800;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+/* Offer price display */
+.item-offer-price {
+  font-size: 14px;
+  color: #e65100;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.offer-discount-badge {
+  background: #ff9800;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Item discount analysis */
+.item-savings {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Order summary enhancements */
+.offer-price-row {
+  color: #e65100;
+  font-weight: 500;
+}
+
+.savings-section {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.savings-header {
+  font-weight: 600;
+  color: #4caf50;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.total-savings-amount {
+  color: #4caf50;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.summary-row.total-savings {
+  border-top: 2px solid #4caf50;
+  padding-top: 8px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+/* Send Quotation Section */
+.quotation-section {
+  text-align: center;
+}
+
+.quotation-info {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.btn-send-quotation {
+  background: #25d366;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 12px;
+}
+
+.btn-send-quotation:hover:not(:disabled) {
+  background: #20ba5a;
+}
+
+.btn-send-quotation:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.quotation-note {
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+}
+/* Quotation History */
+.quotation-history {
+  margin-top: 16px;
+}
+
+.quotation-indicator {
+  background: #25d366;
+}
+
+.quotation-details {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.quotation-method {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.quotation-phone {
+  color: #666;
+  font-size: 12px;
+}

@@ -299,14 +299,9 @@ export default function SearchModal({ isOpen, onClose, triggerRef, query, setQue
                         {product.subcategory_name && ` • ${product.subcategory_name}`}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs font-primary text-alpha">
-                          ₹{parseFloat(product.selling_price).toLocaleString('en-IN')}
+                        <span className="text-xs font-primary text-alpha/60">
+                          Contact for pricing
                         </span>
-                        {product.mrp !== product.selling_price && (
-                          <span className="text-[10px] font-primary text-alpha/40 line-through">
-                            ₹{parseFloat(product.mrp).toLocaleString('en-IN')}
-                          </span>
-                        )}
                       </div>
                     </div>
 

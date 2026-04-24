@@ -34,7 +34,7 @@ const countryCodes = [
 
 export default function CheckoutPage() {
   const { data: session, status } = useSession();
-  const { items, itemCount } = useCart();
+  const { items, itemCount, clearCart } = useCart();
   
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -46,13 +46,15 @@ export default function CheckoutPage() {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderNumber, setOrderNumber] = useState<string>("");
+  const [placingOrder, setPlacingOrder] = useState(false);
 
   // Fetch user profile
   const fetchProfile = async () => {
-    if (session) {
+    if (session?.accessToken) {
       setLoading(true);
       try {
-        const response = await ApiClient.getUserProfile();
+        const response = await ApiClient.getUserProfile(session.accessToken);
         
         if (response && response.user) {
           setUserProfile(response.user);
@@ -74,8 +76,13 @@ export default function CheckoutPage() {
   const hasAddress = userProfile?.address && userProfile?.pin_code && userProfile?.area && userProfile?.district && userProfile?.state;
 
   const handleSaveAddress = async (addressData: AddressData) => {
+    if (!session?.accessToken) {
+      alert("Please log in to save your address.");
+      return;
+    }
+    
     try {
-      const response = await ApiClient.updateUserProfile(addressData);
+      const response = await ApiClient.updateUserProfile(addressData, session.accessToken);
       
       if (response && response.user) {
         setUserProfile(response.user);
@@ -109,12 +116,72 @@ export default function CheckoutPage() {
     setShowConsentModal(true);
   };
 
-  const handleConfirmOrder = () => {
-    if (consentChecked) {
-      // Here you would call the Meta Business API
-      console.log("Sending order details to WhatsApp:", getWhatsappNumber());
-      setShowConsentModal(false);
-      setOrderPlaced(true);
+  const handleConfirmOrder = async () => {
+    if (!consentChecked || !session?.accessToken) {
+      return;
+    }
+
+    setPlacingOrder(true);
+    
+    try {
+      // Prepare order data
+      const orderData = {
+        items: await Promise.all(items.map(async (item) => {
+          let unitPrice = item.variantPrice || 0;
+          let variantId = item.variantId;
+          
+          // If no variant price in cart, try to fetch from product
+          if (!unitPrice && item.product.id) {
+            try {
+              const productData = await ApiClient.getProductBySlug(item.product.slug);
+              if (productData && productData.variants && productData.variants.length > 0) {
+                // Get default or first variant
+                const variant = productData.variants.find((v: any) => v.is_default) || productData.variants[0];
+                if (variant) {
+                  unitPrice = parseFloat(variant.price);
+                  variantId = variant.id;
+                }
+              }
+            } catch (error) {
+              console.error('Failed to fetch product variant:', error);
+            }
+          }
+          
+          console.log('Order item:', {
+            product: item.product.name,
+            variantId: variantId,
+            unitPrice: unitPrice
+          });
+          
+          return {
+            product_id: item.product.id,
+            quantity: item.quantity,
+            variant_id: variantId,
+            unit_price: unitPrice,
+          };
+        })),
+        delivery_address: `${userProfile.address}, ${userProfile.area}, ${userProfile.district}, ${userProfile.state} - ${userProfile.pin_code}`,
+        phone_number: getWhatsappNumber(),
+      };
+
+      // Create order via API
+      const response = await ApiClient.createOrder(orderData, session.accessToken);
+      
+      if (response && response.order) {
+        setOrderNumber(response.order.order_number);
+        setShowConsentModal(false);
+        setOrderPlaced(true);
+        
+        // Clear cart after successful order
+        clearCart();
+      } else {
+        throw new Error("Failed to create order");
+      }
+    } catch (error) {
+      console.error("Failed to place order:", error);
+      alert("Failed to place order. Please try again.");
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
@@ -126,6 +193,11 @@ export default function CheckoutPage() {
             <Check className="w-10 h-10 text-success" />
           </div>
           <h1 className="text-3xl font-secondary text-alpha mb-4">Order Confirmed!</h1>
+          {orderNumber && (
+            <p className="text-lg text-alpha/80 mb-2 font-medium">
+              Order #{orderNumber}
+            </p>
+          )}
           <p className="text-alpha/70 mb-2">
             Your order details have been sent to your WhatsApp.
           </p>
@@ -504,17 +576,27 @@ export default function CheckoutPage() {
             <div className="px-6 py-4 border-t border-alpha/10 flex gap-3">
               <button
                 onClick={() => setShowConsentModal(false)}
-                className="flex-1 py-3 border border-alpha/20 text-xs uppercase tracking-widest text-alpha hover:bg-sand/30 transition-colors"
+                disabled={placingOrder}
+                className="flex-1 py-3 border border-alpha/20 text-xs uppercase tracking-widest text-alpha hover:bg-sand/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmOrder}
-                disabled={!consentChecked}
+                disabled={!consentChecked || placingOrder}
                 className="flex-1 py-3 bg-alpha text-creme text-xs uppercase tracking-widest hover:bg-alpha/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <MessageCircle className="w-4 h-4" />
-                Confirm Order
+                {placingOrder ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    Placing Order...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-4 h-4" />
+                    Confirm Order
+                  </>
+                )}
               </button>
             </div>
           </div>

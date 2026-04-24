@@ -91,6 +91,7 @@ def calculate_order_totals(items_data: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     from products.models import Product
     
+    # Since products don't have prices (quotation-based), use placeholder values
     subtotal = Decimal('0.00')
     total_discount = Decimal('0.00')
     processed_items = []
@@ -99,26 +100,33 @@ def calculate_order_totals(items_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         product = item_data['product']
         quantity = item_data['quantity']
         
-        # Get unit price
-        unit_price = product.price
+        # Use placeholder price of 0 since pricing is provided in quotation
+        unit_price = Decimal('0.00')
         
-        # Get best offer for this product
-        offer = get_best_offer_for_product(product)
+        # No offers applied for quotation-based products
+        offer = None
+        item_discount = Decimal('0.00')
         
-        # Calculate discount
-        item_discount = calculate_item_discount(unit_price, quantity, offer)
-        
-        # Calculate totals
+        # Calculate totals (all zeros for quotation-based)
         item_subtotal = unit_price * quantity
         item_total = item_subtotal - item_discount
         
         subtotal += item_subtotal
         total_discount += item_discount
         
-        # Get product image URL
+        # Get product image URL from variants (products don't have direct images)
         product_image_url = None
-        if product.images and len(product.images) > 0:
-            product_image_url = product.images[0].get('url')
+        try:
+            # Try to get image from default variant or first active variant
+            default_variant = product.variants.filter(is_active=True, is_default=True).first()
+            if not default_variant:
+                default_variant = product.variants.filter(is_active=True).first()
+            
+            if default_variant and default_variant.images and len(default_variant.images) > 0:
+                product_image_url = default_variant.images[0].get('url')
+        except Exception:
+            # If no variants or images, leave as None
+            pass
         
         processed_items.append({
             'product': product,

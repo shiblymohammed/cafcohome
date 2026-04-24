@@ -93,8 +93,17 @@ export default function ProductClient({ product, variants = [], relatedProducts 
 
     const handleAddToCart = () => {
         if (product && selectedVariant && selectedVariant.is_in_stock) {
-            // Add product to cart with quantity
-            addItem(getCartProduct(), quantity);
+            // Add product to cart with quantity and variant info
+            addItem(
+                getCartProduct(), 
+                quantity,
+                {
+                    id: selectedVariant.id,
+                    sku: selectedVariant.sku,
+                    price: parseFloat(selectedVariant.price),
+                    mrp: parseFloat(selectedVariant.mrp),
+                }
+            );
         }
     };
 

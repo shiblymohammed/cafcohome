@@ -133,19 +133,19 @@ const Offers = () => {
 
   const fetchCollections = async () => {
     try {
-      const response = await apiClient.get('/collections/');
+      const response = await apiClient.get('/categories/');  // Changed from /collections/
       setCollections(extractData(response.data));
     } catch (error) {
-      console.error('Failed to fetch collections:', error);
+      console.error('Failed to fetch categories:', error);
     }
   };
 
   const fetchCategories = async () => {
     try {
-      const response = await apiClient.get('/categories/');
+      const response = await apiClient.get('/subcategories/');  // Changed from /categories/
       setCategories(extractData(response.data));
     } catch (error) {
-      console.error('Failed to fetch categories:', error);
+      console.error('Failed to fetch subcategories:', error);
     }
   };
 
@@ -239,11 +239,11 @@ const Offers = () => {
     }
 
     if (formData.apply_to === 'collection' && formData.collections.length === 0) {
-      errors.collections = 'At least one collection must be selected';
+      errors.collections = 'At least one category must be selected';
     }
 
     if (formData.apply_to === 'category' && formData.categories.length === 0) {
-      errors.categories = 'At least one category must be selected';
+      errors.categories = 'At least one subcategory must be selected';
     }
 
     if (formData.apply_to === 'brand' && formData.brands.length === 0) {
@@ -350,11 +350,19 @@ const Offers = () => {
     {
       key: 'apply_to',
       label: 'Applies To',
-      render: (item: Offer) => (
-        <span className="apply-to-badge">
-          {item.apply_to.charAt(0).toUpperCase() + item.apply_to.slice(1)}
-        </span>
-      ),
+      render: (item: Offer) => {
+        const labels: Record<string, string> = {
+          product: 'Products',
+          collection: 'Categories',
+          category: 'Subcategories',
+          brand: 'Brands',
+        };
+        return (
+          <span className="apply-to-badge">
+            {labels[item.apply_to] || item.apply_to}
+          </span>
+        );
+      },
     },
     {
       key: 'applicable_products_count',
@@ -492,8 +500,8 @@ const Offers = () => {
             >
               <option value="">Select applicability</option>
               <option value="product">Specific Products</option>
-              <option value="collection">Collections</option>
-              <option value="category">Categories</option>
+              <option value="collection">Categories</option>
+              <option value="category">Subcategories</option>
               <option value="brand">Brands</option>
             </select>
             {formErrors.apply_to && <span className="error-message">{formErrors.apply_to}</span>}
@@ -526,7 +534,7 @@ const Offers = () => {
 
           {formData.apply_to === 'collection' && (
             <div className="form-group">
-              <label>Select Collections *</label>
+              <label>Select Categories *</label>
               <div className="multi-select-container">
                 {collections.map((collection) => (
                   <label key={collection.id} className="checkbox-label">
@@ -553,7 +561,7 @@ const Offers = () => {
 
           {formData.apply_to === 'category' && (
             <div className="form-group">
-              <label>Select Categories *</label>
+              <label>Select Subcategories *</label>
               <div className="multi-select-container">
                 {categories.map((category) => (
                   <label key={category.id} className="checkbox-label">

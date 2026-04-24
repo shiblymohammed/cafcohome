@@ -61,17 +61,20 @@ addRequestInterceptor(async (config) => {
   
   // Check if this is a write operation (POST, PUT, PATCH, DELETE) or requires auth
   const isWriteOperation = config.method && !['GET', 'HEAD', 'OPTIONS'].includes(config.method.toUpperCase());
-  const requiresAuth = authRequiredEndpoints.some(endpoint => config.url?.includes(endpoint));
+  
+  // Check if the URL requires authentication
+  const url = typeof config.url === 'string' ? config.url : '';
+  const requiresAuth = authRequiredEndpoints.some(endpoint => url.includes(endpoint));
   
   // Only add token for write operations or auth-required endpoints
   if (isWriteOperation || requiresAuth) {
     const session = await getSession();
     const token = session?.accessToken;
 
-    if (token && !config.headers) {
-      config.headers = {};
-    }
-    if (token && config.headers) {
+    if (token) {
+      if (!config.headers) {
+        config.headers = {};
+      }
       (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
     }
   }
@@ -151,6 +154,7 @@ async function request<T>(
 
   let requestConfig: RequestInit = {
     ...options,
+    url: url, // Add URL to config for interceptors
     headers: {
       ...defaultHeaders,
       ...options.headers,
@@ -448,11 +452,22 @@ export class ApiClient {
   }
 
   static async getOrders(token: string) {
-    return request<any[]>("/v1/orders/", {
+    const response = await request<any>("/v1/orders/", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+    
+    // Handle paginated response
+    if (response && typeof response === 'object') {
+      if (Array.isArray(response)) {
+        return response;
+      } else if (response.results && Array.isArray(response.results)) {
+        return response.results;
+      }
+    }
+    
+    return [];
   }
 
   static async getOrderById(id: string, token: string) {

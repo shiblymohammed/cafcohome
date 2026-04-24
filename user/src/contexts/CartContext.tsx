@@ -48,12 +48,16 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  variantId?: number;  // Add variant ID
+  variantSku?: string;  // Add variant SKU
+  variantPrice?: number;  // Add variant price
+  variantMrp?: number;  // Add variant MRP
 }
 
 interface CartContextType {
   items: CartItem[];
   itemCount: number;
-  addItem: (product: Product, quantity?: number) => void;
+  addItem: (product: Product, quantity?: number, variantInfo?: { id: number; sku: string; price: number; mrp: number }) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -94,7 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, isInitialized]);
 
-  const addItem = (product: Product, quantity: number = 1) => {
+  const addItem = (product: Product, quantity: number = 1, variantInfo?: { id: number; sku: string; price: number; mrp: number }) => {
     setItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex(
         (item) => item.product.id === product.id,
@@ -106,12 +110,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
         newItems[existingItemIndex] = {
           ...newItems[existingItemIndex],
           quantity: newItems[existingItemIndex].quantity + quantity,
+          // Update variant info if provided
+          ...(variantInfo && {
+            variantId: variantInfo.id,
+            variantSku: variantInfo.sku,
+            variantPrice: variantInfo.price,
+            variantMrp: variantInfo.mrp,
+          }),
         };
         return newItems;
       }
 
       // Add new item
-      return [...prevItems, { product, quantity }];
+      return [...prevItems, { 
+        product, 
+        quantity,
+        ...(variantInfo && {
+          variantId: variantInfo.id,
+          variantSku: variantInfo.sku,
+          variantPrice: variantInfo.price,
+          variantMrp: variantInfo.mrp,
+        }),
+      }];
     });
   };
 

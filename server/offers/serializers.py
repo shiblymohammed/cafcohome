@@ -153,6 +153,7 @@ class OfferListSerializer(serializers.ModelSerializer):
     """Serializer for Offer list (minimal data)."""
     
     is_valid = serializers.SerializerMethodField()
+    applicable_products_count = serializers.SerializerMethodField()
     applicable_items_display = serializers.SerializerMethodField()
     days_left = serializers.SerializerMethodField()
     
@@ -162,13 +163,17 @@ class OfferListSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'image_url', 'discount_percentage', 'apply_to',
             'products', 'collections', 'categories', 'brands',  # Added ManyToMany fields
             'start_date', 'end_date', 'is_active', 'is_featured', 'is_valid', 
-            'applicable_items_display', 'days_left', 'created_at'
+            'applicable_products_count', 'applicable_items_display', 'days_left', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
     
     def get_is_valid(self, obj):
         """Check if offer is currently valid."""
         return obj.is_valid()
+    
+    def get_applicable_products_count(self, obj):
+        """Get count of products this offer applies to."""
+        return obj.get_applicable_products().count()
     
     def get_applicable_items_display(self, obj):
         """Get display text for applicable items."""
@@ -204,10 +209,10 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'products': 'Products must be specified when apply_to is "product"'})
         elif apply_to == 'collection':
             if not data.get('collections'):
-                raise serializers.ValidationError({'collections': 'Collections must be specified when apply_to is "collection"'})
+                raise serializers.ValidationError({'collections': 'Categories must be specified when apply_to is "collection"'})
         elif apply_to == 'category':
             if not data.get('categories'):
-                raise serializers.ValidationError({'categories': 'Categories must be specified when apply_to is "category"'})
+                raise serializers.ValidationError({'categories': 'Subcategories must be specified when apply_to is "category"'})
         elif apply_to == 'brand':
             if not data.get('brands'):
                 raise serializers.ValidationError({'brands': 'Brands must be specified when apply_to is "brand"'})

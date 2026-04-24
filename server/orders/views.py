@@ -71,14 +71,9 @@ class OrderCreateView(generics.CreateAPIView):
         try:
             order = serializer.save()
             
-            # Send WhatsApp quotation
-            quotation_sent = send_order_quotation(order)
-            
-            if quotation_sent:
-                message = 'Order created successfully. You will receive a quotation via WhatsApp shortly.'
-            else:
-                message = 'Order created successfully. We will contact you shortly with your quotation.'
-                logger.warning(f"Failed to send WhatsApp quotation for order {order.order_number}")
+            # WhatsApp quotation disabled for now - will be implemented later
+            # quotation_sent = send_order_quotation(order)
+            message = 'Order created successfully. We will contact you shortly with your quotation.'
             
             return Response(
                 {
@@ -105,6 +100,7 @@ class OrderListView(generics.ListAPIView):
     
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticatedUser]
+    pagination_class = None  # Disable pagination for simpler response
     
     def get_queryset(self):
         user = self.request.user
@@ -242,6 +238,51 @@ class OrderAssignmentView(APIView):
             {
                 'order': OrderSerializer(order).data,
                 'message': 'Order assigned successfully'
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+class QuotationSentView(APIView):
+    """Log when a quotation is sent manually (admin/staff only)."""
+    
+    permission_classes = [IsAdminOrStaff]
+    
+    def post(self, request, order_number):
+        try:
+            order = Order.objects.get(order_number=order_number)
+        except Order.DoesNotExist:
+            return Response(
+                {
+                    'error': {
+                        'code': 'NOT_FOUND',
+                        'message': 'Order not found'
+                    }
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        from .models import QuotationLog
+        
+        # Get the staff member who sent the quotation
+        staff_member = None
+        if hasattr(request.user, 'role'):
+            staff_member = request.user
+        
+        # Create quotation log
+        quotation_log = QuotationLog.objects.create(
+            order=order,
+            sent_by=staff_member,
+            phone_number=order.phone_number,
+            message_content=request.data.get('message_content', ''),
+            method='manual'
+        )
+        
+        return Response(
+            {
+                'message': 'Quotation sent logged successfully',
+                'quotation_log_id': quotation_log.id,
+                'sent_at': quotation_log.sent_at
             },
             status=status.HTTP_200_OK
         )

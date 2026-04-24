@@ -128,9 +128,13 @@ export default function FrequentlyBoughtTogether({ mainProduct, mainVariant, rel
 
         {/* Action / Total Box */}
         <div className="w-full lg:w-2/5 flex flex-col items-start lg:border-l lg:border-alpha/10 lg:pl-10">
-          <div className="flex items-end gap-2 mb-2">
-            <span className="text-sm font-primary text-alpha/60 uppercase tracking-wider">Total price:</span>
-            <span className="text-2xl font-medium text-alpha font-secondary">₹{totalPrice.toLocaleString()}</span>
+          <div className="mb-6">
+            <p className="text-sm font-primary text-alpha/60 uppercase tracking-wider mb-2">
+              Bundle {selectedCount} {selectedCount === 1 ? 'item' : 'items'}
+            </p>
+            <p className="text-xs text-alpha/50">
+              Prices will be provided in your personalized quotation
+            </p>
           </div>
           
           <button
@@ -167,7 +171,6 @@ export default function FrequentlyBoughtTogether({ mainProduct, mainVariant, rel
                 <p className="text-sm font-medium text-alpha group-hover:text-alpha/80 transition-colors">
                   <span className="font-semibold text-alpha/60">This item:</span> {mainProduct.name}
                 </p>
-                <p className="text-xs text-alpha/60 font-primary mt-0.5">₹{getPrice(mainProduct, true).toLocaleString()}</p>
               </div>
             </label>
 
@@ -186,7 +189,6 @@ export default function FrequentlyBoughtTogether({ mainProduct, mainVariant, rel
                   <Link href={`/product/${product.slug}`} className="text-sm font-medium text-alpha hover:underline decoration-alpha/30 underline-offset-2 transition-all block">
                     {product.name}
                   </Link>
-                  <p className="text-xs text-alpha/60 font-primary mt-0.5">₹{getPrice(product, false).toLocaleString()}</p>
                 </div>
               </label>
             ))}

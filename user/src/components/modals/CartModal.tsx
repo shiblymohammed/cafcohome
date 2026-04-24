@@ -12,8 +12,6 @@ interface CartModalProps {
   onClose: () => void;
 }
 
-const FREE_SHIPPING_THRESHOLD = 50000; // ₹50,000 threshold for free shipping
-
 export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const { items, itemCount, updateQuantity, removeItem } = useCart();
 
@@ -39,12 +37,6 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
-
-  // Calculate estimated total for shipping bar (using item count as proxy since prices are quotation-based)
-  const estimatedValue = items.reduce((sum, item) => sum + item.quantity * 10000, 0);
-  const shippingProgress = Math.min((estimatedValue / FREE_SHIPPING_THRESHOLD) * 100, 100);
-  const amountToFreeShipping = FREE_SHIPPING_THRESHOLD - estimatedValue;
-  const hasReachedFreeShipping = estimatedValue >= FREE_SHIPPING_THRESHOLD;
 
   return (
     <AnimatePresence>
@@ -84,35 +76,6 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                 <X className="w-5 h-5 text-alpha" />
               </button>
             </div>
-
-            {/* Free Shipping Progress Bar */}
-            {items.length > 0 && (
-              <div className="px-6 py-4 border-b border-alpha/[0.07] bg-ivory/40">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-primary uppercase tracking-widest text-alpha/60">
-                    {hasReachedFreeShipping ? (
-                      <span className="text-gold font-medium">🎉 You've unlocked Free Shipping!</span>
-                    ) : (
-                      <>
-                        Add{" "}
-                        <span className="text-alpha font-medium">
-                          ₹{(amountToFreeShipping).toLocaleString("en-IN")}
-                        </span>{" "}
-                        more for free shipping
-                      </>
-                    )}
-                  </span>
-                </div>
-                <div className="relative w-full h-[3px] bg-alpha/10 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${shippingProgress}%` }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                    className={`absolute left-0 top-0 h-full ${hasReachedFreeShipping ? "bg-gold" : "bg-alpha"}`}
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Content */}
             {items.length === 0 ? (
