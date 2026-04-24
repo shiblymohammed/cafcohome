@@ -1,0 +1,289 @@
+.stock-movements-page {
+  padding: 2rem;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+}
+
+.page-subtitle {
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.btn-back {
+  padding: 0.75rem 1.5rem;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  background: #e8e8e8;
+  border-color: #ccc;
+}
+
+/* Filters Section */
+.filters-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.filters-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 300px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.filter-select,
+.filter-date {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: white;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.filter-select:focus,
+.filter-date:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.btn-clear-filters {
+  padding: 0.75rem 1.5rem;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.btn-clear-filters:hover {
+  background: #d32f2f;
+}
+
+/* Movements Table */
+.movements-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.movements-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.movements-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.movements-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.movements-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.movements-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.movements-table td {
+  padding: 1rem;
+  font-size: 0.95rem;
+}
+
+.date-time {
+  color: #666;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.product-name {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.sku {
+  font-family: 'Courier New', monospace;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.variant {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.movement-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.movement-badge.positive {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.movement-badge.negative {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.movement-badge.neutral {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.quantity {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.quantity.positive {
+  color: #2e7d32;
+}
+
+.quantity.negative {
+  color: #c62828;
+}
+
+.quantity.neutral {
+  color: #1565c0;
+}
+
+.stock-change {
+  text-align: center;
+  color: #666;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.cost-price {
+  text-align: right;
+  color: #666;
+  font-weight: 500;
+}
+
+.created-by {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.notes {
+  color: #666;
+  font-size: 0.9rem;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Loading and No Data States */
+.loading,
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .movements-table {
+    font-size: 0.9rem;
+  }
+  
+  .movements-table th,
+  .movements-table td {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stock-movements-page {
+    padding: 1rem;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+  }
+  
+  .search-input,
+  .filter-select,
+  .filter-date {
+    width: 100%;
+    min-width: unset;
+  }
+  
+  .movements-table-container {
+    overflow-x: auto;
+  }
+  
+  .movements-table {
+    min-width: 1200px;
+  }
+}

@@ -13,6 +13,10 @@ import Products from './pages/Products';
 import Offers from './pages/Offers';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
+import Inventory from './pages/Inventory';
+import StockManagement from './pages/StockManagement';
+import StockMovements from './pages/StockMovements';
+import StockAlerts from './pages/StockAlerts';
 import Users from './pages/Users';
 import Staff from './pages/Staff';
 import Blog from './pages/Blog';
@@ -82,6 +86,10 @@ function App() {
             />
             <Route path="orders" element={<Orders />} />
             <Route path="orders/:orderNumber" element={<OrderDetail />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="stock-management" element={<StockManagement />} />
+            <Route path="stock-movements" element={<StockMovements />} />
+            <Route path="stock-alerts" element={<StockAlerts />} />
             <Route
               path="users"
               element={

@@ -309,7 +309,22 @@ class ProductVariant(models.Model):
     
     # Variant-specific inventory
     stock_quantity = models.IntegerField(default=0, help_text='Available stock for this variant')
+    reserved_quantity = models.IntegerField(default=0, help_text='Stock reserved for pending orders')
     low_stock_threshold = models.IntegerField(default=5, help_text='Alert threshold for low stock')
+    
+    # Cost and pricing
+    cost_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text='Cost price for inventory valuation'
+    )
+    
+    # Inventory tracking
+    last_restocked = models.DateTimeField(null=True, blank=True, help_text='Last restock date')
+    reorder_point = models.IntegerField(default=10, help_text='Automatic reorder point')
+    reorder_quantity = models.IntegerField(default=50, help_text='Quantity to reorder')
     
     # Variant-specific images (JSON array)
     images = models.JSONField(default=list, help_text='Variant-specific images')
@@ -382,15 +397,242 @@ class ProductVariant(models.Model):
         """Check if variant stock is low."""
         return 0 < self.stock_quantity <= self.low_stock_threshold
     
-    def reduce_stock(self, quantity):
-        """Reduce stock quantity."""
-        if self.stock_quantity >= quantity:
-            self.stock_quantity -= quantity
-            self.save(update_fields=['stock_quantity'])
-            return True
-        return False
+    @property
+    def available_quantity(self):
+        """Calculate available quantity (stock - reserved)."""
+        return max(0, self.stock_quantity - self.reserved_quantity)
     
-    def increase_stock(self, quantity):
-        """Increase stock quantity."""
+    @property
+    def is_in_stock(self):
+        """Check if variant is in stock."""
+        return self.available_quantity > 0
+    
+    @property
+    def is_low_stock(self):
+        """Check if variant stock is low."""
+        return 0 < self.available_quantity <= self.low_stock_threshold
+    
+    @property
+    def is_out_of_stock(self):
+        """Check if variant is out of stock."""
+        return self.available_quantity == 0
+    
+    @property
+    def stock_status(self):
+        """Get stock status string."""
+        if self.is_out_of_stock:
+            return 'out_of_stock'
+        elif self.is_low_stock:
+            return 'low_stock'
+        else:
+            return 'in_stock'
+    
+    @property
+    def stock_status_display(self):
+        """Get human-readable stock status."""
+        status_map = {
+            'out_of_stock': 'Out of Stock',
+            'low_stock': 'Low Stock',
+            'in_stock': 'In Stock'
+        }
+        return status_map.get(self.stock_status, 'Unknown')
+    
+    @property
+    def inventory_value(self):
+        """Calculate total inventory value at cost price."""
+        if self.cost_price:
+            return self.stock_quantity * self.cost_price
+        return None
+    
+    @property
+    def retail_value(self):
+        """Calculate total retail value at selling price."""
+        return self.stock_quantity * self.price
+    
+    def can_fulfill_quantity(self, quantity):
+        """Check if we can fulfill the requested quantity."""
+        return self.available_quantity >= quantity
+    
+    def reserve_stock(self, quantity, order=None):
+        """Reserve stock for an order."""
+        if not self.can_fulfill_quantity(quantity):
+            raise ValueError(f"Cannot reserve {quantity} units. Only {self.available_quantity} available.")
+        
+        self.reserved_quantity += quantity
+        self.save(update_fields=['reserved_quantity'])
+        
+        # Log the movement
+        self._log_stock_movement(
+            movement_type='reserved',
+            quantity_change=-quantity,
+            reference_order=order,
+            notes=f"Reserved {quantity} units for order"
+        )
+    
+    def release_reserved_stock(self, quantity, order=None):
+        """Release reserved stock."""
+        release_qty = min(quantity, self.reserved_quantity)
+        self.reserved_quantity -= release_qty
+        self.save(update_fields=['reserved_quantity'])
+        
+        # Log the movement
+        self._log_stock_movement(
+            movement_type='released',
+            quantity_change=release_qty,
+            reference_order=order,
+            notes=f"Released {release_qty} reserved units"
+        )
+        
+        return release_qty
+    
+    def reduce_stock(self, quantity, movement_type='sale', order=None, notes=""):
+        """Reduce stock quantity and log movement."""
+        if quantity > self.stock_quantity:
+            raise ValueError(f"Cannot reduce stock by {quantity}. Only {self.stock_quantity} available.")
+        
+        previous_quantity = self.stock_quantity
+        self.stock_quantity -= quantity
+        
+        # Also reduce reserved if applicable
+        if self.reserved_quantity > 0:
+            reserved_to_reduce = min(quantity, self.reserved_quantity)
+            self.reserved_quantity -= reserved_to_reduce
+        
+        self.save(update_fields=['stock_quantity', 'reserved_quantity'])
+        
+        # Log the movement
+        self._log_stock_movement(
+            movement_type=movement_type,
+            quantity_change=-quantity,
+            previous_quantity=previous_quantity,
+            reference_order=order,
+            notes=notes or f"Stock reduced by {quantity}"
+        )
+        
+        # Check for alerts
+        self._check_stock_alerts()
+        
+        return True
+    
+    def increase_stock(self, quantity, movement_type='restock', notes="", cost_price=None):
+        """Increase stock quantity and log movement."""
+        from django.utils import timezone
+        
+        previous_quantity = self.stock_quantity
         self.stock_quantity += quantity
+        
+        # Update cost price if provided
+        if cost_price is not None:
+            self.cost_price = cost_price
+        
+        # Update last restocked date for restock operations
+        if movement_type == 'restock':
+            self.last_restocked = timezone.now()
+        
+        self.save(update_fields=['stock_quantity', 'cost_price', 'last_restocked'])
+        
+        # Log the movement
+        self._log_stock_movement(
+            movement_type=movement_type,
+            quantity_change=quantity,
+            previous_quantity=previous_quantity,
+            notes=notes or f"Stock increased by {quantity}"
+        )
+        
+        # Resolve any existing alerts
+        self._resolve_stock_alerts()
+        
+        return True
+    
+    def adjust_stock(self, new_quantity, notes="", created_by=None):
+        """Adjust stock to a specific quantity."""
+        previous_quantity = self.stock_quantity
+        quantity_change = new_quantity - previous_quantity
+        
+        self.stock_quantity = new_quantity
         self.save(update_fields=['stock_quantity'])
+        
+        # Log the movement
+        self._log_stock_movement(
+            movement_type='adjustment',
+            quantity_change=quantity_change,
+            previous_quantity=previous_quantity,
+            notes=notes or f"Stock adjusted to {new_quantity}",
+            created_by=created_by
+        )
+        
+        # Check for alerts
+        if quantity_change < 0:
+            self._check_stock_alerts()
+        else:
+            self._resolve_stock_alerts()
+        
+        return True
+    
+    def _log_stock_movement(self, movement_type, quantity_change, previous_quantity=None, reference_order=None, notes="", created_by=None):
+        """Log stock movement."""
+        from inventory.models import StockMovement
+        
+        if previous_quantity is None:
+            previous_quantity = self.stock_quantity - quantity_change
+        
+        StockMovement.objects.create(
+            variant=self,
+            movement_type=movement_type,
+            quantity_change=quantity_change,
+            previous_quantity=previous_quantity,
+            new_quantity=self.stock_quantity,
+            reference_order=reference_order,
+            notes=notes,
+            created_by=created_by
+        )
+    
+    def _check_stock_alerts(self):
+        """Check and create stock alerts if needed."""
+        from inventory.models import StockAlert
+        
+        # Check for out of stock
+        if self.is_out_of_stock:
+            StockAlert.objects.get_or_create(
+                variant=self,
+                alert_type='out_of_stock',
+                is_resolved=False,
+                defaults={
+                    'current_quantity': self.stock_quantity,
+                    'threshold_quantity': 0,
+                    'priority': 'critical'
+                }
+            )
+        # Check for low stock
+        elif self.is_low_stock:
+            StockAlert.objects.get_or_create(
+                variant=self,
+                alert_type='low_stock',
+                is_resolved=False,
+                defaults={
+                    'current_quantity': self.stock_quantity,
+                    'threshold_quantity': self.low_stock_threshold,
+                    'priority': 'high' if self.stock_quantity <= 2 else 'medium'
+                }
+            )
+    
+    def _resolve_stock_alerts(self):
+        """Resolve existing stock alerts when stock is replenished."""
+        from inventory.models import StockAlert
+        
+        # Resolve alerts if stock is now above threshold
+        if not self.is_low_stock and not self.is_out_of_stock:
+            active_alerts = StockAlert.objects.filter(
+                variant=self,
+                is_resolved=False
+            )
+            for alert in active_alerts:
+                alert.resolve(notes="Stock replenished")
+    
+    def get_stock_movements(self, limit=10):
+        """Get recent stock movements for this variant."""
+        return self.stock_movements.all()[:limit]
+    
+    def get_active_alerts(self):
+        """Get active stock alerts for this variant."""
+        return self.stock_alerts.filter(is_resolved=False)
