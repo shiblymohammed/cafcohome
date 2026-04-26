@@ -24,7 +24,7 @@ export function ProductCard({
     return (
       <Link
         href={href}
-        className={`group cursor-pointer relative bg-productcardbg block transition-all duration-300 h-full flex flex-col ${className}`}
+        className={`group cursor-pointer relative bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-xl border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.5),0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.8),0_16px_48px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-white/80 rounded-2xl overflow-hidden transition-all duration-500 h-full flex flex-col ${className}`}
         onClick={onClick}
       >
         {children}
@@ -34,7 +34,7 @@ export function ProductCard({
 
   return (
     <div
-      className={`group cursor-pointer relative bg-productcardbg transition-all duration-300 h-full flex flex-col ${className}`}
+      className={`group cursor-pointer relative bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-xl border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.5),0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.8),0_16px_48px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-white/80 rounded-2xl overflow-hidden transition-all duration-500 h-full flex flex-col ${className}`}
       onClick={onClick}
     >
       {children}
@@ -98,7 +98,7 @@ export function ProductCardQuickAdd({
     <button
       suppressHydrationWarning
       onClick={handleClick}
-      className={`bg-alpha text-creme transition-all duration-300 hover:bg-alpha/90 flex items-center justify-center
+      className={`bg-white/40 backdrop-blur-md border border-white/60 shadow-[inset_0_0_10px_rgba(255,255,255,0.5),0_4px_16px_rgba(0,0,0,0.1)] text-alpha transition-all duration-300 hover:bg-white/60 hover:shadow-[inset_0_0_15px_rgba(255,255,255,0.8),0_8px_24px_rgba(0,0,0,0.15)] flex items-center justify-center rounded-xl lg:rounded-2xl
         w-9 h-9 md:w-10 md:h-10 
         lg:px-6 lg:py-3 lg:w-auto lg:h-auto lg:gap-2 
         ${className}`}
@@ -372,7 +372,7 @@ export function ProductCardWishlist({
     <button
       suppressHydrationWarning
       onClick={handleClick}
-      className={`absolute top-[8px] right-[8px] md:top-[12px] md:right-[12px] z-30 p-1 flex items-center justify-center transition-all duration-300 ${
+      className={`absolute top-[8px] right-[8px] md:top-[12px] md:right-[12px] z-30 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/40 backdrop-blur-md border border-white/60 shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 hover:bg-white/60 hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] ${
         inWishlist
           ? "text-red-500 scale-110"
           : "text-alpha hover:text-red-500 hover:scale-110"

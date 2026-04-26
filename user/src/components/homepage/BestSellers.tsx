@@ -88,7 +88,7 @@ export default function BestSellers() {
       <section className="bg-creme py-4 md:py-8 overflow-hidden">
         <div className="relative text-center px-container max-w-content mx-auto mb-3 md:mb-4">
           <div className="animate-slide-up">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl text-text-primary font-inter tracking-tight uppercase font-bold">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl text-text-primary font-inter tracking-tighter font-black pb-1">
               Shop Our Best Sellers
             </h2>
             <p className="text-sm md:text-base text-text-secondary mt-0.5 leading-relaxed max-w-md mx-auto font-inter">
@@ -147,7 +147,7 @@ export default function BestSellers() {
       {/* Section Header */}
       <div className="relative text-center px-container max-w-content mx-auto mb-3 md:mb-4">
         <div className="animate-slide-up">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl text-text-primary font-inter tracking-tight uppercase font-bold">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl text-text-primary font-inter tracking-tighter font-black pb-1">
             Shop Our Best Sellers
           </h2>
           <p className="text-sm md:text-base text-text-secondary mt-0.5 leading-relaxed max-w-md mx-auto font-inter">
@@ -156,7 +156,7 @@ export default function BestSellers() {
         </div>
         <a
           href="/products?bestseller=true"
-          className="hidden md:inline-flex items-center gap-2 px-5 py-2 text-xs text-alpha border border-alpha/20 hover:bg-alpha hover:text-creme hover:border-alpha transition-all duration-300 tracking-wider group font-medium absolute right-0 top-1/2 -translate-y-1/2"
+          className="hidden md:inline-flex items-center gap-2 px-6 py-2.5 text-xs text-alpha border border-white/60 bg-white/40 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.05)] hover:bg-white/60 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] rounded-full transition-all duration-300 tracking-wider group font-medium absolute right-0 top-1/2 -translate-y-1/2"
         >
           View All
           <svg
@@ -221,10 +221,10 @@ export default function BestSellers() {
               slidesOffsetAfter: 32,
             },
           }}
-          className="best-sellers-swiper"
+          className="best-sellers-swiper !pb-6 !pt-4"
         >
           {products.map((product) => (
-            <SwiperSlide key={product.id} className="!h-auto pb-2">
+            <SwiperSlide key={product.id} className="!h-auto">
               <ProductCardItem product={product} />
             </SwiperSlide>
           ))}
@@ -238,7 +238,7 @@ export default function BestSellers() {
       <div className="md:hidden flex justify-center mt-2.5 px-container">
         <a
           href="/products?bestseller=true"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-alpha text-creme text-xs hover:bg-alpha/90 transition-all duration-300 tracking-wider group font-medium uppercase"
+          className="inline-flex items-center gap-2 px-6 py-3 border border-white/60 bg-white/40 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.05)] hover:bg-white/60 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] text-alpha rounded-full transition-all duration-300 tracking-wider group font-medium uppercase"
         >
           View All Products
           <svg

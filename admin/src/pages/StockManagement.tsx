@@ -82,7 +82,9 @@ const StockManagement = () => {
       if (stockStatusFilter) params.stock_status = stockStatusFilter;
 
       const response = await apiClient.get('/inventory/', { params });
-      setVariants(response.data);
+      // API returns paginated response: { count, next, previous, results: [...] }
+      const data = response.data;
+      setVariants(Array.isArray(data) ? data : data.results || []);
     } catch (error) {
       console.error('Failed to fetch inventory:', error);
       alert('Failed to load inventory');

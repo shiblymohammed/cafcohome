@@ -10,6 +10,7 @@ import CategoriesManagement from './pages/CategoriesManagement';
 import Brands from './pages/Brands';
 import MaterialsColors from './pages/MaterialsColors';
 import Products from './pages/Products';
+import AddProduct from './pages/AddProduct';
 import Offers from './pages/Offers';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
@@ -73,6 +74,22 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <Products />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="products/add"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AddProduct />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="products/edit/:slug"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AddProduct />
                 </ProtectedRoute>
               }
             />

@@ -9,6 +9,7 @@ import MobileNav from "@/src/components/layout/MobileNav";
 import SessionProvider from "@/src/components/providers/SessionProvider";
 import { CartProvider } from "@/src/contexts/CartContext";
 import { WishlistProvider } from "@/src/contexts/WishlistContext";
+import { ToastProvider } from "@/src/contexts/ToastContext";
 
 const hammersmith = Hammersmith_One({
     subsets: ["latin"],
@@ -53,17 +54,19 @@ export default function RootLayout({
         <html lang="en" className="overflow-x-clip" data-scroll-behavior="smooth" suppressHydrationWarning>
             <body className={`${hammersmith.variable} ${playfair.variable} ${inter.variable} ${abrilFatface.variable} font-primary overflow-x-clip w-full`} suppressHydrationWarning>
                 <SessionProvider>
-                    <CartProvider>
-                        <WishlistProvider>
-                            <Navbar />
-                            <main className="overflow-x-clip">
-                                {children}
-                            </main>
-                            <Footer />
-                            <MobileFooter />
-                            <MobileNav />
-                        </WishlistProvider>
-                    </CartProvider>
+                    <ToastProvider>
+                        <CartProvider>
+                            <WishlistProvider>
+                                <Navbar />
+                                <main className="overflow-x-clip">
+                                    {children}
+                                </main>
+                                <Footer />
+                                <MobileFooter />
+                                <MobileNav />
+                            </WishlistProvider>
+                        </CartProvider>
+                    </ToastProvider>
                 </SessionProvider>
             </body>
         </html>

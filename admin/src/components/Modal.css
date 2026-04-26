@@ -1,91 +1,142 @@
+/* ============================================================
+   MODAL — Glassmorphism Dark Theme
+   ============================================================ */
+
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(5, 5, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+  z-index: 2000;
+  padding: 16px;
 }
 
+/* ── Base modal card ── */
 .modal-content {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-height: 90vh;
+  background: #0c0d14;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(168, 85, 247, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  animation: modalSlideIn 0.2s ease-out;
+  overflow: hidden;
+  animation: modalSlideIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  max-height: 92vh;
+  color-scheme: dark;
+  color: #eeeef2;
 }
 
-.modal-small {
-  width: 100%;
-  max-width: 400px;
+/* ── Sizes ── */
+.modal-small  { width: 100%; max-width: 440px; }
+.modal-medium { width: 100%; max-width: 620px; }
+.modal-large  { width: 100%; max-width: 920px; }
+
+.modal-xlarge {
+  width: 98vw;
+  max-width: 1560px;
+  height: 96vh;
+  max-height: 96vh; /* override the 92vh base */
 }
 
-.modal-medium {
-  width: 100%;
-  max-width: 600px;
-}
-
-.modal-large {
-  width: 100%;
-  max-width: 900px;
-}
-
+/* ── Animation ── */
 @keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 
+/* ── Header ── */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #dee2e6;
+  padding: 22px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, #a855f7, transparent);
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #212529;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #fff 30%, #c4b5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
+/* ── Close button ── */
 .modal-close {
-  background: none;
-  border: none;
-  font-size: 28px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 22px;
   line-height: 1;
-  color: #6c757d;
+  color: #555a72;
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 10px;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .modal-close:hover {
-  background-color: #f8f9fa;
-  color: #212529;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  transform: scale(1.05);
 }
 
+/* ── Body ── */
 .modal-body {
-  padding: 24px;
+  padding: 28px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modal-body::-webkit-scrollbar { display: none; }
+
+/* xlarge body: disable its own scroll — inner panels handle it */
+.modal-xlarge .modal-body {
+  padding: 28px 36px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .modal-backdrop { padding: 8px; }
+  .modal-header   { padding: 16px 20px; }
+  .modal-body     { padding: 20px; }
+  .modal-content  { max-height: 96vh; border-radius: 16px; }
+  .modal-xlarge   { width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+  .modal-xlarge .modal-body { padding: 16px; }
 }

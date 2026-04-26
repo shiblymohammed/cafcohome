@@ -45,7 +45,8 @@ const StockMovements = () => {
       if (dateFilter) params.date = dateFilter;
 
       const response = await apiClient.get('/inventory/movements/', { params });
-      setMovements(response.data);
+      const data = response.data;
+      setMovements(Array.isArray(data) ? data : data.results || []);
     } catch (error) {
       console.error('Failed to fetch stock movements:', error);
       alert('Failed to load stock movements');

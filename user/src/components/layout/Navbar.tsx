@@ -131,7 +131,7 @@ export default function Navbar() {
   return (
     <>
       <nav 
-        className={`hidden md:flex flex-col fixed top-0 left-0 right-0 z-50 transition-all duration-500 will-change-transform ${
+        className={`hidden md:flex flex-col fixed top-0 left-0 right-0 z-[100] transition-all duration-500 will-change-transform ${
           isScrolled ? "py-1" : "py-2"
         }`}
       >
@@ -148,74 +148,97 @@ export default function Navbar() {
         {/* First Row - Logo centered, Icons on right */}
         <div className="relative z-10 w-full h-14 max-w-[1920px] mx-auto flex items-center px-6">
           
-          {/* Left Side - Search (only on browsing pages) */}
+          {/* Left Side — unified search bar (always same DOM element = triggerRef anchors correctly) */}
           <div className="flex items-center flex-1">
             {showSearch ? (
-              isSearchOpen ? (
-                <div
-                  ref={searchButtonRef as any}
-                  className={`flex items-center w-56 lg:w-72 h-9 px-3 rounded-full border transition-all duration-200 ${
-                    showSolidNavbar 
-                      ? "bg-white border-alpha/20 focus-within:border-alpha" 
-                      : "bg-creme/10 border-creme/25 focus-within:border-creme/40"
-                  }`}
-                >
-                  <SearchIcon size={16} className={`flex-shrink-0 ${showSolidNavbar ? "text-alpha/40" : "text-creme/50"}`} />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for products..."
-                    className={`w-full ml-2.5 bg-transparent text-[13px] font-primary tracking-wide outline-none ${
-                      showSolidNavbar 
-                        ? "text-alpha placeholder:text-alpha/35" 
-                        : "text-creme placeholder:text-creme/40"
-                    }`}
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      className={`flex-shrink-0 ml-1 p-0.5 rounded-full transition-colors ${
-                        showSolidNavbar ? "text-alpha/30 hover:text-alpha/60" : "text-creme/40 hover:text-creme/70"
-                      }`}
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <button
-                  ref={searchButtonRef}
-                  onClick={() => {
+              <div
+                ref={searchButtonRef as any}
+                onClick={() => {
+                  if (!isSearchOpen) {
                     setActiveSearchRef(searchButtonRef);
                     setIsSearchOpen(true);
-                    setTimeout(() => searchInputRef.current?.focus(), 100);
-                  }}
-                  className={`flex items-center gap-2 h-9 px-3 rounded-full border transition-all duration-200 ${
-                    showSolidNavbar 
-                      ? "border-alpha/10 text-alpha/50 hover:border-alpha/20 hover:text-alpha/70" 
-                      : "border-creme/15 text-creme/60 hover:border-creme/25 hover:text-creme/80"
+                    setTimeout(() => searchInputRef.current?.focus(), 80);
+                  }
+                }}
+                className={`relative flex items-center h-9 px-3.5 transition-all duration-300 cursor-text ${
+                  isSearchOpen
+                    ? 'w-64 lg:w-80 xl:w-96'
+                    : 'w-44 lg:w-56 xl:w-64'
+                } ${
+                  showSolidNavbar
+                    ? isSearchOpen
+                      ? 'bg-white border border-alpha/25 rounded-full shadow-[0_2px_16px_rgba(38,37,36,0.10)]'
+                      : 'bg-white/60 border border-alpha/12 rounded-full hover:bg-white/80 hover:border-alpha/20'
+                    : isSearchOpen
+                      ? 'bg-creme/15 border border-creme/35 rounded-full'
+                      : 'bg-creme/8 border border-creme/15 rounded-full hover:bg-creme/15 hover:border-creme/25'
+                }`}
+              >
+                {/* Search icon */}
+                <SearchIcon
+                  size={14}
+                  className={`flex-shrink-0 transition-colors duration-200 ${
+                    showSolidNavbar
+                      ? isSearchOpen ? 'text-alpha/50' : 'text-alpha/35'
+                      : isSearchOpen ? 'text-creme/60' : 'text-creme/45'
                   }`}
-                  aria-label="Search"
-                >
-                  <SearchIcon size={16} />
-                  <span className="text-[13px] font-primary tracking-wide">Search</span>
-                  <kbd className={`hidden lg:inline-block ml-2 px-1.5 py-0.5 text-[10px] border rounded ${
-                    showSolidNavbar 
-                      ? "border-alpha/20 text-alpha/40" 
-                      : "border-creme/25 text-creme/50"
+                />
+
+                {/* Input — always mounted so triggerRef rect is stable */}
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    if (!isSearchOpen) {
+                      setActiveSearchRef(searchButtonRef);
+                      setIsSearchOpen(true);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') { setIsSearchOpen(false); setSearchQuery(''); }
+                    if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+                      router.push(`/categories?search=${encodeURIComponent(searchQuery.trim())}`);
+                      setIsSearchOpen(false); setSearchQuery('');
+                    }
+                  }}
+                  placeholder={isSearchOpen ? 'Search products, categories…' : 'Search…'}
+                  autoComplete="off"
+                  className={`flex-1 min-w-0 ml-2 bg-transparent text-[12px] font-primary tracking-wide outline-none transition-colors duration-200 ${
+                    showSolidNavbar
+                      ? 'text-alpha placeholder:text-alpha/30'
+                      : 'text-creme placeholder:text-creme/35'
+                  }`}
+                />
+
+                {/* ⌘K hint — shown when idle */}
+                {!isSearchOpen && !searchQuery && (
+                  <kbd className={`hidden xl:inline-block flex-shrink-0 ml-1.5 px-1.5 py-0.5 text-[9px] border rounded pointer-events-none ${
+                    showSolidNavbar ? 'border-alpha/15 text-alpha/30' : 'border-creme/20 text-creme/40'
                   }`}>
                     ⌘K
                   </kbd>
-                </button>
-              )
+                )}
+
+                {/* Clear button — shown when query exists */}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); }}
+                    className={`flex-shrink-0 ml-1 p-0.5 rounded-full transition-colors ${
+                      showSolidNavbar ? 'text-alpha/30 hover:text-alpha/60' : 'text-creme/35 hover:text-creme/65'
+                    }`}
+                    aria-label="Clear search"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             ) : (
-              <div /> 
+              <div />
             )}
           </div>
 

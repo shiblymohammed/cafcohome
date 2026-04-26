@@ -36,16 +36,15 @@ const MultiImageCropperWithUpload = ({
   const [imagesToProcess, setImagesToProcess] = useState<ImageToProcess[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [croppedBlobs, setCroppedBlobs] = useState<Blob[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const uniqueId = useId();
 
   const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const cloudinaryUploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const processFiles = async (files: File[]) => {
     if (files.length === 0) return;
 
-    // Validate files
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
         setUploadError('Please select only image files');
@@ -60,7 +59,6 @@ const MultiImageCropperWithUpload = ({
     setUploadError('');
 
     try {
-      // Read all files as data URLs
       const imagePromises = files.map(async (file, index) => ({
         file,
         dataUrl: await readFile(file),
@@ -76,6 +74,28 @@ const MultiImageCropperWithUpload = ({
       setUploadError('Failed to read image files');
       console.error('File read error:', err);
     }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    await processFiles(files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    await processFiles(files);
   };
 
   const handleCropComplete = async (croppedImageBlob: Blob) => {
@@ -182,75 +202,73 @@ const MultiImageCropperWithUpload = ({
 
   return (
     <>
-      <div className="multi-image-uploader">
+      <div className="multi-image-uploader modern-uploader">
         {label && <label className="multi-image-uploader-label">{label}</label>}
 
-        <div className="image-grid">
-          {value && value.length > 0 ? (
-            value.map((image, index) => (
-              <div key={index} className="image-item">
-                <img src={image.url} alt={image.alt || `Image ${index + 1}`} />
-                <div className="image-controls">
-                  <input
-                    type="text"
-                    value={image.alt}
-                    onChange={(e) => handleAltChange(index, e.target.value)}
-                    placeholder="Alt text"
-                    className="alt-input"
-                  />
-                  <div className="image-actions">
-                    <button
-                      type="button"
-                      onClick={() => moveImage(index, 'up')}
-                      disabled={index === 0}
-                      title="Move up"
-                    >
-                      ↑
+        <div 
+          className={`upload-dropzone ${isDragging ? 'dragging' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <div className="dropzone-content">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <p className="dropzone-text">Drag and drop images here, or click to browse</p>
+            <p className="dropzone-subtext">Supports JPG, PNG, WEBP (Max 10MB)</p>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              disabled={uploading}
+              className="file-input"
+              id={`multi-file-upload-crop-${uniqueId}`}
+            />
+            <label htmlFor={`multi-file-upload-crop-${uniqueId}`} className="btn-secondary dropzone-btn">
+              {uploading ? 'Processing...' : 'Browse Files'}
+            </label>
+          </div>
+        </div>
+
+        {value && value.length > 0 && (
+          <div className="image-grid-modern">
+            {value.map((image, index) => (
+              <div key={index} className="image-card-modern">
+                <div className="image-wrapper">
+                  <img src={image.url} alt={image.alt || `Image ${index + 1}`} />
+                  <div className="image-overlay">
+                    <button type="button" className="icon-btn-small" onClick={() => moveImage(index, 'up')} disabled={index === 0} title="Move Left">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => moveImage(index, 'down')}
-                      disabled={index === value.length - 1}
-                      title="Move down"
-                    >
-                      ↓
+                    <button type="button" className="icon-btn-small" onClick={() => moveImage(index, 'down')} disabled={index === value.length - 1} title="Move Right">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(index)}
-                      className="remove-btn"
-                      title="Remove"
-                    >
-                      ×
+                    <button type="button" className="icon-btn-small delete" onClick={() => handleRemove(index)} title="Remove">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                   </div>
                 </div>
+                <input
+                  type="text"
+                  value={image.alt}
+                  onChange={(e) => handleAltChange(index, e.target.value)}
+                  placeholder="Alt text (SEO)"
+                  className="modern-alt-input"
+                />
               </div>
-            ))
-          ) : (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-              No images uploaded yet
-            </div>
-          )}
-        </div>
-
-        <div className="upload-controls">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileSelect}
-            disabled={uploading}
-            className="file-input"
-            id={`multi-file-upload-crop-${uniqueId}`}
-          />
-          <label htmlFor={`multi-file-upload-crop-${uniqueId}`} className="file-input-label">
-            {uploading ? 'Uploading...' : 'Add Images'}
-          </label>
-        </div>
+            ))}
+          </div>
+        )}
 
         {(error || uploadError) && (
-          <div className="multi-image-uploader-error">{error || uploadError}</div>
+          <div className="multi-image-uploader-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            {error || uploadError}
+          </div>
         )}
       </div>
 

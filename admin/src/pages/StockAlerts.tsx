@@ -45,7 +45,8 @@ const StockAlerts = () => {
       if (searchTerm) params.search = searchTerm;
 
       const response = await apiClient.get('/inventory/alerts/', { params });
-      setAlerts(response.data);
+      const data = response.data;
+      setAlerts(Array.isArray(data) ? data : data.results || []);
     } catch (error) {
       console.error('Failed to fetch stock alerts:', error);
       alert('Failed to load stock alerts');

@@ -1,14 +1,11 @@
-import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import TopNavigation from './TopNavigation';
 import type { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
 import './AdminLayout.css';
 
 const AdminLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -16,36 +13,20 @@ const AdminLayout = () => {
     dispatch(logout());
   };
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-  };
-
   if (!user) {
     return null;
   }
 
   return (
-    <div className="admin-layout">
-      <Sidebar
+    <div className="admin-layout admin-layout--top-nav">
+      <TopNavigation
         userRole={user.role}
-        isOpen={sidebarOpen}
-        onClose={closeSidebar}
+        userName={user.name}
+        onLogout={handleLogout}
       />
-      <div className="admin-content-wrapper">
-        <Header
-          userName={user.name}
-          userRole={user.role}
-          onMenuClick={toggleSidebar}
-          onLogout={handleLogout}
-        />
-        <main className="admin-main">
-          <Outlet />
-        </main>
-      </div>
+      <main className="admin-main">
+        <Outlet />
+      </main>
     </div>
   );
 };

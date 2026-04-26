@@ -3,10 +3,12 @@
 import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ShoppingCart, Heart, Tag, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart, Heart, Tag, Star, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { ProductCard, ProductCardImage, ProductCardImageContainer, ProductCardTitle, ProductCardDescription, ProductCardMeta, ProductCardWishlist, ProductCardBadgeGroup, ProductCardRating } from "@/src/components/ui/ProductCard";
 import { useCart } from "@/src/contexts/CartContext";
 import { useWishlist } from "@/src/contexts/WishlistContext";
+import { useToast } from "@/src/contexts/ToastContext";
 import { ProductReviews } from "@/src/components/reviews";
 import FrequentlyBoughtTogether from "@/src/components/ui/FrequentlyBoughtTogether";
 
@@ -50,9 +52,12 @@ interface ProductClientProps {
 export default function ProductClient({ product, variants = [], relatedProducts }: ProductClientProps) {
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
     const [isHydrated, setIsHydrated] = useState(false);
+    const [buyNowLoading, setBuyNowLoading] = useState(false);
 
     const { addItem } = useCart();
     const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+    const { showToast } = useToast();
+    const router = useRouter();
 
     const [selectedColor, setSelectedColor] = useState("");
     const [selectedMaterial, setSelectedMaterial] = useState("");
@@ -93,7 +98,6 @@ export default function ProductClient({ product, variants = [], relatedProducts 
 
     const handleAddToCart = () => {
         if (product && selectedVariant && selectedVariant.is_in_stock) {
-            // Add product to cart with quantity and variant info
             addItem(
                 getCartProduct(), 
                 quantity,
@@ -104,7 +108,34 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                     mrp: parseFloat(selectedVariant.mrp),
                 }
             );
+            const mainImage = selectedVariant.images?.[0]?.url || product.main_image;
+            showToast({
+                type: 'cart',
+                title: 'Added to cart',
+                message: `${product.name}${quantity > 1 ? ` × ${quantity}` : ''}`,
+                image: mainImage,
+            });
+        } else if (!selectedVariant?.is_in_stock) {
+            showToast({ type: 'error', title: 'Out of stock', message: 'This variant is currently unavailable.' });
         }
+    };
+
+    const handleBuyNow = async () => {
+        if (!product || !selectedVariant || !selectedVariant.is_in_stock) return;
+        setBuyNowLoading(true);
+        addItem(
+            getCartProduct(),
+            quantity,
+            {
+                id: selectedVariant.id,
+                sku: selectedVariant.sku,
+                price: parseFloat(selectedVariant.price),
+                mrp: parseFloat(selectedVariant.mrp),
+            }
+        );
+        showToast({ type: 'cart', title: 'Redirecting to checkout…', message: product.name });
+        await new Promise(r => setTimeout(r, 80));
+        router.push('/checkout');
     };
 
     // Handle hydration with a small delay to prevent flash
@@ -193,8 +224,10 @@ export default function ProductClient({ product, variants = [], relatedProducts 
         
         if (isProductInWishlist) {
             removeFromWishlist(product.id);
+            showToast({ type: 'info', title: 'Removed from wishlist', message: product.name });
         } else {
             addToWishlist(getCartProduct());
+            showToast({ type: 'wishlist', title: 'Added to wishlist', message: product.name });
         }
     };
 
@@ -384,6 +417,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
 
                                 {/* Loading Actions */}
                                 <div className="mb-6 md:mb-12 space-y-3 md:space-y-4">
+                                    <div className="w-full h-14 bg-alpha/10 animate-pulse rounded"></div>
                                     <div className="w-full h-14 bg-alpha/10 animate-pulse rounded"></div>
                                     <div className="w-full h-12 bg-alpha/10 animate-pulse rounded"></div>
                                 </div>
@@ -721,25 +755,55 @@ export default function ProductClient({ product, variants = [], relatedProducts 
 
                             {/* Actions - Hidden on mobile (shown in sticky bar) */}
                             <div className="hidden md:flex mb-8 md:mb-12 flex-col space-y-3">
-                                <button 
+
+                                {/* ── Buy Now ── primary CTA */}
+                                <button
+                                    id="buy-now-btn"
+                                    onClick={handleBuyNow}
+                                    disabled={!isHydrated || !isInStock || !selectedVariant || buyNowLoading}
+                                    className="relative w-full overflow-hidden group bg-gold text-white py-4 md:py-5 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider rounded-lg shadow-lg hover:shadow-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#8C6A54]"
+                                >
+                                    {/* shimmer sweep */}
+                                    <span className="pointer-events-none absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                    {buyNowLoading ? (
+                                        <>
+                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                            </svg>
+                                            Going to checkout…
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Zap className="w-5 h-5" />
+                                            {!isHydrated ? 'Loading…' : !selectedVariant ? 'Select Options' : isInStock ? 'Buy Now' : 'Out of Stock'}
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* ── Add to Cart ── secondary */}
+                                <button
+                                    id="add-to-cart-btn"
                                     onClick={handleAddToCart}
-                                    className="w-full bg-alpha text-creme py-4 md:py-5 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-lg shadow-lg hover:shadow-xl font-medium"
                                     disabled={!isHydrated || !isInStock || !selectedVariant}
+                                    className="w-full bg-alpha text-creme py-4 md:py-4 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-lg font-medium border-2 border-alpha"
                                 >
                                     <ShoppingCart className="w-5 h-5" />
-                                    {!isHydrated ? "Loading..." : !selectedVariant ? "Select Options" : isInStock ? "Add to Cart" : "Out of Stock"}
+                                    {!isHydrated ? 'Loading…' : !selectedVariant ? 'Select Options' : isInStock ? 'Add to Cart' : 'Out of Stock'}
                                 </button>
-                                <button 
+
+                                {/* ── Wishlist ── tertiary */}
+                                <button
                                     onClick={handleToggleWishlist}
-                                    className={`w-full border-2 py-3.5 md:py-4 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-3 rounded-lg font-medium ${
-                                        isProductInWishlist 
-                                            ? "border-red-500 text-red-600 bg-red-50 hover:bg-red-100 shadow-sm" 
-                                            : "border-alpha/20 text-alpha hover:border-alpha hover:shadow-md bg-white"
-                                    }`}
                                     disabled={!isHydrated}
+                                    className={`w-full border-2 py-3 md:py-3.5 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-3 rounded-lg font-medium ${
+                                        isProductInWishlist
+                                            ? 'border-red-500 text-red-600 bg-red-50 hover:bg-red-100 shadow-sm'
+                                            : 'border-alpha/20 text-alpha hover:border-alpha hover:shadow-md bg-white'
+                                    }`}
                                 >
-                                    <Heart className={`w-5 h-5 ${isProductInWishlist ? "fill-current" : ""}`} />
-                                    {!isHydrated ? "Loading..." : isProductInWishlist ? "In Wishlist" : "Add to Wishlist"}
+                                    <Heart className={`w-5 h-5 ${isProductInWishlist ? 'fill-current' : ''}`} />
+                                    {!isHydrated ? 'Loading…' : isProductInWishlist ? 'In Wishlist' : 'Add to Wishlist'}
                                 </button>
                             </div>
 
@@ -885,30 +949,52 @@ export default function ProductClient({ product, variants = [], relatedProducts 
 
             {/* Sticky Mobile Action Bar */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-alpha/10 shadow-2xl z-50 safe-area-bottom">
-                <div className="px-4 py-3 flex items-center gap-3">
-                    {/* Wishlist Button */}
-                    <button 
+                <div className="px-3 py-3 flex items-center gap-2">
+
+                    {/* Wishlist icon */}
+                    <button
                         onClick={handleToggleWishlist}
-                        className={`flex-shrink-0 w-12 h-12 border-2 rounded-lg flex items-center justify-center transition-all ${
-                            isProductInWishlist 
-                                ? "border-red-500 text-red-600 bg-red-50" 
-                                : "border-alpha/20 text-alpha bg-white"
+                        className={`flex-shrink-0 w-11 h-11 border-2 rounded-lg flex items-center justify-center transition-all ${
+                            isProductInWishlist
+                                ? 'border-red-500 text-red-600 bg-red-50'
+                                : 'border-alpha/20 text-alpha bg-white'
                         }`}
                         disabled={!isHydrated}
-                        aria-label={isProductInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                        aria-label={isProductInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
-                        <Heart className={`w-5 h-5 ${isProductInWishlist ? "fill-current" : ""}`} />
+                        <Heart className={`w-4.5 h-4.5 ${isProductInWishlist ? 'fill-current' : ''}`} />
                     </button>
 
-                    {/* Add to Cart Button */}
-                    <button 
+                    {/* Add to Cart */}
+                    <button
                         onClick={handleAddToCart}
-                        className="flex-1 bg-alpha text-creme py-3.5 px-4 text-xs uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-lg shadow-lg font-medium"
                         disabled={!isHydrated || !isInStock || !selectedVariant}
+                        className="flex-1 bg-alpha text-creme py-3 px-3 text-[11px] uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 rounded-lg font-medium"
                     >
-                        <ShoppingCart className="w-4 h-4" />
-                        <span>{!isHydrated ? "Loading..." : !selectedVariant ? "Select Options" : isInStock ? "Add to Cart" : "Out of Stock"}</span>
+                        <ShoppingCart className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{!isHydrated ? 'Loading…' : !selectedVariant ? 'Select' : isInStock ? 'Add to Cart' : 'Out of Stock'}</span>
                     </button>
+
+                    {/* Buy Now */}
+                    <button
+                        onClick={handleBuyNow}
+                        disabled={!isHydrated || !isInStock || !selectedVariant || buyNowLoading}
+                        className="flex-1 relative overflow-hidden group bg-gold text-white py-3 px-3 text-[11px] uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 rounded-lg font-medium shadow-md hover:bg-[#8C6A54]"
+                    >
+                        <span className="pointer-events-none absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        {buyNowLoading ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                            </svg>
+                        ) : (
+                            <>
+                                <Zap className="w-4 h-4 flex-shrink-0" />
+                                <span className="truncate">{isInStock ? 'Buy Now' : 'Out of Stock'}</span>
+                            </>
+                        )}
+                    </button>
+
                 </div>
             </div>
 
