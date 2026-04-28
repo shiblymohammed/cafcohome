@@ -95,8 +95,9 @@ export default function CheckoutPage() {
     }
   };
 
-  const subtotal = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-  const total = subtotal;
+  const cartSubtotal = items.reduce((sum, item) => sum + ((item.variantPrice || Number(item.product.price) || 0) * item.quantity), 0);
+  const cartTotalMrp = items.reduce((sum, item) => sum + ((item.variantMrp || Number(item.product.mrp) || 0) * item.quantity), 0);
+  const totalDiscount = cartTotalMrp > cartSubtotal ? cartTotalMrp - cartSubtotal : 0;
 
   const getWhatsappNumber = () => {
     if (whatsappOption === "address") {
@@ -321,7 +322,12 @@ export default function CheckoutPage() {
                         <div className="flex-1">
                           <h3 className="text-sm font-primary text-alpha">{item.product.name}</h3>
                           <p className="text-xs text-alpha/60 mt-0.5">{item.product.category_name}</p>
-                          <p className="text-xs text-alpha/60 mt-1">Qty: {item.quantity}</p>
+                          <div className="flex justify-between items-end mt-2">
+                            <p className="text-xs text-alpha/60">Qty: {item.quantity}</p>
+                            <p className="text-sm font-primary font-bold text-alpha">
+                              ₹{((item.variantPrice || Number(item.product.price) || 0) * item.quantity).toLocaleString("en-IN")}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     );
@@ -479,11 +485,27 @@ export default function CheckoutPage() {
                   <span className="text-alpha/70">Total Items</span>
                   <span className="text-alpha">{itemCount}</span>
                 </div>
+                {cartTotalMrp > cartSubtotal && (
+                  <div className="flex justify-between text-sm text-alpha/70">
+                    <span>Total MRP</span>
+                    <span className="line-through">₹{cartTotalMrp.toLocaleString("en-IN")}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-alpha/70">Pricing</span>
-                  <span className="text-alpha/60 text-xs">Provided in quotation</span>
+                  <span className="text-alpha/70">Subtotal</span>
+                  <span className="font-medium text-alpha">₹{cartSubtotal.toLocaleString("en-IN")}</span>
                 </div>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount</span>
+                    <span>-₹{totalDiscount.toLocaleString("en-IN")}</span>
+                  </div>
+                )}
                 <div className="h-px bg-alpha/10"></div>
+                <div className="flex justify-between font-secondary text-lg">
+                  <span className="text-alpha">Total</span>
+                  <span className="text-alpha">₹{cartSubtotal.toLocaleString("en-IN")}</span>
+                </div>
 
                 <button
                   onClick={handlePlaceOrder}
@@ -541,13 +563,20 @@ export default function CheckoutPage() {
                 <p className="text-xs uppercase tracking-widest text-alpha/50">Order Summary</p>
                 {items.map((item) => (
                   <div key={item.product.id} className="flex justify-between text-sm">
-                    <span className="text-alpha/70">{item.product.name} × {item.quantity}</span>
+                    <span className="text-alpha/70 truncate mr-4">{item.product.name} × {item.quantity}</span>
+                    <span className="text-alpha font-medium shrink-0">
+                      ₹{((item.variantPrice || Number(item.product.price) || 0) * item.quantity).toLocaleString("en-IN")}
+                    </span>
                   </div>
                 ))}
                 <div className="h-px bg-alpha/10 my-2"></div>
                 <div className="flex justify-between text-sm font-medium">
                   <span className="text-alpha">Total Items</span>
                   <span className="text-alpha">{itemCount}</span>
+                </div>
+                <div className="flex justify-between text-base font-bold mt-2">
+                  <span className="text-alpha">Total Value</span>
+                  <span className="text-alpha">₹{cartSubtotal.toLocaleString("en-IN")}</span>
                 </div>
               </div>
 

@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
@@ -68,7 +69,7 @@ const ImageCropModal = ({
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className="crop-modal-overlay" onClick={onCancel} onKeyDown={handleKeyDown}>
       <div className="crop-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="crop-modal-header">
@@ -170,6 +171,8 @@ const ImageCropModal = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default ImageCropModal;

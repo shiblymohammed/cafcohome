@@ -1,8 +1,9 @@
 import { Metadata } from 'next';
 import Hero from "@/src/components/homepage/Hero";
 import ShopByRoom from "@/src/components/homepage/ShopByRoom";
+import CollectionsSection from "@/src/components/homepage/CollectionsSection";
 import BestSellers from "@/src/components/homepage/BestSellers";
-import ShoppableLookbook from "@/src/components/homepage/ShoppableLookbook";
+import InstagramFeed from "@/src/components/homepage/InstagramFeed";
 import CraftsmanshipSection from "@/src/components/homepage/CraftsmanshipSection";
 import HotSelling from "@/src/components/homepage/HotSelling";
 import Categories from "@/src/components/homepage/Categories";
@@ -37,8 +38,9 @@ export default function HomePage() {
           <BestSellers />
           <Categories />
           <ShopByRoom />
+          <CollectionsSection />
           <HotSelling />
-          <ShoppableLookbook />
+          <InstagramFeed />
           <CraftsmanshipSection />
           <Offers />
           <AboutSection />

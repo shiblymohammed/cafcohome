@@ -430,6 +430,25 @@ export class ApiClient {
     );
   }
 
+  // Collections
+  static async getCollections() {
+    return request<any>(
+      "/v1/collections/",
+      {},
+      {},
+      { revalidate: 300, tags: ['collections'] }
+    );
+  }
+
+  static async getCollectionBySlug(slug: string) {
+    return request<any>(
+      `/v1/collections/${slug}/`,
+      {},
+      {},
+      { revalidate: 300, tags: ['collections', `collection-${slug}`] }
+    );
+  }
+
   // Shop By Room
   static async getShopByRooms() {
     return request<any>(

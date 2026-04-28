@@ -130,6 +130,32 @@ export default function WishlistModal({ isOpen, onClose }: WishlistModalProps) {
                         {product.category_name} • {product.subcategory_name}
                       </p>
 
+                      {/* Price Display */}
+                      {(() => {
+                        const selling = Number(product.price || product.selling_price || 0);
+                        const mrp = Number(product.mrp || 0);
+                        const hasOffer = mrp > selling && selling > 0;
+                        const discountPct = hasOffer ? Math.round(((mrp - selling) / mrp) * 100) : 0;
+                        
+                        return (
+                          <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
+                            <span className={`text-sm font-primary font-bold ${hasOffer ? 'text-gold' : 'text-alpha'}`}>
+                              ₹{selling.toLocaleString("en-IN")}
+                            </span>
+                            {hasOffer && (
+                              <>
+                                <span className="text-xs font-primary text-alpha/40 line-through">
+                                  ₹{mrp.toLocaleString("en-IN")}
+                                </span>
+                                <span className="text-[10px] font-primary text-red-600 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded-sm">
+                                  {discountPct}% OFF
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })()}
+
                       {/* Actions */}
                       <div className="flex gap-2 mt-3">
                         <button

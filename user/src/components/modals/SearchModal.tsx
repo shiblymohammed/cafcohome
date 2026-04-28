@@ -384,6 +384,31 @@ export default function SearchModal({
                             · {product.subcategory_name}
                           </span>
                         )}
+                        {/* Price Display */}
+                        {(() => {
+                          const selling = Number(product.selling_price || 0);
+                          const mrp = Number(product.mrp || 0);
+                          const hasOffer = mrp > selling && selling > 0;
+                          const discountPct = hasOffer ? Math.round(((mrp - selling) / mrp) * 100) : 0;
+                          
+                          return (
+                            <div className="ml-auto flex items-baseline gap-1.5 flex-wrap pl-2">
+                              <span className={`text-[11px] font-primary font-bold ${hasOffer ? 'text-gold' : 'text-alpha'}`}>
+                                ₹{selling.toLocaleString("en-IN")}
+                              </span>
+                              {hasOffer && (
+                                <>
+                                  <span className="text-[9px] font-primary text-alpha/40 line-through">
+                                    ₹{mrp.toLocaleString("en-IN")}
+                                  </span>
+                                  <span className="text-[8px] font-primary text-red-600 bg-red-50 border border-red-100 px-1 py-0.5 rounded-sm">
+                                    {discountPct}% OFF
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 

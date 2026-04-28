@@ -1,18 +1,18 @@
-.brands-page {
-  padding: 24px;
+﻿.brands-page {
 }
 
 .brand-logo {
   width: 60px;
   height: 60px;
   object-fit: contain;
-  border-radius: 4px;
-  background-color: #f8f9fa;
-  padding: 4px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  padding: var(--space-1);
 }
 
 .brand-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
 }
+

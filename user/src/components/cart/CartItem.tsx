@@ -63,6 +63,23 @@ export default function CartItem({
           {product.name}
         </Link>
 
+        {/* Price Display */}
+        <div className="mt-1 flex items-baseline gap-2 flex-wrap">
+          <span className="text-sm font-primary font-bold text-alpha">
+            ₹{((item.variantPrice || Number(product.price) || 0) * quantity).toLocaleString("en-IN")}
+          </span>
+          {quantity > 1 && (
+            <span className="text-[10px] text-alpha/50 font-primary">
+              (₹{(item.variantPrice || Number(product.price) || 0).toLocaleString("en-IN")} each)
+            </span>
+          )}
+          {item.variantMrp && item.variantMrp > (item.variantPrice || 0) && (
+            <span className="text-xs font-primary text-alpha/40 line-through ml-1">
+              ₹{(item.variantMrp * quantity).toLocaleString("en-IN")}
+            </span>
+          )}
+        </div>
+
         {/* Product Attributes */}
         <div className="mt-2 text-xs font-primary text-alpha/60 space-y-1">
           {product.dimensions.length &&

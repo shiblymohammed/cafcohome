@@ -1,701 +1,611 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import apiClient, { extractData } from '../utils/api';
-import DataTable from '../components/DataTable';
-import Modal from '../components/Modal';
 import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
 import { IMAGE_CONFIGS } from '../config/imageConfig';
 import './Categories.css';
 
 interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  subtitle: string;
-  description: string;
-  image_url: string;
-  display_order: number;
-  is_featured: boolean;
-  is_active: boolean;
-  product_count: number;
-  created_at: string;
+  id: number; name: string; slug: string; subtitle: string;
+  description: string; image_url: string; display_order: number;
+  is_featured: boolean; is_active: boolean; product_count: number; created_at: string;
 }
-
 interface Subcategory {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  image_url: string;
-  featured_icon_url: string;
-  category: number;
-  category_name: string;
-  display_order: number;
-  is_featured: boolean;
-  is_active: boolean;
-  product_count: number;
-  created_at: string;
+  id: number; name: string; slug: string; description: string;
+  image_url: string; featured_icon_url: string; category: number;
+  category_name: string; display_order: number; is_featured: boolean;
+  is_active: boolean; product_count: number; created_at: string;
 }
-
 interface CategoryFormData {
-  name: string;
-  subtitle: string;
-  description: string;
-  image_url: string;
-  display_order: number;
-  is_featured: boolean;
-  is_active: boolean;
+  name: string; subtitle: string; description: string; image_url: string;
+  display_order: number; is_featured: boolean; is_active: boolean;
 }
-
 interface SubcategoryFormData {
-  name: string;
-  description: string;
-  image_url: string;
-  featured_icon_url: string;
-  category: number | '';
-  display_order: number;
-  is_featured: boolean;
-  is_active: boolean;
+  name: string; description: string; image_url: string; featured_icon_url: string;
+  category: number | ''; display_order: number; is_featured: boolean; is_active: boolean;
 }
 
+// ── Drag-Drop Image Upload ──────────────────────────────────────────────────
+interface DragDropProps {
+  value: string; onChange: (url: string) => void;
+  label?: string; error?: string; aspectRatio?: number;
+}
+const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 4/3 }: DragDropProps) => {
+  const [dragging, setDragging] = useState(false);
+  const cropperRef = useRef<HTMLInputElement>(null);
+  const hiddenRef = useRef<{ triggerFile: (file: File) => void }>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragging(true); };
+  const handleDragLeave = () => setDragging(false);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/') && fileInputRef.current) {
+      const dt = new DataTransfer(); dt.items.add(file);
+      fileInputRef.current.files = dt.files;
+      fileInputRef.current.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  };
+  const handleClick = () => fileInputRef.current?.click();
+
+  return (
+    <div className="cat-form-group">
+      {label && <label className="cat-form-label">{label}</label>}
+      <div
+        className={`cat-drop-zone ${dragging ? 'dragging' : ''} ${value ? 'has-image' : ''}`}
+        onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+        onClick={!value ? handleClick : undefined}
+      >
+        {value ? (
+          <>
+            <img src={value} alt="Preview" className="cat-drop-preview" />
+            <button type="button" className="cat-drop-remove" onClick={e => { e.stopPropagation(); onChange(''); }}>
+              &times;
+            </button>
+          </>
+        ) : (
+          <div className="cat-drop-placeholder">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <span className="cat-drop-placeholder-title">Drop image here or click to upload</span>
+            <span className="cat-drop-placeholder-sub">PNG, JPG, WEBP up to 10MB</span>
+          </div>
+        )}
+      </div>
+      {/* Hidden ImageCropperWithUpload drives the actual upload */}
+      <div style={{ display: 'none' }}>
+        <ImageCropperWithUpload
+          value={value} onChange={onChange} aspectRatio={aspectRatio}
+        />
+      </div>
+      {/* Expose a real file input for drag-drop trigger */}
+      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={e => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          // Find the hidden ImageCropperWithUpload file input and trigger it
+          const hiddenInput = document.querySelector('.image-uploader input[type="file"]') as HTMLInputElement;
+          if (hiddenInput) {
+            const dt = new DataTransfer(); dt.items.add(file);
+            hiddenInput.files = dt.files;
+            hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }}
+      />
+      {error && <span className="cat-form-error">{error}</span>}
+    </div>
+  );
+};
+
+// ── Toggle Switch ──────────────────────────────────────────────────
+const Toggle = ({ checked, onChange, label, desc }: { checked: boolean; onChange: (v: boolean) => void; label: string; desc?: string }) => (
+  <div className="cat-toggle-row">
+    <div className="cat-toggle-info">
+      <span className="cat-toggle-label">{label}</span>
+      {desc && <span className="cat-toggle-desc">{desc}</span>}
+    </div>
+    <label className="cat-toggle">
+      <input type="checkbox" className="cat-toggle-input" checked={checked} onChange={e => onChange(e.target.checked)} />
+      <span className="cat-toggle-slider" />
+    </label>
+  </div>
+);
+
+// ── Status Badges ──────────────────────────────────────────────────
+const StatusBadge = ({ active }: { active: boolean }) => (
+  <span className={`cat-badge ${active ? 'cat-badge-active' : 'cat-badge-inactive'}`}>
+    {active ? 'Active' : 'Inactive'}
+  </span>
+);
+const FeaturedBadge = () => <span className="cat-badge cat-badge-featured">Featured</span>;
+const CountBadge = ({ count }: { count: number }) => (
+  <span className="cat-badge cat-badge-count">{count} products</span>
+);
+
+// ── Main Component ──────────────────────────────────────────────────
 const CategoriesManagement = () => {
   const [activeTab, setActiveTab] = useState<'categories' | 'subcategories'>('categories');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  
-  // Category modal state
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterFeatured, setFilterFeatured] = useState('');
+
+  // Category modal
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [categoryFormData, setCategoryFormData] = useState<CategoryFormData>({
-    name: '',
-    subtitle: '',
-    description: '',
-    image_url: '',
-    display_order: 0,
-    is_featured: false,
-    is_active: true,
+  const [catForm, setCatForm] = useState<CategoryFormData>({
+    name: '', subtitle: '', description: '', image_url: '',
+    display_order: 0, is_featured: false, is_active: true,
   });
-  
-  // Subcategory modal state
-  const [isSubcategoryModalOpen, setIsSubcategoryModalOpen] = useState(false);
+
+  // Subcategory modal
+  const [isSubModalOpen, setIsSubModalOpen] = useState(false);
   const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
-  const [subcategoryFormData, setSubcategoryFormData] = useState<SubcategoryFormData>({
-    name: '',
-    description: '',
-    image_url: '',
-    featured_icon_url: '',
-    category: '',
-    display_order: 0,
-    is_featured: false,
-    is_active: true,
+  const [subForm, setSubForm] = useState<SubcategoryFormData>({
+    name: '', description: '', image_url: '', featured_icon_url: '',
+    category: '', display_order: 0, is_featured: false, is_active: true,
   });
-  
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchCategories();
-    fetchSubcategories();
-  }, []);
-
-  useEffect(() => {
-    if (activeTab === 'subcategories') {
-      fetchSubcategories();
-    }
-  }, [selectedCategory, activeTab]);
+  useEffect(() => { fetchCategories(); fetchSubcategories(); }, []);
+  useEffect(() => { if (activeTab === 'subcategories') fetchSubcategories(); }, [selectedCategory, activeTab]);
 
   const fetchCategories = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get('/categories/');
-      setCategories(extractData<Category>(response.data));
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      alert('Failed to load categories');
-    } finally {
-      setLoading(false);
-    }
+    try { setLoading(true); const r = await apiClient.get('/categories/'); setCategories(extractData<Category>(r.data)); }
+    catch { alert('Failed to load categories'); } finally { setLoading(false); }
   };
-
   const fetchSubcategories = async () => {
     try {
       setLoading(true);
       const params = selectedCategory ? { category: selectedCategory } : {};
-      const response = await apiClient.get('/subcategories/', { params });
-      setSubcategories(extractData<Subcategory>(response.data));
-    } catch (error) {
-      console.error('Failed to fetch subcategories:', error);
-      alert('Failed to load subcategories');
-      setSubcategories([]);
-    } finally {
-      setLoading(false);
-    }
+      const r = await apiClient.get('/subcategories/', { params });
+      setSubcategories(extractData<Subcategory>(r.data));
+    } catch { alert('Failed to load subcategories'); setSubcategories([]); } finally { setLoading(false); }
   };
 
-  // Category handlers
-  const handleAddCategory = () => {
+  // Filtered data
+  const filteredCategories = categories.filter(c => {
+    if (searchTerm && !c.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (filterStatus === 'active' && !c.is_active) return false;
+    if (filterStatus === 'inactive' && c.is_active) return false;
+    if (filterFeatured === 'featured' && !c.is_featured) return false;
+    if (filterFeatured === 'regular' && c.is_featured) return false;
+    return true;
+  });
+  const filteredSubcategories = subcategories.filter(s => {
+    if (searchTerm && !s.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (filterStatus === 'active' && !s.is_active) return false;
+    if (filterStatus === 'inactive' && s.is_active) return false;
+    if (filterFeatured === 'featured' && !s.is_featured) return false;
+    if (filterFeatured === 'regular' && s.is_featured) return false;
+    return true;
+  });
+
+  // Category CRUD
+  const openAddCategory = () => {
     setEditingCategory(null);
-    setCategoryFormData({
-      name: '',
-      subtitle: '',
-      description: '',
-      image_url: '',
-      display_order: 0,
-      is_featured: false,
-      is_active: true,
-    });
-    setFormErrors({});
-    setIsCategoryModalOpen(true);
+    setCatForm({ name: '', subtitle: '', description: '', image_url: '', display_order: 0, is_featured: false, is_active: true });
+    setFormErrors({}); setIsCatModalOpen(true);
   };
-
-  const handleEditCategory = (category: Category) => {
-    setEditingCategory(category);
-    setCategoryFormData({
-      name: category.name,
-      subtitle: category.subtitle,
-      description: category.description,
-      image_url: category.image_url,
-      display_order: category.display_order,
-      is_featured: category.is_featured,
-      is_active: category.is_active,
-    });
-    setFormErrors({});
-    setIsCategoryModalOpen(true);
+  const openEditCategory = (c: Category) => {
+    setEditingCategory(c);
+    setCatForm({ name: c.name, subtitle: c.subtitle, description: c.description, image_url: c.image_url, display_order: c.display_order, is_featured: c.is_featured, is_active: c.is_active });
+    setFormErrors({}); setIsCatModalOpen(true);
   };
-
-  const handleDeleteCategory = async (category: Category) => {
-    if (!window.confirm(`Are you sure you want to delete "${category.name}"? This will also affect all subcategories under it.`)) {
-      return;
-    }
-
-    try {
-      await apiClient.delete(`/categories/${category.slug}/`);
-      alert('Category deleted successfully');
-      fetchCategories();
-      fetchSubcategories();
-    } catch (error) {
-      console.error('Failed to delete category:', error);
-      alert('Failed to delete category');
-    }
+  const deleteCategory = async (c: Category) => {
+    if (!window.confirm(`Delete "${c.name}"? This affects all subcategories.`)) return;
+    try { await apiClient.delete(`/categories/${c.slug}/`); fetchCategories(); fetchSubcategories(); }
+    catch { alert('Failed to delete category'); }
   };
-
-  const validateCategoryForm = (): boolean => {
-    const errors: Record<string, string> = {};
-
-    if (!categoryFormData.name.trim()) {
-      errors.name = 'Name is required';
-    }
-
-    if (!categoryFormData.description.trim()) {
-      errors.description = 'Description is required';
-    }
-
-    if (!categoryFormData.image_url.trim()) {
-      errors.image_url = 'Image is required';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleCategorySubmit = async (e: React.FormEvent) => {
+  const submitCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateCategoryForm()) {
-      return;
-    }
-
+    const errors: Record<string, string> = {};
+    if (!catForm.name.trim()) errors.name = 'Name is required';
+    if (!catForm.description.trim()) errors.description = 'Description is required';
+    if (!catForm.image_url.trim()) errors.image_url = 'Image is required';
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
-
     try {
-      if (editingCategory) {
-        await apiClient.put(`/categories/${editingCategory.slug}/`, categoryFormData);
-        alert('Category updated successfully');
-      } else {
-        await apiClient.post('/categories/', categoryFormData);
-        alert('Category created successfully');
-      }
-      setIsCategoryModalOpen(false);
-      fetchCategories();
-    } catch (error: any) {
-      console.error('Failed to save category:', error);
-      if (error.response?.data) {
-        setFormErrors(error.response.data);
-      } else {
-        alert('Failed to save category');
-      }
-    } finally {
-      setSubmitting(false);
-    }
+      if (editingCategory) await apiClient.put(`/categories/${editingCategory.slug}/`, catForm);
+      else await apiClient.post('/categories/', catForm);
+      setIsCatModalOpen(false); fetchCategories();
+    } catch (err: any) {
+      if (err.response?.data) setFormErrors(err.response.data);
+      else alert('Failed to save category');
+    } finally { setSubmitting(false); }
   };
 
-  // Subcategory handlers
-  const handleAddSubcategory = () => {
+  // Subcategory CRUD
+  const openAddSubcategory = () => {
     setEditingSubcategory(null);
-    setSubcategoryFormData({
-      name: '',
-      description: '',
-      image_url: '',
-      featured_icon_url: '',
-      category: selectedCategory ? parseInt(selectedCategory) : '',
-      display_order: 0,
-      is_featured: false,
-      is_active: true,
-    });
-    setFormErrors({});
-    setIsSubcategoryModalOpen(true);
+    setSubForm({ name: '', description: '', image_url: '', featured_icon_url: '', category: selectedCategory ? parseInt(selectedCategory) : '', display_order: 0, is_featured: false, is_active: true });
+    setFormErrors({}); setIsSubModalOpen(true);
   };
-
-  const handleEditSubcategory = (subcategory: Subcategory) => {
-    setEditingSubcategory(subcategory);
-    setSubcategoryFormData({
-      name: subcategory.name,
-      description: subcategory.description,
-      image_url: subcategory.image_url || '',
-      featured_icon_url: subcategory.featured_icon_url || '',
-      category: subcategory.category,
-      display_order: subcategory.display_order,
-      is_featured: subcategory.is_featured,
-      is_active: subcategory.is_active,
-    });
-    setFormErrors({});
-    setIsSubcategoryModalOpen(true);
+  const openEditSubcategory = (s: Subcategory) => {
+    setEditingSubcategory(s);
+    setSubForm({ name: s.name, description: s.description, image_url: s.image_url || '', featured_icon_url: s.featured_icon_url || '', category: s.category, display_order: s.display_order, is_featured: s.is_featured, is_active: s.is_active });
+    setFormErrors({}); setIsSubModalOpen(true);
   };
-
-  const handleDeleteSubcategory = async (subcategory: Subcategory) => {
-    if (!window.confirm(`Are you sure you want to delete "${subcategory.name}"?`)) {
-      return;
-    }
-
-    try {
-      await apiClient.delete(`/subcategories/${subcategory.slug}/`);
-      alert('Subcategory deleted successfully');
-      fetchSubcategories();
-    } catch (error) {
-      console.error('Failed to delete subcategory:', error);
-      alert('Failed to delete subcategory');
-    }
+  const deleteSubcategory = async (s: Subcategory) => {
+    if (!window.confirm(`Delete "${s.name}"?`)) return;
+    try { await apiClient.delete(`/subcategories/${s.slug}/`); fetchSubcategories(); }
+    catch { alert('Failed to delete subcategory'); }
   };
-
-  const validateSubcategoryForm = (): boolean => {
-    const errors: Record<string, string> = {};
-
-    if (!subcategoryFormData.name.trim()) {
-      errors.name = 'Name is required';
-    }
-
-    if (!subcategoryFormData.description.trim()) {
-      errors.description = 'Description is required';
-    }
-
-    if (!subcategoryFormData.category) {
-      errors.category = 'Category is required';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubcategorySubmit = async (e: React.FormEvent) => {
+  const submitSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateSubcategoryForm()) {
-      return;
-    }
-
+    const errors: Record<string, string> = {};
+    if (!subForm.name.trim()) errors.name = 'Name is required';
+    if (!subForm.description.trim()) errors.description = 'Description is required';
+    if (!subForm.category) errors.category = 'Category is required';
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
-
     try {
-      if (editingSubcategory) {
-        await apiClient.put(`/subcategories/${editingSubcategory.slug}/`, subcategoryFormData);
-        alert('Subcategory updated successfully');
-      } else {
-        await apiClient.post('/subcategories/', subcategoryFormData);
-        alert('Subcategory created successfully');
-      }
-      setIsSubcategoryModalOpen(false);
-      fetchSubcategories();
-    } catch (error: any) {
-      console.error('Failed to save subcategory:', error);
-      if (error.response?.data) {
-        setFormErrors(error.response.data);
-      } else {
-        alert('Failed to save subcategory');
-      }
-    } finally {
-      setSubmitting(false);
-    }
+      if (editingSubcategory) await apiClient.put(`/subcategories/${editingSubcategory.slug}/`, subForm);
+      else await apiClient.post('/subcategories/', subForm);
+      setIsSubModalOpen(false); fetchSubcategories();
+    } catch (err: any) {
+      if (err.response?.data) setFormErrors(err.response.data);
+      else alert('Failed to save subcategory');
+    } finally { setSubmitting(false); }
   };
 
-  const categoryColumns = [
-    {
-      key: 'image_url',
-      label: 'Image',
-      render: (item: Category) => (
-        <img src={item.image_url} alt={item.name} className="collection-thumbnail" />
-      ),
-    },
-    { key: 'name', label: 'Name' },
-    { key: 'subtitle', label: 'Subtitle' },
-    { 
-      key: 'description', 
-      label: 'Description',
-      render: (item: Category) => (
-        <span className="truncate-text">{item.description}</span>
-      ),
-    },
-    { key: 'display_order', label: 'Order' },
-    { key: 'product_count', label: 'Products' },
-    {
-      key: 'is_featured',
-      label: 'Featured',
-      render: (item: Category) => (
-        <span className={`status-badge ${item.is_featured ? 'featured' : 'regular'}`}>
-          {item.is_featured ? 'Featured' : 'Regular'}
-        </span>
-      ),
-    },
-    {
-      key: 'is_active',
-      label: 'Status',
-      render: (item: Category) => (
-        <span className={`status-badge ${item.is_active ? 'active' : 'inactive'}`}>
-          {item.is_active ? 'Active' : 'Inactive'}
-        </span>
-      ),
-    },
-  ];
-
-  const subcategoryColumns = [
-    { key: 'name', label: 'Name' },
-    { key: 'category_name', label: 'Category' },
-    { key: 'description', label: 'Description' },
-    { key: 'display_order', label: 'Order' },
-    {
-      key: 'is_featured',
-      label: 'Featured',
-      render: (item: Subcategory) => (
-        <span className={`status-badge ${item.is_featured ? 'active' : 'inactive'}`}>
-          {item.is_featured ? 'Yes' : 'No'}
-        </span>
-      ),
-    },
-    {
-      key: 'is_active',
-      label: 'Status',
-      render: (item: Subcategory) => (
-        <span className={`status-badge ${item.is_active ? 'active' : 'inactive'}`}>
-          {item.is_active ? 'Active' : 'Inactive'}
-        </span>
-      ),
-    },
-  ];
+  const isCat = activeTab === 'categories';
+  const items = isCat ? filteredCategories : filteredSubcategories;
+  const totalCount = isCat ? categories.length : subcategories.length;
 
   return (
-    <div className="categories-page">
-      <div className="page-header">
-        <h1>Categories & Subcategories Management</h1>
+    <div className="cat-page animate-fadeIn">
+
+      {/* Header */}
+      <div className="cat-header">
+        <div className="cat-header-left">
+          <h1 className="cat-title">{isCat ? 'Categories' : 'Subcategories'}</h1>
+          <span className="cat-count">{totalCount}</span>
+        </div>
+        <div className="cat-header-actions">
+          <button className="btn-add-cat" onClick={isCat ? openAddCategory : openAddSubcategory}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            {isCat ? 'Add Category' : 'Add Subcategory'}
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="tabs">
-        <button
-          className={`tab ${activeTab === 'categories' ? 'active' : ''}`}
-          onClick={() => setActiveTab('categories')}
-        >
-          Categories
+      <div className="cat-tabs">
+        <button className={`cat-tab ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
+          Categories ({categories.length})
         </button>
-        <button
-          className={`tab ${activeTab === 'subcategories' ? 'active' : ''}`}
-          onClick={() => setActiveTab('subcategories')}
-        >
-          Subcategories
+        <button className={`cat-tab ${activeTab === 'subcategories' ? 'active' : ''}`} onClick={() => setActiveTab('subcategories')}>
+          Subcategories ({subcategories.length})
         </button>
       </div>
 
-      {/* Categories Tab */}
-      {activeTab === 'categories' && (
-        <>
-          <div className="page-header">
-            <button className="btn-primary" onClick={handleAddCategory}>
-              Add Category
-            </button>
-          </div>
+      {/* Filters */}
+      <div className="cat-filters">
+        <div className="cat-search-wrap">
+          <svg className="cat-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input className="cat-search" type="text" placeholder={`Search ${isCat ? 'categories' : 'subcategories'}…`}
+            value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+        </div>
+        <select className="cat-filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select className="cat-filter-select" value={filterFeatured} onChange={e => setFilterFeatured(e.target.value)}>
+          <option value="">All Types</option>
+          <option value="featured">Featured</option>
+          <option value="regular">Regular</option>
+        </select>
+        {!isCat && (
+          <select className="cat-filter-select" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
+            <option value="">All Categories</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        )}
+        <div className="cat-view-toggle">
+          <button className={`cat-view-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')} title="Grid view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+          </button>
+          <button className={`cat-view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="List view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
 
-          <DataTable
-            columns={categoryColumns}
-            data={categories}
-            onEdit={handleEditCategory}
-            onDelete={handleDeleteCategory}
-            loading={loading}
-            emptyMessage="No categories found. Create your first category!"
-          />
-        </>
-      )}
-
-      {/* Subcategories Tab */}
-      {activeTab === 'subcategories' && (
-        <>
-          <div className="page-header">
-            <div className="header-actions">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="collection-filter"
-              >
-                <option value="">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              <button className="btn-primary" onClick={handleAddSubcategory}>
-                Add Subcategory
-              </button>
+      {/* Content */}
+      {loading ? (
+        <div className="cat-loading"><div className="cat-spinner" /><span>Loading…</span></div>
+      ) : items.length === 0 ? (
+        <div className="cat-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+          </svg>
+          <p>No {isCat ? 'categories' : 'subcategories'} found</p>
+          <button className="btn-add-cat" onClick={isCat ? openAddCategory : openAddSubcategory}>
+            Create first {isCat ? 'category' : 'subcategory'}
+          </button>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="cat-grid">
+          {isCat ? filteredCategories.map(cat => (
+            <div key={cat.id} className="cat-card">
+              <div className="cat-card-img-wrap">
+                {cat.image_url ? <img src={cat.image_url} alt={cat.name} className="cat-card-img" /> : (
+                  <div className="cat-card-img-placeholder">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <span>No image</span>
+                  </div>
+                )}
+                <div className="cat-card-overlay">
+                  <button className="cat-btn-edit" onClick={() => openEditCategory(cat)}>Edit</button>
+                  <button className="cat-btn-delete" onClick={() => deleteCategory(cat)}>Delete</button>
+                </div>
+                <div className="cat-card-order">#{cat.display_order}</div>
+              </div>
+              <div className="cat-card-body">
+                <div className="cat-card-name">{cat.name}</div>
+                {cat.subtitle && <div className="cat-card-subtitle">{cat.subtitle}</div>}
+                <div className="cat-card-meta">
+                  <StatusBadge active={cat.is_active} />
+                  {cat.is_featured && <FeaturedBadge />}
+                  <CountBadge count={cat.product_count} />
+                </div>
+              </div>
             </div>
+          )) : filteredSubcategories.map(sub => (
+            <div key={sub.id} className="cat-card">
+              <div className="cat-card-img-wrap">
+                {sub.image_url ? <img src={sub.image_url} alt={sub.name} className="cat-card-img" /> : (
+                  <div className="cat-card-img-placeholder">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <span>No image</span>
+                  </div>
+                )}
+                <div className="cat-card-overlay">
+                  <button className="cat-btn-edit" onClick={() => openEditSubcategory(sub)}>Edit</button>
+                  <button className="cat-btn-delete" onClick={() => deleteSubcategory(sub)}>Delete</button>
+                </div>
+                <div className="cat-card-order">#{sub.display_order}</div>
+              </div>
+              <div className="cat-card-body">
+                <div className="cat-card-name">{sub.name}</div>
+                <div className="cat-card-subtitle">{sub.category_name}</div>
+                <div className="cat-card-meta">
+                  <StatusBadge active={sub.is_active} />
+                  {sub.is_featured && <FeaturedBadge />}
+                  <CountBadge count={sub.product_count} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* List View */
+        <div className="cat-list">
+          <div className="cat-list-header">
+            <span>Image</span><span>Name</span>
+            <span>{isCat ? 'Subtitle' : 'Category'}</span>
+            <span>Order</span><span>Featured</span><span>Status</span><span>Actions</span>
           </div>
-
-          <DataTable
-            columns={subcategoryColumns}
-            data={subcategories}
-            onEdit={handleEditSubcategory}
-            onDelete={handleDeleteSubcategory}
-            loading={loading}
-            emptyMessage="No subcategories found. Create your first subcategory!"
-          />
-        </>
+          {(isCat ? filteredCategories : filteredSubcategories).map((item: any) => (
+            <div key={item.id} className="cat-list-row">
+              <div>
+                {item.image_url
+                  ? <img src={item.image_url} alt={item.name} className="cat-list-img" />
+                  : <div className="cat-list-img-placeholder">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                    </div>
+                }
+              </div>
+              <div>
+                <div className="cat-list-name">{item.name}</div>
+                <div className="cat-list-sub">{item.product_count} products</div>
+              </div>
+              <div className="cat-list-sub">{isCat ? item.subtitle : item.category_name}</div>
+              <div className="cat-list-sub">#{item.display_order}</div>
+              <div>{item.is_featured ? <FeaturedBadge /> : <span className="cat-list-sub">—</span>}</div>
+              <div><StatusBadge active={item.is_active} /></div>
+              <div className="cat-list-actions">
+                <button className="cat-btn-edit" onClick={() => isCat ? openEditCategory(item) : openEditSubcategory(item)}>Edit</button>
+                <button className="cat-btn-delete" onClick={() => isCat ? deleteCategory(item) : deleteSubcategory(item)}>Del</button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Category Modal */}
-      <Modal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-        title={editingCategory ? 'Edit Category' : 'Add Category'}
-      >
-        <form onSubmit={handleCategorySubmit} className="collection-form">
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
-            <input
-              type="text"
-              id="name"
-              value={categoryFormData.name}
-              onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
-              className={formErrors.name ? 'error' : ''}
-            />
-            {formErrors.name && <span className="error-message">{formErrors.name}</span>}
-          </div>
+      {isCatModalOpen && (
+        <div className="cat-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setIsCatModalOpen(false); }}>
+          <div className="cat-modal">
+            <div className="cat-modal-header">
+              <h2 className="cat-modal-title">{editingCategory ? 'Edit Category' : 'New Category'}</h2>
+              <button className="cat-modal-close" onClick={() => setIsCatModalOpen(false)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={submitCategory} style={{ display: 'contents' }}>
+              <div className="cat-modal-body">
+                {/* Basic Info */}
+                <div className="cat-form-section">
+                  <div className="cat-form-section-title">Basic Information</div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Name <span>*</span></label>
+                    <input className={`cat-form-input ${formErrors.name ? 'error' : ''}`} type="text"
+                      placeholder="e.g. Living Room" value={catForm.name}
+                      onChange={e => setCatForm({ ...catForm, name: e.target.value })} />
+                    {formErrors.name && <span className="cat-form-error">{formErrors.name}</span>}
+                  </div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Subtitle</label>
+                    <input className="cat-form-input" type="text"
+                      placeholder="Short tagline for the category" value={catForm.subtitle}
+                      onChange={e => setCatForm({ ...catForm, subtitle: e.target.value })} />
+                  </div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Description <span>*</span></label>
+                    <textarea className={`cat-form-textarea ${formErrors.description ? 'error' : ''}`}
+                      rows={3} placeholder="Describe this category…" value={catForm.description}
+                      onChange={e => setCatForm({ ...catForm, description: e.target.value })} />
+                    {formErrors.description && <span className="cat-form-error">{formErrors.description}</span>}
+                  </div>
+                </div>
 
-          <div className="form-group">
-            <label htmlFor="subtitle">Subtitle</label>
-            <input
-              type="text"
-              id="subtitle"
-              value={categoryFormData.subtitle}
-              onChange={(e) => setCategoryFormData({ ...categoryFormData, subtitle: e.target.value })}
-              placeholder="Short tagline for the category"
-              className={formErrors.subtitle ? 'error' : ''}
-            />
-            {formErrors.subtitle && <span className="error-message">{formErrors.subtitle}</span>}
-          </div>
+                {/* Image */}
+                <div className="cat-form-section">
+                  <div className="cat-form-section-title">Category Image</div>
+                  <DragDropImageUpload
+                    value={catForm.image_url}
+                    onChange={url => setCatForm({ ...catForm, image_url: url })}
+                    aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
+                    error={formErrors.image_url}
+                  />
+                </div>
 
-          <div className="form-group">
-            <label htmlFor="description">Description *</label>
-            <textarea
-              id="description"
-              value={categoryFormData.description}
-              onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
-              rows={4}
-              className={formErrors.description ? 'error' : ''}
-            />
-            {formErrors.description && (
-              <span className="error-message">{formErrors.description}</span>
-            )}
+                {/* Settings */}
+                <div className="cat-form-section">
+                  <div className="cat-form-section-title">Settings</div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Display Order</label>
+                    <input className="cat-form-input" type="number" value={catForm.display_order}
+                      onChange={e => setCatForm({ ...catForm, display_order: parseInt(e.target.value) || 0 })} />
+                    <span className="cat-form-hint">Lower numbers appear first</span>
+                  </div>
+                  <Toggle checked={catForm.is_featured} onChange={v => setCatForm({ ...catForm, is_featured: v })}
+                    label="Featured Category" desc="Show in homepage featured section" />
+                  <Toggle checked={catForm.is_active} onChange={v => setCatForm({ ...catForm, is_active: v })}
+                    label="Active" desc="Visible to customers on the website" />
+                </div>
+              </div>
+              <div className="cat-modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => setIsCatModalOpen(false)} disabled={submitting}>Cancel</button>
+                <button type="submit" className="btn-save" disabled={submitting}>
+                  {submitting ? 'Saving…' : editingCategory ? 'Update Category' : 'Create Category'}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <ImageCropperWithUpload
-            label="Category Image *"
-            value={categoryFormData.image_url}
-            onChange={(url) => setCategoryFormData({ ...categoryFormData, image_url: url })}
-            error={formErrors.image_url}
-            aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
-          />
-
-          <div className="form-group">
-            <label htmlFor="display_order">Display Order</label>
-            <input
-              type="number"
-              id="display_order"
-              value={categoryFormData.display_order}
-              onChange={(e) =>
-                setCategoryFormData({ ...categoryFormData, display_order: parseInt(e.target.value) || 0 })
-              }
-            />
-          </div>
-
-          <div className="form-group checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={categoryFormData.is_featured}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, is_featured: e.target.checked })}
-              />
-              <span>Featured Category</span>
-            </label>
-          </div>
-
-          <div className="form-group checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={categoryFormData.is_active}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, is_active: e.target.checked })}
-              />
-              <span>Active</span>
-            </label>
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setIsCategoryModalOpen(false)}
-              disabled={submitting}
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn-primary" disabled={submitting}>
-              {submitting ? 'Saving...' : editingCategory ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+        </div>
+      )}
 
       {/* Subcategory Modal */}
-      <Modal
-        isOpen={isSubcategoryModalOpen}
-        onClose={() => setIsSubcategoryModalOpen(false)}
-        title={editingSubcategory ? 'Edit Subcategory' : 'Add Subcategory'}
-      >
-        <form onSubmit={handleSubcategorySubmit} className="category-form">
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
-            <input
-              type="text"
-              id="name"
-              value={subcategoryFormData.name}
-              onChange={(e) => setSubcategoryFormData({ ...subcategoryFormData, name: e.target.value })}
-              className={formErrors.name ? 'error' : ''}
-            />
-            {formErrors.name && <span className="error-message">{formErrors.name}</span>}
-          </div>
+      {isSubModalOpen && (
+        <div className="cat-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setIsSubModalOpen(false); }}>
+          <div className="cat-modal">
+            <div className="cat-modal-header">
+              <h2 className="cat-modal-title">{editingSubcategory ? 'Edit Subcategory' : 'New Subcategory'}</h2>
+              <button className="cat-modal-close" onClick={() => setIsSubModalOpen(false)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={submitSubcategory} style={{ display: 'contents' }}>
+              <div className="cat-modal-body">
+                {/* Basic Info */}
+                <div className="cat-form-section">
+                  <div className="cat-form-section-title">Basic Information</div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Name <span>*</span></label>
+                    <input className={`cat-form-input ${formErrors.name ? 'error' : ''}`} type="text"
+                      placeholder="e.g. Sofas" value={subForm.name}
+                      onChange={e => setSubForm({ ...subForm, name: e.target.value })} />
+                    {formErrors.name && <span className="cat-form-error">{formErrors.name}</span>}
+                  </div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Parent Category <span>*</span></label>
+                    <select className={`cat-form-select ${formErrors.category ? 'error' : ''}`}
+                      value={subForm.category}
+                      onChange={e => setSubForm({ ...subForm, category: parseInt(e.target.value) || '' })}>
+                      <option value="">Select a category…</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    {formErrors.category && <span className="cat-form-error">{formErrors.category}</span>}
+                  </div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Description <span>*</span></label>
+                    <textarea className={`cat-form-textarea ${formErrors.description ? 'error' : ''}`}
+                      rows={3} placeholder="Describe this subcategory…" value={subForm.description}
+                      onChange={e => setSubForm({ ...subForm, description: e.target.value })} />
+                    {formErrors.description && <span className="cat-form-error">{formErrors.description}</span>}
+                  </div>
+                </div>
 
-          <div className="form-group">
-            <label htmlFor="category">Category *</label>
-            <select
-              id="category"
-              value={subcategoryFormData.category}
-              onChange={(e) =>
-                setSubcategoryFormData({ ...subcategoryFormData, category: parseInt(e.target.value) || '' })
-              }
-              className={formErrors.category ? 'error' : ''}
-            >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {formErrors.category && (
-              <span className="error-message">{formErrors.category}</span>
-            )}
-          </div>
+                {/* Images */}
+                <div className="cat-form-section">
+                  <div className="cat-form-section-title">Images</div>
+                  <DragDropImageUpload
+                    label="Subcategory Image"
+                    value={subForm.image_url}
+                    onChange={url => setSubForm({ ...subForm, image_url: url })}
+                    aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
+                  />
+                  <DragDropImageUpload
+                    label="Featured Icon (SVG/PNG)"
+                    value={subForm.featured_icon_url}
+                    onChange={url => setSubForm({ ...subForm, featured_icon_url: url })}
+                    aspectRatio={1}
+                  />
+                  <span className="cat-form-hint">Icon shown in homepage featured subcategories section</span>
+                </div>
 
-          <div className="form-group">
-            <label>Subcategory Image</label>
-            <ImageCropperWithUpload
-              value={subcategoryFormData.image_url}
-              onChange={(url) => setSubcategoryFormData({ ...subcategoryFormData, image_url: url })}
-              aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
-            />
-            <small className="form-hint">Main subcategory image for subcategory pages</small>
+                {/* Settings */}
+                <div className="cat-form-section">
+                  <div className="cat-form-section-title">Settings</div>
+                  <div className="cat-form-group">
+                    <label className="cat-form-label">Display Order</label>
+                    <input className="cat-form-input" type="number" value={subForm.display_order}
+                      onChange={e => setSubForm({ ...subForm, display_order: parseInt(e.target.value) || 0 })} />
+                  </div>
+                  <Toggle checked={subForm.is_featured} onChange={v => setSubForm({ ...subForm, is_featured: v })}
+                    label="Featured" desc="Show on homepage featured subcategories" />
+                  <Toggle checked={subForm.is_active} onChange={v => setSubForm({ ...subForm, is_active: v })}
+                    label="Active" desc="Visible to customers on the website" />
+                </div>
+              </div>
+              <div className="cat-modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => setIsSubModalOpen(false)} disabled={submitting}>Cancel</button>
+                <button type="submit" className="btn-save" disabled={submitting}>
+                  {submitting ? 'Saving…' : editingSubcategory ? 'Update Subcategory' : 'Create Subcategory'}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <div className="form-group">
-            <label>Featured Icon (SVG/PNG)</label>
-            <ImageCropperWithUpload
-              value={subcategoryFormData.featured_icon_url}
-              onChange={(url) => setSubcategoryFormData({ ...subcategoryFormData, featured_icon_url: url })}
-              aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
-            />
-            <small className="form-hint">Icon displayed in homepage featured subcategories section</small>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="description">Description *</label>
-            <textarea
-              id="description"
-              value={subcategoryFormData.description}
-              onChange={(e) => setSubcategoryFormData({ ...subcategoryFormData, description: e.target.value })}
-              rows={4}
-              className={formErrors.description ? 'error' : ''}
-            />
-            {formErrors.description && (
-              <span className="error-message">{formErrors.description}</span>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="display_order">Display Order</label>
-            <input
-              type="number"
-              id="display_order"
-              value={subcategoryFormData.display_order}
-              onChange={(e) =>
-                setSubcategoryFormData({ ...subcategoryFormData, display_order: parseInt(e.target.value) || 0 })
-              }
-            />
-          </div>
-
-          <div className="form-group checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={subcategoryFormData.is_featured}
-                onChange={(e) => setSubcategoryFormData({ ...subcategoryFormData, is_featured: e.target.checked })}
-              />
-              <span>Featured (Show on homepage)</span>
-            </label>
-          </div>
-
-          <div className="form-group checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={subcategoryFormData.is_active}
-                onChange={(e) => setSubcategoryFormData({ ...subcategoryFormData, is_active: e.target.checked })}
-              />
-              <span>Active</span>
-            </label>
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setIsSubcategoryModalOpen(false)}
-              disabled={submitting}
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn-primary" disabled={submitting}>
-              {submitting ? 'Saving...' : editingSubcategory ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+        </div>
+      )}
     </div>
   );
 };

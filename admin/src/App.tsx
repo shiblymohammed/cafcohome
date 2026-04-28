@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CategoriesManagement from './pages/CategoriesManagement';
+import Collections from './pages/Collections';
 import Brands from './pages/Brands';
 import MaterialsColors from './pages/MaterialsColors';
 import Products from './pages/Products';
@@ -22,6 +23,7 @@ import Users from './pages/Users';
 import Staff from './pages/Staff';
 import Blog from './pages/Blog';
 import ShopByRoom from './pages/ShopByRoom';
+import Backup from './pages/Backup';
 
 function App() {
   return (
@@ -50,6 +52,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <CategoriesManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="collections"
+              element={
+                <ProtectedRoute adminOnly>
+                  <Collections />
                 </ProtectedRoute>
               }
             />
@@ -136,6 +146,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <ShopByRoom />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="backup"
+              element={
+                <ProtectedRoute adminOnly>
+                  <Backup />
                 </ProtectedRoute>
               }
             />

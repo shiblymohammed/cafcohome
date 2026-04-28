@@ -26,7 +26,9 @@ class Material(models.Model):
     """Global material options for products."""
     
     name = models.CharField(max_length=100, unique=True)
+    title = models.CharField(max_length=200, blank=True, default='', help_text='Display title shown to customers (e.g., "Premium Velvet Fabric")')
     description = models.TextField(blank=True, default='')
+    image_url = models.URLField(max_length=500, blank=True, default='', help_text='Image showing the material texture/appearance')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -65,6 +67,35 @@ class ShopByRoom(models.Model):
     
     def __str__(self):
         return self.get_room_type_display()
+
+
+class Collection(models.Model):
+    """Named collections that can contain multiple products, showcased on the storefront."""
+    
+    name = models.CharField(max_length=150, unique=True)
+    slug = models.SlugField(max_length=150, unique=True, db_index=True)
+    subtitle = models.CharField(max_length=200, blank=True, default='')
+    description = models.TextField(blank=True, default='')
+    tags = models.CharField(max_length=255, blank=True, default='', help_text='Comma separated tags')
+    image_url = models.URLField(max_length=500, blank=True, default='')
+    products = models.ManyToManyField('Product', related_name='collections', blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'collections'
+        ordering = ['-created_at']
+        verbose_name = 'Collection'
+        verbose_name_plural = 'Collections'
+    
+    def __str__(self):
+        return self.name
+        
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
 
 class Category(models.Model):

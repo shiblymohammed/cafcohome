@@ -35,86 +35,152 @@ class InventoryDashboardView(APIView):
     permission_classes = [IsAdminOrStaff]
     
     def get(self, request):
-        # Total products and variants
+        from django.db.models.functions import TruncDate, TruncMonth, ExtractHour, ExtractWeekDay
+        from products.models import Category
+
+        now = timezone.now()
+        today = now.date()
+        last_30 = today - timedelta(days=29)
+        last_7  = today - timedelta(days=6)
+
+        # ── Core counts ──────────────────────────────────────────────
         total_variants = ProductVariant.objects.filter(is_active=True).count()
-        
-        # Stock statistics
-        in_stock = ProductVariant.objects.filter(
-            is_active=True,
-            stock_quantity__gt=F('low_stock_threshold')
-        ).count()
-        
-        low_stock = ProductVariant.objects.filter(
-            is_active=True,
-            stock_quantity__gt=0,
-            stock_quantity__lte=F('low_stock_threshold')
-        ).count()
-        
-        out_of_stock = ProductVariant.objects.filter(
-            is_active=True,
-            stock_quantity=0
-        ).count()
-        
-        # Active alerts
-        active_alerts = StockAlert.objects.filter(is_resolved=False).count()
-        critical_alerts = StockAlert.objects.filter(
-            is_resolved=False,
-            priority='critical'
-        ).count()
-        
-        # Inventory value
-        variants_with_cost = ProductVariant.objects.filter(
-            is_active=True,
-            cost_price__isnull=False
-        )
-        
-        total_inventory_value = sum(
-            v.stock_quantity * v.cost_price 
-            for v in variants_with_cost
-        )
-        
-        total_retail_value = sum(
-            v.stock_quantity * v.price 
-            for v in ProductVariant.objects.filter(is_active=True)
-        )
-        
-        # Recent movements (last 24 hours)
-        yesterday = timezone.now() - timedelta(days=1)
-        recent_movements = StockMovement.objects.filter(
-            created_at__gte=yesterday
-        ).count()
-        
-        # Low stock items needing attention
+        in_stock       = ProductVariant.objects.filter(is_active=True, stock_quantity__gt=F('low_stock_threshold')).count()
+        low_stock      = ProductVariant.objects.filter(is_active=True, stock_quantity__gt=0, stock_quantity__lte=F('low_stock_threshold')).count()
+        out_of_stock   = ProductVariant.objects.filter(is_active=True, stock_quantity=0).count()
+        active_alerts  = StockAlert.objects.filter(is_resolved=False).count()
+        critical_alerts = StockAlert.objects.filter(is_resolved=False, priority='critical').count()
+
+        # ── Values ───────────────────────────────────────────────────
+        variants_with_cost = ProductVariant.objects.filter(is_active=True, cost_price__isnull=False)
+        total_inventory_value = sum(v.stock_quantity * v.cost_price for v in variants_with_cost)
+        total_retail_value    = sum(v.stock_quantity * v.price for v in ProductVariant.objects.filter(is_active=True))
+
+        # ── Recent movements ─────────────────────────────────────────
+        yesterday = now - timedelta(days=1)
+        recent_movements = StockMovement.objects.filter(created_at__gte=yesterday).count()
+
+        # ── Low stock items ───────────────────────────────────────────
         low_stock_items = ProductVariant.objects.filter(
-            is_active=True,
-            stock_quantity__lte=F('reorder_point')
+            is_active=True, stock_quantity__lte=F('reorder_point')
         ).select_related('product').order_by('stock_quantity')[:10]
-        
         low_stock_data = [{
-            'id': v.id,
-            'product_name': v.product.name,
-            'sku': v.sku,
-            'color': v.color,
-            'material': v.material,
-            'stock_quantity': v.stock_quantity,
-            'reorder_point': v.reorder_point,
-            'reorder_quantity': v.reorder_quantity
+            'id': v.id, 'product_name': v.product.name, 'sku': v.sku,
+            'color': v.color, 'material': v.material,
+            'stock_quantity': v.stock_quantity, 'reorder_point': v.reorder_point,
+            'reorder_quantity': v.reorder_quantity,
         } for v in low_stock_items]
-        
+
+        # ── STOCK HEALTH BY CATEGORY ──────────────────────────────────
+        stock_health = []
+        for cat in Category.objects.filter(products__is_active=True).distinct()[:8]:
+            variants = ProductVariant.objects.filter(product__category=cat, product__is_active=True, is_active=True)
+            in_s  = variants.filter(stock_quantity__gt=5).count()
+            low_s = variants.filter(stock_quantity__gt=0, stock_quantity__lte=5).count()
+            out_s = variants.filter(stock_quantity=0).count()
+            if in_s + low_s + out_s > 0:
+                stock_health.append({'category': cat.name, 'in_stock': in_s, 'low_stock': low_s, 'out_stock': out_s})
+
+        # ── STOCK MOVEMENTS LAST 30 DAYS (daily) ─────────────────────
+        movements_daily = (
+            StockMovement.objects
+            .filter(created_at__date__gte=last_30)
+            .annotate(day=TruncDate('created_at'))
+            .values('day')
+            .annotate(count=Count('id'))
+            .order_by('day')
+        )
+        mov_map = {str(r['day']): r['count'] for r in movements_daily}
+        movements_chart = [{'date': str(last_30 + timedelta(days=i)), 'movements': mov_map.get(str(last_30 + timedelta(days=i)), 0)} for i in range(30)]
+
+        # ── MOVEMENT TYPES BREAKDOWN ──────────────────────────────────
+        movement_types = (
+            StockMovement.objects
+            .filter(created_at__date__gte=last_30)
+            .values('movement_type')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
+        movement_type_labels = {
+            'restock': 'Restock', 'sale': 'Sale', 'return': 'Return',
+            'damage': 'Damage', 'adjustment': 'Adjustment', 'reserved': 'Reserved',
+            'released': 'Released',
+        }
+        movement_breakdown = [
+            {'type': movement_type_labels.get(r['movement_type'], r['movement_type']), 'count': r['count']}
+            for r in movement_types
+        ]
+
+        # ── TOP RESTOCKED PRODUCTS (last 30 days) ────────────────────
+        top_restocked = (
+            StockMovement.objects
+            .filter(created_at__date__gte=last_30, movement_type='restock')
+            .values('variant__product__name')
+            .annotate(total_qty=Sum('quantity_change'), count=Count('id'))
+            .order_by('-total_qty')[:8]
+        )
+        top_restocked_data = [
+            {'name': r['variant__product__name'] or 'Unknown', 'qty': r['total_qty'], 'times': r['count']}
+            for r in top_restocked
+        ]
+
+        # ── ALERT PRIORITY BREAKDOWN ──────────────────────────────────
+        alert_priorities = (
+            StockAlert.objects
+            .filter(is_resolved=False)
+            .values('priority')
+            .annotate(count=Count('id'))
+        )
+        alert_breakdown = [{'priority': r['priority'].title(), 'count': r['count']} for r in alert_priorities]
+
+        # ── STOCK VALUE BY CATEGORY ───────────────────────────────────
+        value_by_cat = []
+        for cat in Category.objects.filter(products__is_active=True).distinct()[:8]:
+            variants = ProductVariant.objects.filter(product__category=cat, product__is_active=True, is_active=True)
+            retail = sum(v.stock_quantity * float(v.price) for v in variants)
+            if retail > 0:
+                value_by_cat.append({'category': cat.name, 'value': round(retail, 2)})
+        value_by_cat.sort(key=lambda x: x['value'], reverse=True)
+
+        # ── MOVEMENT HEATMAP (last 90 days, weekday x hour) ──────────
+        ninety_days_ago = today - timedelta(days=89)
+        heatmap_qs = (
+            StockMovement.objects
+            .filter(created_at__date__gte=ninety_days_ago)
+            .annotate(hour=ExtractHour('created_at'), weekday=ExtractWeekDay('created_at'))
+            .values('weekday', 'hour')
+            .annotate(count=Count('id'))
+        )
+        heatmap_grid = {f"{r['weekday']}-{r['hour']}": r['count'] for r in heatmap_qs}
+        days_labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        heatmap_data = [{'day': days_labels[wd - 1], 'hour': h, 'count': heatmap_grid.get(f'{wd}-{h}', 0)} for wd in range(1, 8) for h in range(24)]
+
+        # ── STOCK TREND (last 7 days net change) ─────────────────────
+        stock_trend = []
+        for i in range(7):
+            d = last_7 + timedelta(days=i)
+            net = StockMovement.objects.filter(created_at__date=d).aggregate(net=Sum('quantity_change'))['net'] or 0
+            stock_trend.append({'date': str(d), 'net_change': int(net)})
+
         return Response({
             'summary': {
-                'total_variants': total_variants,
-                'in_stock': in_stock,
-                'low_stock': low_stock,
-                'out_of_stock': out_of_stock,
-                'active_alerts': active_alerts,
-                'critical_alerts': critical_alerts,
+                'total_variants': total_variants, 'in_stock': in_stock,
+                'low_stock': low_stock, 'out_of_stock': out_of_stock,
+                'active_alerts': active_alerts, 'critical_alerts': critical_alerts,
                 'total_inventory_value': float(total_inventory_value),
                 'total_retail_value': float(total_retail_value),
                 'potential_profit': float(total_retail_value - total_inventory_value),
-                'recent_movements_24h': recent_movements
+                'recent_movements_24h': recent_movements,
             },
-            'low_stock_items': low_stock_data
+            'low_stock_items':    low_stock_data,
+            'stock_health':       stock_health,
+            'movements_chart':    movements_chart,
+            'movement_breakdown': movement_breakdown,
+            'top_restocked':      top_restocked_data,
+            'alert_breakdown':    alert_breakdown,
+            'value_by_category':  value_by_cat,
+            'heatmap_data':       heatmap_data,
+            'stock_trend':        stock_trend,
         })
 
 

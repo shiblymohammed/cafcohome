@@ -17,7 +17,9 @@ from .views import (
     MaterialListView,
     MaterialDetailView,
     ShopByRoomListView,
-    ShopByRoomDetailView
+    ShopByRoomDetailView,
+    CollectionListView,
+    CollectionDetailView
 )
 
 app_name = 'products'
@@ -56,4 +58,8 @@ urlpatterns = [
     # Shop By Rooms
     path('shop-by-rooms/', ShopByRoomListView.as_view(), name='shop-by-room-list'),
     path('shop-by-rooms/<int:pk>/', ShopByRoomDetailView.as_view(), name='shop-by-room-detail'),
+    
+    # Collections
+    path('collections/', CollectionListView.as_view(), name='collection-list'),
+    path('collections/<slug:slug>/', CollectionDetailView.as_view(), name='collection-detail'),
 ]

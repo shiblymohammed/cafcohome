@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useId } from 'react';
 import ImageCropModal from './ImageCropModal';
 import { readFile } from '../utils/cropImage';
 import './ImageUploader.css';
@@ -18,6 +18,8 @@ const ImageCropperWithUpload = ({
   error,
   aspectRatio = 4 / 3, // Default 4:3 for products
 }: ImageCropperWithUploadProps) => {
+  const uid = useId();
+  const inputId = `file-upload-crop-${uid}`;
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [showCropModal, setShowCropModal] = useState(false);
@@ -118,7 +120,13 @@ const ImageCropperWithUpload = ({
       <div className="image-uploader">
         {label && <label className="image-uploader-label">{label}</label>}
 
-        <div className="image-uploader-content">
+        <div className="image-uploader-content" style={{ position: 'relative' }}>
+          {uploading && (
+            <div className="uploading-overlay">
+              <div className="spinner"></div>
+              <span>Uploading...</span>
+            </div>
+          )}
           {value && (
             <div className="image-preview">
               <img src={value} alt="Preview" />
@@ -141,9 +149,9 @@ const ImageCropperWithUpload = ({
               onChange={handleFileSelect}
               disabled={uploading}
               className="file-input"
-              id="file-upload-crop"
+              id={inputId}
             />
-            <label htmlFor="file-upload-crop" className="file-input-label">
+            <label htmlFor={inputId} className="file-input-label">
               {uploading ? 'Uploading...' : 'Choose Image'}
             </label>
 

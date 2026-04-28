@@ -11,7 +11,8 @@ from .serializers import (
     ProductDetailSerializer,
     ProductAdminSerializer,
     ColorSerializer,
-    MaterialSerializer
+    MaterialSerializer,
+    CollectionSerializer
 )
 
 
@@ -108,6 +109,32 @@ class BrandDetailView(generics.RetrieveUpdateDestroyAPIView):
         return BrandSerializer
 
 
+class CollectionListView(generics.ListCreateAPIView):
+    """List all collections or create a new collection."""
+    
+    from .models import Collection
+    serializer_class = CollectionSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    
+    def get_queryset(self):
+        from .models import Collection
+        # For admin users, show all collections (including inactive)
+        if self.request.user and self.request.user.is_authenticated and hasattr(self.request.user, 'role') and self.request.user.role == 'admin':
+            return Collection.objects.all().order_by('-created_at')
+        # For public, only show active collections
+        return Collection.objects.filter(is_active=True).order_by('-created_at')
+
+
+class CollectionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Retrieve, update or delete a collection."""
+    
+    from .models import Collection
+    queryset = Collection.objects.all()
+    serializer_class = CollectionSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+
+
 class ProductListView(generics.ListCreateAPIView):
     """List all products with filtering or create a new product."""
     
@@ -139,6 +166,11 @@ class ProductListView(generics.ListCreateAPIView):
         brand = self.request.query_params.get('brand', None)
         if brand:
             queryset = queryset.filter(Q(brand__slug=brand) | Q(brand__id=brand))
+            
+        # Filter by collection
+        collection = self.request.query_params.get('collection', None)
+        if collection:
+            queryset = queryset.filter(Q(collections__slug=collection) | Q(collections__id=collection))
         
         # Filter by material
         material = self.request.query_params.get('material', None)

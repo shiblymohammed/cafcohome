@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useId } from 'react';
 import './ImageUploader.css';
 
 interface ImageUploaderProps {
@@ -9,6 +9,8 @@ interface ImageUploaderProps {
 }
 
 const ImageUploader = ({ value, onChange, label, error }: ImageUploaderProps) => {
+  const uid = useId();
+  const inputId = `file-upload-${uid}`;
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +80,13 @@ const ImageUploader = ({ value, onChange, label, error }: ImageUploaderProps) =>
     <div className="image-uploader">
       {label && <label className="image-uploader-label">{label}</label>}
       
-      <div className="image-uploader-content">
+      <div className="image-uploader-content" style={{ position: 'relative' }}>
+        {uploading && (
+          <div className="uploading-overlay">
+            <div className="spinner"></div>
+            <span>Uploading...</span>
+          </div>
+        )}
         {value && (
           <div className="image-preview">
             <img src={value} alt="Preview" />
@@ -101,9 +109,9 @@ const ImageUploader = ({ value, onChange, label, error }: ImageUploaderProps) =>
             onChange={handleFileSelect}
             disabled={uploading}
             className="file-input"
-            id="file-upload"
+            id={inputId}
           />
-          <label htmlFor="file-upload" className="file-input-label">
+          <label htmlFor={inputId} className="file-input-label">
             {uploading ? 'Uploading...' : 'Choose Image'}
           </label>
 

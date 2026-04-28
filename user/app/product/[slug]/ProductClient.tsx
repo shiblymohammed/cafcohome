@@ -18,6 +18,7 @@ interface ProductVariant {
   color: string;
   color_hex: string;
   material: string;
+  material_image?: string | null;
   sku: string;
   mrp: string;
   price: string;
@@ -216,7 +217,13 @@ export default function ProductClient({ product, variants = [], relatedProducts 
         : [];
     
     const availableMaterials = variants.length > 0
-        ? Array.from(new Set(variants.filter(v => v.is_active && v.color === selectedColor).map(v => v.material)))
+        ? Array.from(
+            new Map(
+                variants
+                    .filter(v => v.is_active && v.color === selectedColor)
+                    .map(v => [v.material, { name: v.material, image: v.material_image || null }])
+            ).values()
+          )
         : [];
 
     const handleToggleWishlist = () => {
@@ -600,6 +607,25 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                             </button>
                                         )}
                                     </div>
+
+                                    {/* Price Display */}
+                                    {isHydrated && currentPrice !== null && (
+                                        <div className="mb-4 flex items-baseline gap-3 flex-wrap">
+                                            <span className="text-2xl md:text-3xl font-primary font-bold text-alpha">
+                                                ₹{(offerPrice !== null ? offerPrice : currentPrice).toLocaleString("en-IN")}
+                                            </span>
+                                            {currentMRP !== null && currentMRP > (offerPrice !== null ? offerPrice : currentPrice) && (
+                                                <>
+                                                    <span className="text-sm md:text-base font-primary text-alpha/40 line-through">
+                                                        ₹{currentMRP.toLocaleString("en-IN")}
+                                                    </span>
+                                                    <span className="text-xs md:text-sm font-primary text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded">
+                                                        {totalDiscount}% OFF
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                     {product.is_bestseller && (
                                         <span className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[10px] uppercase tracking-wider rounded-full font-medium shadow-sm">
                                             Bestseller
@@ -702,17 +728,52 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                         Material: <span className="text-alpha font-medium">{selectedMaterial}</span>
                                     </span>
                                     <div className="flex gap-2 md:gap-3 flex-wrap">
-                                        {availableMaterials.map((material) => (
-                                            <button
-                                                key={material}
-                                                onClick={() => setSelectedMaterial(material)}
-                                                className={`px-5 py-2.5 text-xs uppercase tracking-wider border-2 rounded-lg transition-all font-medium ${selectedMaterial === material 
-                                                    ? "border-alpha bg-alpha text-creme shadow-md" 
-                                                    : "border-alpha/20 bg-white hover:border-alpha hover:shadow-sm"
-                                                }`}
-                                            >
-                                                {material}
-                                            </button>
+                                        {availableMaterials.map((mat) => (
+                                            mat.image ? (
+                                                /* Image swatch */
+                                                <button
+                                                    key={mat.name}
+                                                    onClick={() => setSelectedMaterial(mat.name)}
+                                                    title={mat.name}
+                                                    aria-label={`Select ${mat.name} material`}
+                                                    className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all duration-200 shadow-sm hover:shadow-md group ${
+                                                        selectedMaterial === mat.name
+                                                            ? "border-alpha ring-2 ring-alpha/20 scale-105"
+                                                            : "border-alpha/20 hover:border-alpha/50"
+                                                    }`}
+                                                >
+                                                    <img
+                                                        src={mat.image}
+                                                        alt={mat.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    {/* Selected check overlay */}
+                                                    {selectedMaterial === mat.name && (
+                                                        <span className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                            <svg className="w-5 h-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </span>
+                                                    )}
+                                                    {/* Hover tooltip */}
+                                                    <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-primary uppercase tracking-wider text-alpha opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                        {mat.name}
+                                                    </span>
+                                                </button>
+                                            ) : (
+                                                /* Fallback text button */
+                                                <button
+                                                    key={mat.name}
+                                                    onClick={() => setSelectedMaterial(mat.name)}
+                                                    className={`px-5 py-2.5 text-xs uppercase tracking-wider border-2 rounded-lg transition-all font-medium ${
+                                                        selectedMaterial === mat.name
+                                                            ? "border-alpha bg-alpha text-creme shadow-md"
+                                                            : "border-alpha/20 bg-white hover:border-alpha hover:shadow-sm"
+                                                    }`}
+                                                >
+                                                    {mat.name}
+                                                </button>
+                                            )
                                         ))}
                                     </div>
                                 </div>
@@ -723,7 +784,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                     </span>
                                     <div className="flex gap-2 md:gap-3 flex-wrap">
                                         {[1, 2].map((i) => (
-                                            <div key={i} className="h-10 w-24 bg-alpha/10 animate-pulse rounded"></div>
+                                            <div key={i} className="h-14 w-14 bg-alpha/10 animate-pulse rounded-lg"></div>
                                         ))}
                                     </div>
                                 </div>

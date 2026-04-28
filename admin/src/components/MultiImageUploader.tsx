@@ -110,7 +110,13 @@ const MultiImageUploader = ({ value, onChange, label, error }: MultiImageUploade
   };
 
   return (
-    <div className="multi-image-uploader">
+    <div className="multi-image-uploader" style={{ position: 'relative' }}>
+      {uploading && (
+        <div className="uploading-overlay">
+          <div className="spinner"></div>
+          <span>Uploading...</span>
+        </div>
+      )}
       {label && <label className="multi-image-uploader-label">{label}</label>}
 
       <div className="image-grid">

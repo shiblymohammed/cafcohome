@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from .health import health_check
+from .backup_views import BackupView, BackupPreviewView, RestoreView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,4 +29,8 @@ urlpatterns = [
     path('api/v1/', include('blog.urls')),
     path('api/v1/', include('reviews.urls')),
     path('api/v1/', include('inventory.urls')),
+    # Backup & Restore
+    path('api/v1/backup/', BackupView.as_view(), name='backup'),
+    path('api/v1/backup/preview/', BackupPreviewView.as_view(), name='backup-preview'),
+    path('api/v1/backup/restore/', RestoreView.as_view(), name='backup-restore'),
 ]

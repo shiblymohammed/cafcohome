@@ -1,22 +1,22 @@
 /* ========================================
-   DARK LUXURY DATA TABLE
-   Matching Orders Dashboard Theme
+   DATA TABLE
+   Uses global theme variables from theme.css
    ======================================== */
 
 .data-table-container {
   overflow-x: auto;
-  background: var(--dl-bg-card, #1a1a24);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--dl-glass-border, rgba(255, 255, 255, 0.08));
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--border-width-thin) solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-slow);
 }
 
 .data-table-container:hover {
-  border-color: var(--dl-border-hover, rgba(255, 255, 255, 0.12));
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-xl);
 }
 
 .data-table-container::-webkit-scrollbar {
@@ -24,17 +24,17 @@
 }
 
 .data-table-container::-webkit-scrollbar-track {
-  background: var(--dl-bg-elevated, #22222e);
-  border-radius: 4px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-full);
 }
 
 .data-table-container::-webkit-scrollbar-thumb {
-  background: var(--dl-slate-600, #30303a);
-  border-radius: 4px;
+  background: var(--slate-600);
+  border-radius: var(--radius-full);
 }
 
 .data-table-container::-webkit-scrollbar-thumb:hover {
-  background: var(--dl-slate-500, #4a4a54);
+  background: var(--slate-500);
 }
 
 .data-table {
@@ -44,36 +44,36 @@
 }
 
 .data-table thead {
-  background: var(--dl-bg-elevated, #22222e);
-  border-bottom: 2px solid var(--dl-border, rgba(255, 255, 255, 0.06));
+  background: var(--bg-elevated);
+  border-bottom: var(--border-width-medium) solid var(--border-primary);
 }
 
 .data-table th {
-  padding: 18px 24px;
+  padding: var(--space-5) var(--space-6);
   text-align: left;
-  font-weight: 700;
-  color: var(--dl-text-tertiary, #64748b);
-  font-size: 12px;
+  font-weight: var(--font-bold);
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--tracking-wider);
   white-space: nowrap;
 }
 
 .data-table td {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--dl-border, rgba(255, 255, 255, 0.06));
-  color: var(--dl-text-primary, #f8fafc);
-  font-size: 14px;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: var(--border-width-thin) solid var(--border-primary);
+  color: var(--text-primary);
+  font-size: var(--text-base);
   vertical-align: middle;
 }
 
 .data-table tbody tr {
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   cursor: pointer;
 }
 
 .data-table tbody tr:hover {
-  background: var(--dl-bg-elevated, #22222e);
+  background: var(--bg-elevated);
   box-shadow: inset 0 0 0 1px rgba(0, 245, 255, 0.1);
 }
 
@@ -81,99 +81,96 @@
   border-bottom: none;
 }
 
+/* ─── Actions Cell ─────────────────────── */
 .data-table-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 
 .data-table-actions button {
-  padding: 8px 16px;
-  background: var(--dl-bg-elevated, #22222e);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--dl-border, rgba(255, 255, 255, 0.06));
-  border-radius: 8px;
-  color: var(--dl-text-secondary, #cbd5e1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-elevated);
+  backdrop-filter: var(--glass-blur);
+  border: var(--border-width-thin) solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.2s;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  transition: all var(--transition-base);
   white-space: nowrap;
 }
 
 .data-table-actions button:hover {
-  background: var(--dl-slate-600, #30303a);
-  border-color: var(--dl-neon-cyan, #00f5ff);
-  color: var(--dl-neon-cyan, #00f5ff);
+  background: var(--slate-600);
+  border-color: var(--color-alpha);
+  color: var(--color-alpha);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 245, 255, 0.2);
 }
 
 .btn-edit {
-  background: linear-gradient(135deg, var(--dl-neon-cyan, #00f5ff), var(--dl-neon-blue, #3b82f6)) !important;
-  color: var(--dl-slate-900, #0f0f17) !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(0, 245, 255, 0.3) !important;
+  background: linear-gradient(135deg, var(--color-alpha), var(--color-zeta));
+  color: var(--slate-900);
+  border: none;
+  box-shadow: var(--glow-alpha);
 }
 
 .btn-edit:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(0, 245, 255, 0.5) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 245, 255, 0.5);
 }
 
 .btn-delete {
-  background: rgba(244, 63, 94, 0.1) !important;
-  border-color: rgba(244, 63, 94, 0.3) !important;
-  color: var(--dl-neon-rose, #f43f5e) !important;
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.3);
+  color: var(--color-epsilon);
 }
 
 .btn-delete:hover {
-  background: rgba(244, 63, 94, 0.2) !important;
-  border-color: rgba(244, 63, 94, 0.5) !important;
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3) !important;
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.5);
+  box-shadow: var(--glow-epsilon);
 }
 
+/* ─── Empty & Loading States ─────────────────────── */
 .data-table-loading,
 .data-table-empty {
-  padding: 60px 40px;
+  padding: var(--space-12) var(--space-10);
   text-align: center;
-  color: var(--dl-text-tertiary, #64748b);
-  background: var(--dl-bg-card, #1a1a24);
-  border-radius: 16px;
-  border: 1px dashed var(--dl-border, rgba(255, 255, 255, 0.06));
-  font-size: 15px;
-  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  border: var(--border-width-thin) dashed var(--border-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
 }
 
 .data-table-loading {
-  animation: pulse 2s infinite;
+  animation: skeletonLoading 1.5s infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* Responsive */
+/* ─── Responsive ─────────────────────── */
 @media (max-width: 768px) {
   .data-table th,
   .data-table td {
-    padding: 14px 16px;
-    font-size: 13px;
+    padding: var(--space-4);
+    font-size: var(--text-sm);
   }
 
   .data-table th {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .data-table-actions {
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-2);
   }
 
   .data-table-actions button {
     width: 100%;
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
   }
 }

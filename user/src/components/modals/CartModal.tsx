@@ -111,10 +111,12 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
                 {/* Footer */}
                 <div className="border-t border-alpha/10 px-6 py-6 bg-ivory/30">
-                  {/* Quotation note */}
-                  <p className="text-[10px] text-alpha/40 font-primary leading-relaxed mb-5 border-l-2 border-alpha/10 pl-3">
-                    Exact pricing will be shared in your personalised WhatsApp quotation after checkout.
-                  </p>
+                  <div className="flex items-center justify-between mb-5 px-1">
+                    <span className="text-sm font-primary text-alpha/70 uppercase tracking-widest">Subtotal</span>
+                    <span className="text-xl font-secondary text-alpha">
+                      ₹{items.reduce((sum, item) => sum + ((item.variantPrice || Number(item.product.price) || 0) * item.quantity), 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
 
                   <div className="flex flex-col gap-3">
                     <Link

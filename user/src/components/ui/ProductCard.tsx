@@ -12,6 +12,7 @@ interface ProductCardProps {
   className?: string;
   onClick?: () => void;
   href?: string;
+  hasOffer?: boolean;
 }
 
 export function ProductCard({
@@ -19,24 +20,24 @@ export function ProductCard({
   className = "",
   onClick,
   href,
+  hasOffer = false,
 }: ProductCardProps) {
+  const baseCardStyle = `group cursor-pointer relative backdrop-blur-xl border rounded-2xl overflow-hidden transition-all duration-500 h-full flex flex-col`;
+  const defaultStyle = `bg-gradient-to-br from-white/40 to-white/10 border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.5),0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.8),0_16px_48px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-white/80`;
+  const offerStyle = `bg-gradient-to-br from-gold/5 to-white/40 border-gold/40 shadow-[inset_0_0_30px_rgba(212,175,55,0.05),0_8px_32px_rgba(212,175,55,0.1)] hover:shadow-[inset_0_0_30px_rgba(212,175,55,0.15),0_16px_48px_rgba(212,175,55,0.2)] hover:-translate-y-1 hover:border-gold/70`;
+
+  const finalStyle = `${baseCardStyle} ${hasOffer ? offerStyle : defaultStyle} ${className}`;
+
   if (href) {
     return (
-      <Link
-        href={href}
-        className={`group cursor-pointer relative bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-xl border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.5),0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.8),0_16px_48px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-white/80 rounded-2xl overflow-hidden transition-all duration-500 h-full flex flex-col ${className}`}
-        onClick={onClick}
-      >
+      <Link href={href} className={finalStyle} onClick={onClick}>
         {children}
       </Link>
     );
   }
 
   return (
-    <div
-      className={`group cursor-pointer relative bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-xl border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.5),0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.8),0_16px_48px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-white/80 rounded-2xl overflow-hidden transition-all duration-500 h-full flex flex-col ${className}`}
-      onClick={onClick}
-    >
+    <div className={finalStyle} onClick={onClick}>
       {children}
     </div>
   );
@@ -230,15 +231,50 @@ export function ProductCardRating({
   );
 }
 
-// Product Price - Hidden by default (can be shown if needed)
+// Product Price — shows selling price + strikethrough MRP
 interface ProductCardPriceProps {
-  price?: string;
-  originalPrice?: string;
+  price?: string | number | null;
+  mrp?: string | number | null;
+  hasOffer?: boolean;
+  offerPercentage?: number | null;
   className?: string;
 }
 
-export function ProductCardPrice({}: ProductCardPriceProps) {
-  return null;
+export function ProductCardPrice({ price, mrp, hasOffer, offerPercentage, className = "" }: ProductCardPriceProps) {
+  const selling = price ? parseFloat(String(price)) : null;
+  const original = mrp ? parseFloat(String(mrp)) : null;
+  if (!selling) return null;
+
+  // If there's an offer, calculate the offer price
+  let displayPrice = selling;
+  let finalOfferPct = 0;
+  
+  if (hasOffer && offerPercentage) {
+    displayPrice = selling - (selling * offerPercentage / 100);
+    finalOfferPct = original ? Math.round(((original - displayPrice) / original) * 100) : offerPercentage;
+  } else if (original && original > selling) {
+    finalOfferPct = Math.round(((original - selling) / original) * 100);
+  }
+
+  const hasDiscount = finalOfferPct > 0;
+
+  return (
+    <div className={`flex items-baseline gap-1.5 mt-2 flex-wrap ${className}`}>
+      <span className={`text-[0.7rem] md:text-[0.8rem] lg:text-sm font-primary font-bold ${hasOffer ? 'text-gold drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]' : 'text-alpha'}`}>
+        ₹{displayPrice.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+      </span>
+      {hasDiscount && (
+        <>
+          <span className="text-[0.55rem] md:text-[0.65rem] lg:text-xs font-primary text-alpha/40 line-through decoration-alpha/30">
+            ₹{original ? original.toLocaleString("en-IN") : selling.toLocaleString("en-IN")}
+          </span>
+          <span className={`text-[0.5rem] md:text-[0.6rem] lg:text-[0.65rem] font-primary font-medium px-1.5 py-0.5 rounded-sm ${hasOffer ? 'bg-red-50 text-red-600 border border-red-100' : 'text-green-600'}`}>
+            {finalOfferPct}% OFF
+          </span>
+        </>
+      )}
+    </div>
+  );
 }
 
 // Product Badge - Minimalist tags
@@ -256,16 +292,16 @@ export function ProductCardBadge({
   const baseStyles =
     "absolute top-[8px] left-[8px] md:top-[12px] md:left-[12px] z-20 px-1.5 py-0.5 md:px-2 md:py-1 text-[0.5rem] md:text-[0.55rem] uppercase tracking-widest font-bold backdrop-blur-md border";
   
-  // Luxury variants with glassmorphism
+  // Luxury variants with punchier solid/glassmorphism colors
   const variantStyles = {
-    dark: "bg-alpha/70 text-creme border border-alpha/40",
-    light: "bg-creme/70 text-alpha border border-creme/40",
-    sale: "bg-tango/70 text-white border border-tango/40",
-    new: "bg-white/70 text-alpha border border-white/40",
-    gold: "bg-gold/70 text-white border border-gold/40",
-    eco: "bg-sage/70 text-white border border-sage/40",
-    limited: "bg-alpha/60 text-creme border border-alpha/50",
-    bestseller: "bg-white/70 text-alpha border border-white/40",
+    dark: "bg-alpha text-creme shadow-lg",
+    light: "bg-creme text-alpha shadow-lg",
+    sale: "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md border-red-500",
+    new: "bg-white text-alpha shadow-md",
+    gold: "bg-gradient-to-r from-gold to-[#B38A58] text-white shadow-md border-gold/50",
+    eco: "bg-sage text-white shadow-md",
+    limited: "bg-alpha text-gold border border-gold/30 shadow-lg",
+    bestseller: "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md",
   };
 
   return (
@@ -303,14 +339,14 @@ export function ProductCardBadgeGroup({
   if (!badges || badges.length === 0) return null;
 
   const variantStyles: Record<string, string> = {
-    dark: "bg-alpha/70 text-creme border border-alpha/40",
-    light: "bg-creme/70 text-alpha border border-creme/40",
-    sale: "bg-tango/70 text-white border border-tango/40",
-    new: "bg-white/70 text-alpha border border-white/40",
-    gold: "bg-gold/70 text-white border border-gold/40",
-    eco: "bg-sage/70 text-white border border-sage/40",
-    limited: "bg-alpha/60 text-creme border border-alpha/50",
-    bestseller: "bg-white/70 text-alpha border border-white/40",
+    dark: "bg-alpha text-creme shadow-lg",
+    light: "bg-creme text-alpha shadow-lg",
+    sale: "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md border-red-500",
+    new: "bg-white text-alpha shadow-md",
+    gold: "bg-gradient-to-r from-gold to-[#B38A58] text-white shadow-md border-gold/50",
+    eco: "bg-sage text-white shadow-md",
+    limited: "bg-alpha text-gold border border-gold/30 shadow-lg",
+    bestseller: "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md",
   };
 
   return (

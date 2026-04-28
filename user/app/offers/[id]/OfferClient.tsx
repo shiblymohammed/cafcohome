@@ -15,6 +15,7 @@ import {
   ProductCardMeta,
   ProductCardBadgeGroup,
   ProductCardWishlist,
+  ProductCardPrice,
 } from "@/src/components/ui/ProductCard";
 
 interface OfferClientProps {
@@ -287,7 +288,7 @@ export default function OfferClient({ offer, products }: OfferClientProps) {
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[3px] md:gap-1 lg:gap-1">
                 {paginatedProducts.map((product) => (
-                   <ProductCard key={product.id} href={`/product/${product.slug || product.id}`}>
+                   <ProductCard key={product.id} href={`/product/${product.slug || product.id}`} hasOffer={true}>
                       <ProductCardImageContainer>
                          <ProductCardBadgeGroup badges={[{ label: `${offer.discount_percentage}% OFF Offer`, variant: "sale" }]} />
                          <ProductCardImage 
@@ -302,13 +303,12 @@ export default function OfferClient({ offer, products }: OfferClientProps) {
                          {product.category && (
                             <ProductCardMeta collection={product.category.name} category="Eligible" />
                          )}
-                         <div className="flex items-center justify-between w-full mt-2">
-                            <div className="flex flex-col items-start gap-1">
-                               <span className="text-[7px] md:text-[10px] font-primary uppercase tracking-widest text-tango">
-                                  Quote upon checkout
-                               </span>
-                            </div>
-                         </div>
+                         <ProductCardPrice 
+                            price={product.price || (product as any).selling_price} 
+                            mrp={product.mrp} 
+                            hasOffer={true} 
+                            offerPercentage={offer.discount_percentage} 
+                         />
                       </div>
                    </ProductCard>
                 ))}

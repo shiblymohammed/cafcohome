@@ -1,14 +1,45 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, FunnelChart, Funnel, LabelList,
+} from 'recharts';
+import Calendar from 'react-calendar';
+import { format, parseISO } from 'date-fns';
 import apiClient from '../utils/api';
+import 'react-calendar/dist/Calendar.css';
 import './Dashboard.css';
 
-interface DashboardStats {
+/* ─── Types ─────────────────────────────────────────────── */
+interface DashboardData {
   total_orders: number;
   pending_orders: number;
   total_users: number;
   total_products: number;
+  total_revenue: number;
+  revenue_30: number;
+  revenue_prev_30: number;
+  low_stock_count: number;
+  total_blogs: number;
+  published_blogs: number;
+  orders_chart: { date: string; orders: number; revenue: number }[];
+  orders_7: { date: string; orders: number }[];
+  monthly_chart: { month: string; revenue: number; orders: number }[];
+  order_stages: { stage: string; label: string; count: number }[];
+  users_chart: { date: string; users: number }[];
+  top_categories: { name: string; product_count: number }[];
+  // New
+  heatmap_data: { day: string; hour: number; count: number }[];
+  top_products: { name: string; orders: number; revenue: number }[];
+  revenue_by_category: { category: string; revenue: number; orders: number }[];
+  staff_performance: { name: string; total: number; delivered: number; pending: number }[];
+  fulfillment_funnel: { stage: string; count: number; pct: number }[];
+  customer_retention: { month: string; new: number; returning: number }[];
+  stock_health: { category: string; in_stock: number; low_stock: number; out_stock: number }[];
+  top_categories: { name: string; product_count: number }[];
   recent_orders: RecentOrder[];
+  calendar_data: Record<string, number>;
 }
 
 interface RecentOrder {
@@ -22,407 +53,464 @@ interface RecentOrder {
   assigned_to: string | null;
 }
 
-/* ─── Icons ───────────────────────────── */
-const OrdersIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="3" width="20" height="18" rx="2" /><path d="M8 7h8" /><path d="M8 11h6" /><path d="M8 15h4" />
-  </svg>
-);
-const PendingIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><polyline points="12,6 12,12 16,14" />
-  </svg>
-);
-const UsersIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
-  </svg>
-);
-const ProductsIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-    <polyline points="3.27,6.96 12,12.01 20.73,6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
-  </svg>
-);
-const ArrowRightIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
-  </svg>
-);
-const EyeIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-  </svg>
-);
-const TrendUpIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" /><polyline points="17,6 23,6 23,12" />
-  </svg>
+/* ─── Theme tokens ──────────────────────────────────────── */
+const C = {
+  beta:    '#a855f7',
+  alpha:   '#00f5ff',
+  gamma:   '#fbbf24',
+  delta:   '#10b981',
+  epsilon: '#f43f5e',
+  zeta:    '#3b82f6',
+  grid:    'rgba(255,255,255,0.05)',
+  text:    '#64748b',
+};
+
+const STAGE_COLORS: Record<string, string> = {
+  order_received: C.zeta,
+  processing:     C.gamma,
+  shipped:        C.beta,
+  delivered:      C.delta,
+};
+
+/* ─── Custom Tooltip ────────────────────────────────────── */
+const DarkTooltip = ({ active, payload, label, prefix = '', suffix = '' }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="dash-tooltip">
+      <div className="dash-tooltip-label">{label}</div>
+      {payload.map((p: any, i: number) => (
+        <div key={i} className="dash-tooltip-row">
+          <span className="dash-tooltip-dot" style={{ background: p.color }} />
+          <span className="dash-tooltip-name">{p.name}</span>
+          <span className="dash-tooltip-val">{prefix}{typeof p.value === 'number' ? p.value.toLocaleString('en-IN') : p.value}{suffix}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ─── Stat Card ─────────────────────────────────────────── */
+interface StatCardProps {
+  label: string; value: string | number; sub?: string;
+  icon: React.ReactNode; gradient: string; trend?: number;
+  onClick?: () => void;
+}
+const StatCard = ({ label, value, sub, icon, gradient, trend, onClick }: StatCardProps) => (
+  <div className="dash-stat" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+    <div className="dash-stat-icon" style={{ background: gradient }}>{icon}</div>
+    <div className="dash-stat-body">
+      <span className="dash-stat-label">{label}</span>
+      <span className="dash-stat-value">{value}</span>
+      {sub && <span className="dash-stat-sub">{sub}</span>}
+    </div>
+    {trend !== undefined && (
+      <div className={`dash-stat-trend ${trend >= 0 ? 'up' : 'down'}`}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          {trend >= 0
+            ? <><polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/><polyline points="17,6 23,6 23,12"/></>
+            : <><polyline points="23,18 13.5,8.5 8.5,13.5 1,6"/><polyline points="17,18 23,18 23,12"/></>
+          }
+        </svg>
+        {Math.abs(trend).toFixed(1)}%
+      </div>
+    )}
+  </div>
 );
 
-/* ─── Animated Bar Chart ─────────────── */
-const BarChart = ({ data, labels, color, title }: { data: number[]; labels: string[]; color: string; title: string }) => {
-  const [animated, setAnimated] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const max = Math.max(...data, 1);
+/* ─── Section Header ────────────────────────────────────── */
+const SectionHead = ({ title, sub, action, onAction }: { title: string; sub?: string; action?: string; onAction?: () => void }) => (
+  <div className="dash-section-head">
+    <div>
+      <h2 className="dash-section-title">{title}</h2>
+      {sub && <p className="dash-section-sub">{sub}</p>}
+    </div>
+    {action && (
+      <button className="dash-section-link" onClick={onAction}>
+        {action}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    )}
+  </div>
+);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimated(true), 200);
-    return () => clearTimeout(timer);
-  }, []);
+/* ─── Heatmap Chart ─────────────────────────────────────── */
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+const DAYS  = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const HeatmapChart = ({ data }: { data: { day: string; hour: number; count: number }[] }) => {
+  const maxCount = Math.max(...data.map(d => d.count), 1);
+
+  const getColor = (count: number) => {
+    if (count === 0) return 'rgba(255,255,255,0.04)';
+    const intensity = count / maxCount;
+    if (intensity < 0.25) return `rgba(168,85,247,${0.15 + intensity * 0.4})`;
+    if (intensity < 0.5)  return `rgba(168,85,247,${0.35 + intensity * 0.4})`;
+    if (intensity < 0.75) return `rgba(0,245,255,${0.4 + intensity * 0.3})`;
+    return `rgba(0,245,255,${0.7 + intensity * 0.3})`;
+  };
 
   return (
-    <div className="chart-card glass-card" ref={ref}>
-      <div className="chart-card__header">
-        <h3 className="chart-card__title">{title}</h3>
-        <span className="chart-card__badge">Last 7 days</span>
-      </div>
-      <div className="bar-chart">
-        {data.map((val, i) => (
-          <div key={i} className="bar-chart__col">
-            <div className="bar-chart__bar-wrap">
-              <div
-                className="bar-chart__bar"
-                style={{
-                  height: animated ? `${(val / max) * 100}%` : '0%',
-                  background: `linear-gradient(180deg, ${color}, ${color}66)`,
-                  transitionDelay: `${i * 60}ms`,
-                }}
-              >
-                <span className="bar-chart__tooltip">{val}</span>
-              </div>
-            </div>
-            <span className="bar-chart__label">{labels[i]}</span>
+    <div className="dash-heatmap">
+      {/* Hour labels */}
+      <div className="dash-heatmap-hours">
+        <div className="dash-heatmap-day-label" />
+        {HOURS.map(h => (
+          <div key={h} className="dash-heatmap-hour-label">
+            {h % 3 === 0 ? `${h}h` : ''}
           </div>
         ))}
       </div>
-    </div>
-  );
-};
-
-/* ─── Animated Area Chart (SVG) ────────── */
-const AreaChart = ({ data, color, title, subtitle }: { data: number[]; color: string; title: string; subtitle: string }) => {
-  const [animated, setAnimated] = useState(false);
-  const max = Math.max(...data, 1) * 1.15;
-  const w = 320;
-  const h = 120;
-  const padX = 0;
-  const padY = 8;
-
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimated(true), 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const points = data.map((v, i) => ({
-    x: padX + (i / (data.length - 1)) * (w - padX * 2),
-    y: h - padY - ((v / max) * (h - padY * 2)),
-  }));
-
-  // Smooth curve
-  const linePath = points.reduce((acc, p, i) => {
-    if (i === 0) return `M${p.x},${p.y}`;
-    const prev = points[i - 1];
-    const cpx1 = prev.x + (p.x - prev.x) / 3;
-    const cpx2 = p.x - (p.x - prev.x) / 3;
-    return `${acc} C${cpx1},${prev.y} ${cpx2},${p.y} ${p.x},${p.y}`;
-  }, '');
-
-  const areaPath = `${linePath} L${points[points.length - 1].x},${h} L${points[0].x},${h} Z`;
-
-  return (
-    <div className="chart-card glass-card">
-      <div className="chart-card__header">
-        <div>
-          <h3 className="chart-card__title">{title}</h3>
-          <p className="chart-card__sub">{subtitle}</p>
-        </div>
-      </div>
-      <svg
-        viewBox={`0 0 ${w} ${h}`}
-        className={`area-chart ${animated ? 'area-chart--animated' : ''}`}
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id={`areaGrad-${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {/* Grid lines */}
-        {[0.25, 0.5, 0.75].map((pct) => (
-          <line key={pct} x1={0} x2={w} y1={h - padY - pct * (h - padY * 2)} y2={h - padY - pct * (h - padY * 2)}
-            stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-        ))}
-        <path d={areaPath} fill={`url(#areaGrad-${color.replace('#','')})`} />
-        <path d={linePath} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-          className="area-chart__line" />
-        {/* Data dots */}
-        {points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#161822" stroke={color} strokeWidth="2"
-            className="area-chart__dot" style={{ animationDelay: `${i * 80 + 400}ms` }} />
-        ))}
-      </svg>
-    </div>
-  );
-};
-
-/* ─── Donut Chart ─────────────────────── */
-const DonutChart = ({ segments, title }: { segments: { label: string; value: number; color: string }[]; title: string }) => {
-  const [animated, setAnimated] = useState(false);
-  const total = segments.reduce((s, seg) => s + seg.value, 0) || 1;
-  const radius = 60;
-  const circumference = 2 * Math.PI * radius;
-  let cumulativeOffset = 0;
-
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimated(true), 400);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className="chart-card glass-card">
-      <div className="chart-card__header">
-        <h3 className="chart-card__title">{title}</h3>
-      </div>
-      <div className="donut-chart">
-        <svg viewBox="0 0 160 160" className="donut-chart__svg">
-          {segments.map((seg, i) => {
-            const pct = seg.value / total;
-            const dashLen = pct * circumference;
-            const dashGap = circumference - dashLen;
-            const offset = cumulativeOffset;
-            cumulativeOffset += dashLen;
+      {/* Grid */}
+      {DAYS.map(day => (
+        <div key={day} className="dash-heatmap-row">
+          <div className="dash-heatmap-day-label">{day}</div>
+          {HOURS.map(hour => {
+            const cell = data.find(d => d.day === day && d.hour === hour);
+            const count = cell?.count || 0;
             return (
-              <circle
-                key={i}
-                cx="80" cy="80" r={radius}
-                fill="none" stroke={seg.color} strokeWidth="14"
-                strokeDasharray={animated ? `${dashLen} ${dashGap}` : `0 ${circumference}`}
-                strokeDashoffset={-offset}
-                strokeLinecap="round"
-                className="donut-chart__segment"
-                style={{ transitionDelay: `${i * 150 + 300}ms` }}
+              <div
+                key={hour}
+                className="dash-heatmap-cell"
+                style={{ background: getColor(count) }}
+                title={`${day} ${hour}:00 — ${count} order${count !== 1 ? 's' : ''}`}
               />
             );
           })}
-          <text x="80" y="76" textAnchor="middle" fill="#fff" fontSize="22" fontWeight="800">{total}</text>
-          <text x="80" y="94" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="10" fontWeight="500">TOTAL</text>
-        </svg>
-        <div className="donut-chart__legend">
-          {segments.map((seg, i) => (
-            <div key={i} className="donut-chart__legend-item">
-              <span className="donut-chart__legend-dot" style={{ background: seg.color }} />
-              <span className="donut-chart__legend-label">{seg.label}</span>
-              <span className="donut-chart__legend-val">{seg.value}</span>
-            </div>
-          ))}
         </div>
+      ))}
+      {/* Legend */}
+      <div className="dash-heatmap-legend">
+        <span className="dash-heatmap-legend-label">Less</span>
+        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(v => (
+          <div key={v} className="dash-heatmap-legend-cell"
+            style={{ background: getColor(v * maxCount) }} />
+        ))}
+        <span className="dash-heatmap-legend-label">More</span>
       </div>
     </div>
   );
 };
 
-/* ─── Mini sparkline for stat cards ────── */
-const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
-  const max = Math.max(...data, 1) * 1.1;
-  const w = 80;
-  const h = 32;
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - (v / max) * h}`).join(' ');
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="sparkline" preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+/* ─── Icons ─────────────────────────────────────────────── */
+const Icon = {
+  orders:   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h6"/><path d="M8 15h4"/></svg>,
+  pending:  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>,
+  users:    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,
+  products: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27,6.96 12,12.01 20.73,6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
+  revenue:  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
+  stock:    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8l-2-4H5L3 8"/><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M10 12h4"/></svg>,
+  blog:     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+  refresh:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>,
 };
-
-/* ─── Stage badge config ─────────────── */
-const stageBadgeConfig: Record<string, { bg: string; color: string; dot: string }> = {
-  order_received: { bg: 'rgba(168,85,247,0.1)',  color: '#d8b4fe', dot: '#a855f7' },
-  processing:     { bg: 'rgba(245,158,11,0.1)',  color: '#fcd34d', dot: '#f59e0b' },
-  shipped:        { bg: 'rgba(34,211,238,0.1)',  color: '#67e8f9', dot: '#22d3ee' },
-  delivered:      { bg: 'rgba(74,222,128,0.1)',  color: '#4ade80', dot: '#22c55e' },
-  cancelled:      { bg: 'rgba(239,68,68,0.08)',  color: '#f87171', dot: '#ef4444' },
-};
-
-/* ─── Quick actions ───────────────────── */
-const quickActions = [
-  { label: 'Products', desc: 'Manage catalog', icon: <ProductsIcon />, path: '/products', gradient: 'linear-gradient(135deg, #a855f7, #7c3aed)' },
-  { label: 'Orders', desc: 'Track orders', icon: <OrdersIcon />, path: '/orders', gradient: 'linear-gradient(135deg, #22d3ee, #06b6d4)' },
-  { label: 'Customers', desc: 'User base', icon: <UsersIcon />, path: '/users', gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)' },
-  { label: 'Inventory', desc: 'Stock levels', icon: <PendingIcon />, path: '/inventory', gradient: 'linear-gradient(135deg, #a855f7, #22d3ee)' },
-];
 
 /* ═══════════════════════════════════════════
    Dashboard Component
    ═══════════════════════════════════════════ */
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [data, setData]       = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState('');
+  const [calDate, setCalDate] = useState(new Date());
 
-  useEffect(() => { fetchDashboardStats(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const fetchDashboardStats = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/dashboard/stats/');
-      setStats(response.data);
-      setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load dashboard data');
+      const res = await apiClient.get('/dashboard/stats/');
+      setData(res.data);
+      setError('');
+    } catch (e: any) {
+      setError(e.response?.data?.error?.message || 'Failed to load dashboard');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
+  const fmt = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+  const revTrend = data && data.revenue_prev_30 > 0
+    ? ((data.revenue_30 - data.revenue_prev_30) / data.revenue_prev_30) * 100
+    : 0;
 
-  /* ── Loading ── */
-  if (loading) {
-    return (
-      <div className="dash dark-dash">
-        <div className="dash__header"><h1 className="dash__title">Dashboard</h1><p className="dash__subtitle">Loading your analytics…</p></div>
-        <div className="dash__stats">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="dash__stat-card glass-card skeleton-card">
-              <div className="skel skel--circle" /><div className="skel-lines"><div className="skel skel--sm" /><div className="skel skel--lg" /><div className="skel skel--xs" /></div>
-            </div>
-          ))}
-        </div>
+  /* ── Loading skeleton ── */
+  if (loading) return (
+    <div className="dash">
+      <div className="dash-header">
+        <div><h1 className="dash-title">Dashboard</h1><p className="dash-sub">Loading…</p></div>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="dash dark-dash">
-        <div className="dash__header"><h1 className="dash__title">Dashboard</h1></div>
-        <div className="dash__error glass-card">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-          <span>{error}</span>
-          <button onClick={fetchDashboardStats} className="dash__error-retry">Retry</button>
-        </div>
-      </div>
-    );
-  }
-
-  /* ── Stat cards data ── */
-  const statCards = [
-    { label: 'Total Orders', value: stats?.total_orders || 0, sub: 'All time', icon: <OrdersIcon />, gradient: 'linear-gradient(135deg, #a855f7, #7c3aed)', glow: 'rgba(168,85,247,0.35)', sparkData: [3,5,4,7,6,8,9], sparkColor: '#c084fc', glassClass: 'glass-card--neon-v' },
-    { label: 'Pending', value: stats?.pending_orders || 0, sub: 'Needs action', icon: <PendingIcon />, gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)', glow: 'rgba(245,158,11,0.3)', sparkData: [2,3,1,4,2,3,2], sparkColor: '#fcd34d', glassClass: 'glass-card--neon-a' },
-    { label: 'Customers', value: stats?.total_users || 0, sub: 'Registered', icon: <UsersIcon />, gradient: 'linear-gradient(135deg, #22d3ee, #06b6d4)', glow: 'rgba(34,211,238,0.3)', sparkData: [5,4,6,5,7,8,10], sparkColor: '#67e8f9', glassClass: 'glass-card--neon-c' },
-    { label: 'Products', value: stats?.total_products || 0, sub: 'Active', icon: <ProductsIcon />, gradient: 'linear-gradient(135deg, #a855f7, #22d3ee)', glow: 'rgba(168,85,247,0.25)', sparkData: [6,6,7,7,8,8,9], sparkColor: '#a5f3fc', glassClass: 'glass-card--neon-v' },
-  ];
-
-  /* ── Chart data (sample since API doesn't provide time-series) ── */
-  const barData = [12, 19, 8, 15, 22, 17, 25];
-  const barLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const areaData = [40, 55, 38, 65, 48, 72, 85, 60, 90, 78, 95, 110];
-  const barData2 = [8, 14, 11, 18, 14, 20, 16];
-
-  const orderStageSegments = [
-    { label: 'Received',   value: stats?.pending_orders || 3,                           color: '#a855f7' },
-    { label: 'Processing', value: Math.floor((stats?.pending_orders || 2) * 0.6),       color: '#f59e0b' },
-    { label: 'Shipped',    value: Math.floor((stats?.total_orders || 5) * 0.25),        color: '#22d3ee' },
-    { label: 'Delivered',  value: Math.floor((stats?.total_orders || 10) * 0.5),        color: '#4ade80' },
-  ];
-
-  return (
-    <div className="dash dark-dash">
-      {/* ── Header ── */}
-      <div className="dash__header">
-        <div>
-          <h1 className="dash__title">Dashboard</h1>
-          <p className="dash__subtitle">Welcome back — here's your store overview.</p>
-        </div>
-        <button className="dash__refresh-btn glass-btn" onClick={fetchDashboardStats} title="Refresh data">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23,4 23,10 17,10" /><polyline points="1,20 1,14 7,14" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></svg>
-        </button>
-      </div>
-
-      {/* ── Neon divider ── */}
-      <hr className="dash__neon-divider" />
-
-      {/* ── Stat Cards ── */}
-      <div className="dash__stats">
-        {statCards.map((c, idx) => (
-          <div key={c.label} className={`dash__stat-card glass-card ${c.glassClass}`} style={{ '--glow': c.glow, animationDelay: `${idx * 80}ms` } as React.CSSProperties}>
-            <div className="dash__stat-top">
-              <div className="dash__stat-icon" style={{ background: c.gradient }}>{c.icon}</div>
-              <Sparkline data={c.sparkData} color={c.sparkColor} />
-            </div>
-            <div className="dash__stat-body">
-              <span className="dash__stat-label">{c.label}</span>
-              <div className="dash__stat-row">
-                <span className="dash__stat-value">{c.value.toLocaleString()}</span>
-                <span className="dash__stat-trend"><TrendUpIcon /></span>
-              </div>
-              <span className="dash__stat-sub">{c.sub}</span>
+      <div className="dash-stats-grid">
+        {[1,2,3,4,5,6].map(i => (
+          <div key={i} className="dash-stat dash-skel">
+            <div className="skel skel-icon" />
+            <div className="dash-stat-body">
+              <div className="skel skel-sm" /><div className="skel skel-lg" /><div className="skel skel-xs" />
             </div>
           </div>
         ))}
       </div>
+    </div>
+  );
 
-      {/* ── Analytics Charts Row ── */}
-      <div className="dash__charts-row">
-        <BarChart data={barData} labels={barLabels} color="#a855f7" title="Orders This Week" />
-        <AreaChart data={areaData} color="#22d3ee" title="Revenue Trend" subtitle="Monthly revenue overview" />
-        <DonutChart segments={orderStageSegments} title="Order Status" />
+  if (error) return (
+    <div className="dash">
+      <div className="dash-error">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
+        </svg>
+        {error}
+        <button onClick={fetchData} className="dash-error-retry">Retry</button>
+      </div>
+    </div>
+  );
+
+  if (!data) return null;
+
+  /* ── Stat cards ── */
+  const stats = [
+    { label: 'Total Orders',   value: data.total_orders.toLocaleString(),   sub: 'All time',        icon: Icon.orders,   gradient: `linear-gradient(135deg, ${C.beta}, #7c3aed)`,   trend: undefined,  onClick: () => navigate('/orders') },
+    { label: 'Pending',        value: data.pending_orders.toLocaleString(),  sub: 'Needs action',    icon: Icon.pending,  gradient: `linear-gradient(135deg, ${C.gamma}, #ef4444)`,  trend: undefined,  onClick: () => navigate('/orders') },
+    { label: 'Revenue (30d)',  value: fmt(data.revenue_30),                  sub: 'Last 30 days',    icon: Icon.revenue,  gradient: `linear-gradient(135deg, ${C.delta}, #059669)`,  trend: revTrend,   onClick: undefined },
+    { label: 'Customers',      value: data.total_users.toLocaleString(),     sub: 'Registered',      icon: Icon.users,    gradient: `linear-gradient(135deg, ${C.alpha}, #06b6d4)`,  trend: undefined,  onClick: () => navigate('/users') },
+    { label: 'Products',       value: data.total_products.toLocaleString(),  sub: 'Active',          icon: Icon.products, gradient: `linear-gradient(135deg, ${C.beta}, ${C.alpha})`, trend: undefined, onClick: () => navigate('/products') },
+    { label: 'Low Stock',      value: data.low_stock_count.toLocaleString(), sub: 'Alerts',          icon: Icon.stock,    gradient: `linear-gradient(135deg, ${C.epsilon}, #dc2626)`, trend: undefined, onClick: () => navigate('/stock-alerts') },
+  ];
+
+  /* ── Calendar tile content ── */
+  const tileContent = ({ date: d, view }: { date: Date; view: string }) => {
+    if (view !== 'month') return null;
+    const key = format(d, 'yyyy-MM-dd');
+    const count = data.calendar_data[key];
+    if (!count) return null;
+    return <div className="cal-dot" title={`${count} order${count > 1 ? 's' : ''}`}>{count}</div>;
+  };
+
+  return (
+    <div className="dash animate-fadeIn">
+
+      {/* ── Header ── */}
+      <div className="dash-header">
+        <div>
+          <h1 className="dash-title">Dashboard</h1>
+          <p className="dash-sub">Welcome back — here's your store overview</p>
+        </div>
+        <button className="dash-refresh" onClick={fetchData} title="Refresh">
+          {Icon.refresh}
+        </button>
       </div>
 
-      {/* ── Recent Orders ── */}
-      <div className="dash__section">
-        <div className="dash__section-head">
-          <div>
-            <h2 className="dash__section-title">Recent Orders</h2>
-            <p className="dash__section-sub">Latest customer activity</p>
-          </div>
-          <button className="dash__section-link glass-btn" onClick={() => navigate('/orders')}>
-            View All <ArrowRightIcon />
-          </button>
+      {/* ── Stat Cards ── */}
+      <div className="dash-stats-grid">
+        {stats.map((s, i) => (
+          <StatCard key={s.label} {...s} />
+        ))}
+      </div>
+
+      {/* ── Row 1: Orders 30d area + Weekly bar ── */}
+      <div className="dash-row dash-row-2">
+        {/* Orders & Revenue area chart */}
+        <div className="dash-card">
+          <SectionHead title="Orders & Revenue" sub="Last 30 days" />
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={data.orders_chart} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gradOrders" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={C.beta} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={C.beta} stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={C.delta} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={C.delta} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis dataKey="date" tickFormatter={d => format(parseISO(d), 'dd MMM')}
+                tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false}
+                interval={4} />
+              <YAxis yAxisId="left" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false}
+                tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip content={<DarkTooltip />} />
+              <Area yAxisId="left" type="monotone" dataKey="orders" name="Orders"
+                stroke={C.beta} fill="url(#gradOrders)" strokeWidth={2} dot={false} />
+              <Area yAxisId="right" type="monotone" dataKey="revenue" name="Revenue (₹)"
+                stroke={C.delta} fill="url(#gradRevenue)" strokeWidth={2} dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
 
-        {stats?.recent_orders && stats.recent_orders.length > 0 ? (
-          <div className="dash__table-wrap glass-card">
-            <table className="dash__table">
+        {/* Weekly orders bar */}
+        <div className="dash-card">
+          <SectionHead title="This Week" sub="Orders per day" />
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data.orders_7} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
+              <XAxis dataKey="date" tickFormatter={d => format(parseISO(d), 'EEE')}
+                tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip content={<DarkTooltip />} />
+              <Bar dataKey="orders" name="Orders" radius={[6, 6, 2, 2]}
+                fill={`url(#barGrad)`}>
+                {data.orders_7.map((_, i) => (
+                  <Cell key={i} fill={`url(#barGrad${i})`} />
+                ))}
+              </Bar>
+              <defs>
+                {data.orders_7.map((_, i) => (
+                  <linearGradient key={i} id={`barGrad${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={C.beta} stopOpacity={0.9}/>
+                    <stop offset="100%" stopColor={C.alpha} stopOpacity={0.6}/>
+                  </linearGradient>
+                ))}
+              </defs>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ── Row 2: Monthly revenue line + Order stages pie + Calendar ── */}
+      <div className="dash-row dash-row-3">
+        {/* Monthly revenue */}
+        <div className="dash-card">
+          <SectionHead title="Monthly Revenue" sub="Last 12 months" />
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={data.monthly_chart} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis dataKey="month" tick={{ fill: C.text, fontSize: 10 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fill: C.text, fontSize: 10 }} tickLine={false} axisLine={false}
+                tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip content={<DarkTooltip prefix="₹" />} />
+              <Line type="monotone" dataKey="revenue" name="Revenue" stroke={C.alpha}
+                strokeWidth={2.5} dot={{ fill: C.alpha, r: 3 }} activeDot={{ r: 5 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Order stages donut */}
+        <div className="dash-card">
+          <SectionHead title="Order Stages" />
+          <div className="dash-donut-wrap">
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={data.order_stages} dataKey="count" nameKey="label"
+                  cx="50%" cy="50%" innerRadius={55} outerRadius={80}
+                  paddingAngle={3} strokeWidth={0}>
+                  {data.order_stages.map((s, i) => (
+                    <Cell key={i} fill={STAGE_COLORS[s.stage] || C.beta} />
+                  ))}
+                </Pie>
+                <Tooltip content={<DarkTooltip />} />
+                <Legend
+                  formatter={(value) => <span style={{ color: C.text, fontSize: 12 }}>{value}</span>}
+                  iconType="circle" iconSize={8}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div className="dash-card dash-calendar-card">
+          <SectionHead title="Order Calendar" sub="Current month" />
+          <Calendar
+            value={calDate}
+            onChange={(v) => setCalDate(v as Date)}
+            tileContent={tileContent}
+            className="dash-calendar"
+          />
+        </div>
+      </div>
+
+      {/* ── Row 3: New users + Top categories ── */}
+      <div className="dash-row dash-row-2">
+        {/* New users area */}
+        <div className="dash-card">
+          <SectionHead title="New Customers" sub="Last 30 days" action="View All" onAction={() => navigate('/users')} />
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={data.users_chart} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gradUsers" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={C.alpha} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={C.alpha} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis dataKey="date" tickFormatter={d => format(parseISO(d), 'dd MMM')}
+                tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} interval={4} />
+              <YAxis tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip content={<DarkTooltip />} />
+              <Area type="monotone" dataKey="users" name="New Users"
+                stroke={C.alpha} fill="url(#gradUsers)" strokeWidth={2} dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Top categories bar */}
+        <div className="dash-card">
+          <SectionHead title="Top Categories" sub="By product count" action="Manage" onAction={() => navigate('/categories')} />
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={data.top_categories} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
+              <XAxis type="number" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis type="category" dataKey="name" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} width={80} />
+              <Tooltip content={<DarkTooltip />} />
+              <Bar dataKey="product_count" name="Products" radius={[0, 6, 6, 0]}>
+                {data.top_categories.map((_, i) => (
+                  <Cell key={i} fill={[C.beta, C.alpha, C.gamma, C.delta, C.epsilon, C.zeta][i % 6]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ── Recent Orders Table ── */}
+      <div className="dash-card dash-table-card">
+        <SectionHead title="Recent Orders" sub="Latest customer activity" action="View All" onAction={() => navigate('/orders')} />
+        {data.recent_orders.length > 0 ? (
+          <div className="dash-table-wrap">
+            <table className="dash-table">
               <thead>
                 <tr>
-                  <th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Assigned</th><th>Date</th><th></th>
+                  <th>Order</th><th>Customer</th><th>Status</th>
+                  <th>Total</th><th>Assigned</th><th>Date</th><th></th>
                 </tr>
               </thead>
               <tbody>
-                {stats.recent_orders.map((order) => {
-                  const badge = stageBadgeConfig[order.stage] || stageBadgeConfig.order_received;
+                {data.recent_orders.map(order => {
+                  const stageColor = STAGE_COLORS[order.stage] || C.beta;
                   return (
                     <tr key={order.order_number} onClick={() => navigate(`/orders/${order.order_number}`)}>
-                      <td><span className="dash__order-num">{order.order_number}</span></td>
+                      <td><span className="dash-order-num">{order.order_number}</span></td>
                       <td>
-                        <div className="dash__customer">
-                          <span className="dash__customer-avatar">{order.customer_name.charAt(0).toUpperCase()}</span>
+                        <div className="dash-customer">
+                          <div className="dash-avatar">{order.customer_name.charAt(0).toUpperCase()}</div>
                           <div>
-                            <span className="dash__customer-name">{order.customer_name}</span>
-                            <span className="dash__customer-phone">{order.customer_phone}</span>
+                            <div className="dash-customer-name">{order.customer_name}</div>
+                            <div className="dash-customer-phone">{order.customer_phone}</div>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <span className="dash__badge" style={{ background: badge.bg, color: badge.color }}>
-                          <span className="dash__badge-dot" style={{ background: badge.dot }} />
+                        <span className="dash-stage-badge" style={{
+                          background: `${stageColor}18`,
+                          color: stageColor,
+                          border: `1px solid ${stageColor}40`,
+                        }}>
+                          <span className="dash-stage-dot" style={{ background: stageColor }} />
                           {order.stage_display}
                         </span>
                       </td>
-                      <td className="dash__cell-money">₹{parseFloat(order.total).toLocaleString()}</td>
-                      <td><span className="dash__cell-assigned">{order.assigned_to || <span className="dash__cell-muted">Unassigned</span>}</span></td>
-                      <td className="dash__cell-date">{formatDate(order.created_at)}</td>
+                      <td className="dash-money">
+                        {parseFloat(order.total) > 0 ? `₹${parseFloat(order.total).toLocaleString('en-IN')}` : '—'}
+                      </td>
+                      <td className="dash-assigned">{order.assigned_to || <span className="dash-muted">Unassigned</span>}</td>
+                      <td className="dash-date">{format(new Date(order.created_at), 'dd MMM, HH:mm')}</td>
                       <td>
-                        <button className="dash__view-btn glass-btn" onClick={(e) => { e.stopPropagation(); navigate(`/orders/${order.order_number}`); }}>
-                          <EyeIcon /> View
+                        <button className="dash-view-btn" onClick={e => { e.stopPropagation(); navigate(`/orders/${order.order_number}`); }}>
+                          View
                         </button>
                       </td>
                     </tr>
@@ -432,31 +520,178 @@ const Dashboard = () => {
             </table>
           </div>
         ) : (
-          <div className="dash__empty glass-card">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.25"><rect x="2" y="3" width="20" height="18" rx="2" /><path d="M8 7h8" /><path d="M8 11h6" /></svg>
+          <div className="dash-empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.3">
+              <rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h6"/>
+            </svg>
             <p>No orders yet</p>
           </div>
         )}
       </div>
 
-      {/* ── Quick Actions ── */}
-      <div className="dash__section">
-        <div className="dash__section-head">
-          <h2 className="dash__section-title">Quick Actions</h2>
+      {/* ── Row 4: Top Products + Revenue by Category ── */}
+      <div className="dash-row dash-row-2">
+        <div className="dash-card">
+          <SectionHead title="Top Products" sub="By order count" action="View All" onAction={() => navigate('/products')} />
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data.top_products} layout="vertical" margin={{ top: 0, right: 60, left: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
+              <XAxis type="number" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis type="category" dataKey="name" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} width={100}
+                tickFormatter={v => v.length > 14 ? v.slice(0, 14) + '…' : v} />
+              <Tooltip content={<DarkTooltip />} />
+              <Bar dataKey="orders" name="Orders" radius={[0, 6, 6, 0]}>
+                <LabelList dataKey="orders" position="right" style={{ fill: C.text, fontSize: 11 }} />
+                {data.top_products.map((_, i) => (
+                  <Cell key={i} fill={[C.beta, C.alpha, C.gamma, C.delta, C.epsilon, C.zeta, '#ec4899', '#8b5cf6'][i % 8]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        <div className="dash__actions">
-          {quickActions.map((a) => (
-            <button key={a.label} className="dash__action-card glass-card" onClick={() => navigate(a.path)}>
-              <span className="dash__action-icon" style={{ background: a.gradient }}>{a.icon}</span>
-              <div className="dash__action-text">
-                <span className="dash__action-label">{a.label}</span>
-                <span className="dash__action-desc">{a.desc}</span>
+
+        <div className="dash-card">
+          <SectionHead title="Revenue by Category" sub="Delivered orders only" />
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data.revenue_by_category} layout="vertical" margin={{ top: 0, right: 80, left: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
+              <XAxis type="number" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false}
+                tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+              <YAxis type="category" dataKey="category" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} width={90}
+                tickFormatter={v => v.length > 12 ? v.slice(0, 12) + '…' : v} />
+              <Tooltip content={<DarkTooltip prefix="₹" />} />
+              <Bar dataKey="revenue" name="Revenue (₹)" radius={[0, 6, 6, 0]}>
+                <LabelList dataKey="revenue" position="right" style={{ fill: C.text, fontSize: 10 }}
+                  formatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`} />
+                {data.revenue_by_category.map((_, i) => (
+                  <Cell key={i} fill={[C.delta, C.alpha, C.beta, C.gamma, C.zeta, C.epsilon, '#ec4899', '#8b5cf6'][i % 8]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ── Row 5: Fulfillment Funnel + Staff Performance ── */}
+      <div className="dash-row dash-row-2">
+        {/* Funnel */}
+        <div className="dash-card">
+          <SectionHead title="Fulfillment Funnel" sub="Order progression rates" />
+          <div className="dash-funnel">
+            {data.fulfillment_funnel.map((item, i) => {
+              const colors = [C.zeta, C.gamma, C.beta, C.delta];
+              const widths = [100, 80, 60, 40];
+              return (
+                <div key={item.stage} className="dash-funnel-step">
+                  <div className="dash-funnel-bar-wrap">
+                    <div className="dash-funnel-bar"
+                      style={{ width: `${widths[i]}%`, background: `linear-gradient(90deg, ${colors[i]}33, ${colors[i]}99)`, borderLeft: `3px solid ${colors[i]}` }}>
+                      <span className="dash-funnel-label">{item.stage}</span>
+                      <span className="dash-funnel-count" style={{ color: colors[i] }}>{item.count}</span>
+                    </div>
+                    <span className="dash-funnel-pct">{item.pct}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Staff Performance */}
+        <div className="dash-card">
+          <SectionHead title="Staff Performance" sub="Orders handled per staff" />
+          {data.staff_performance.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={data.staff_performance} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false}
+                  tickFormatter={v => v.split(' ')[0]} />
+                <YAxis tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip content={<DarkTooltip />} />
+                <Legend formatter={v => <span style={{ color: C.text, fontSize: 11 }}>{v}</span>} />
+                <Bar dataKey="delivered" name="Delivered" stackId="a" fill={C.delta} radius={[0, 0, 0, 0]} />
+                <Bar dataKey="pending"   name="Pending"   stackId="a" fill={C.gamma} radius={[0, 0, 0, 0]} />
+                <Bar dataKey="total"     name="Total"     fill={C.beta} radius={[4, 4, 0, 0]} fillOpacity={0.3} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="dash-empty"><p>No staff assignments yet</p></div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Row 6: Customer Retention + Stock Health ── */}
+      <div className="dash-row dash-row-2">
+        <div className="dash-card">
+          <SectionHead title="Customer Retention" sub="New vs returning customers (6 months)" />
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={data.customer_retention} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false}
+                tickFormatter={v => v.split(' ')[0]} />
+              <YAxis tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip content={<DarkTooltip />} />
+              <Legend formatter={v => <span style={{ color: C.text, fontSize: 11 }}>{v}</span>} />
+              <Bar dataKey="new"       name="New"       stackId="a" fill={C.alpha}   radius={[0, 0, 0, 0]} />
+              <Bar dataKey="returning" name="Returning" stackId="a" fill={C.beta}    radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="dash-card">
+          <SectionHead title="Stock Health" sub="Variants per category" action="Alerts" onAction={() => navigate('/stock-alerts')} />
+          {data.stock_health.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={data.stock_health} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
+                <XAxis type="number" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} />
+                <YAxis type="category" dataKey="category" tick={{ fill: C.text, fontSize: 11 }} tickLine={false} axisLine={false} width={80}
+                  tickFormatter={v => v.length > 10 ? v.slice(0, 10) + '…' : v} />
+                <Tooltip content={<DarkTooltip />} />
+                <Legend formatter={v => <span style={{ color: C.text, fontSize: 11 }}>{v}</span>} />
+                <Bar dataKey="in_stock"  name="In Stock"  stackId="a" fill={C.delta}   />
+                <Bar dataKey="low_stock" name="Low Stock" stackId="a" fill={C.gamma}   />
+                <Bar dataKey="out_stock" name="Out Stock" stackId="a" fill={C.epsilon} radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="dash-empty"><p>No stock data available</p></div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Order Heatmap ── */}
+      <div className="dash-card">
+        <SectionHead title="Order Activity Heatmap" sub="Orders by day of week × hour (last 90 days)" />
+        <HeatmapChart data={data.heatmap_data} />
+      </div>
+
+      {/* ── Quick Actions ── */}
+      <div className="dash-card">
+        <SectionHead title="Quick Actions" />
+        <div className="dash-actions">
+          {[
+            { label: 'Add Product',    desc: 'Create new listing',  icon: Icon.products, path: '/products/add',    g: `linear-gradient(135deg, ${C.beta}, #7c3aed)` },
+            { label: 'View Orders',    desc: 'Manage all orders',   icon: Icon.orders,   path: '/orders',          g: `linear-gradient(135deg, ${C.alpha}, #06b6d4)` },
+            { label: 'Stock Alerts',   desc: 'Check low stock',     icon: Icon.stock,    path: '/stock-alerts',    g: `linear-gradient(135deg, ${C.epsilon}, #dc2626)` },
+            { label: 'Blog Posts',     desc: 'Manage content',      icon: Icon.blog,     path: '/blog',            g: `linear-gradient(135deg, ${C.gamma}, #ef4444)` },
+            { label: 'Customers',      desc: 'User management',     icon: Icon.users,    path: '/users',           g: `linear-gradient(135deg, ${C.delta}, #059669)` },
+            { label: 'Inventory',      desc: 'Stock management',    icon: Icon.pending,  path: '/inventory',       g: `linear-gradient(135deg, ${C.zeta}, #1d4ed8)` },
+          ].map(a => (
+            <button key={a.label} className="dash-action" onClick={() => navigate(a.path)}>
+              <span className="dash-action-icon" style={{ background: a.g }}>{a.icon}</span>
+              <div className="dash-action-text">
+                <span className="dash-action-label">{a.label}</span>
+                <span className="dash-action-desc">{a.desc}</span>
               </div>
-              <span className="dash__action-arrow"><ArrowRightIcon /></span>
+              <svg className="dash-action-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+              </svg>
             </button>
           ))}
         </div>
       </div>
+
     </div>
   );
 };

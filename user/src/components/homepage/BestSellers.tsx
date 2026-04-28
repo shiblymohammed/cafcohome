@@ -22,19 +22,26 @@ import {
   ProductCardInfo,
 } from "@/src/components/ui/ProductCard";
 
+import { ProductCardPrice } from "@/src/components/ui/ProductCard";
+
 function ProductCardItem({ product }: { product: Product }) {
   const mainImage = product.images && product.images.length > 0
     ? product.images[0].url 
     : 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=800&fit=crop';
 
+  const applicableOffers = (product as any).applicable_offers || [];
+  const bestOffer = applicableOffers.length > 0 ? applicableOffers[0] : null;
+  const hasOffer = !!bestOffer;
+
   const badges = [
+    ...(bestOffer ? [{ label: `${bestOffer.discount_percentage}% OFF`, variant: "sale" as const }] : []),
     ...(product.is_bestseller ? [{ label: "Bestseller", variant: "bestseller" as const }] : []),
     ...(product.is_hot_selling ? [{ label: "Hot", variant: "sale" as const }] : []),
     ...(!product.is_in_stock ? [{ label: "Out of Stock", variant: "limited" as const }] : []),
   ];
 
   return (
-    <ProductCard href={`/product/${product.slug}`}>
+    <ProductCard href={`/product/${product.slug}`} hasOffer={hasOffer}>
       <ProductCardImageContainer>
         {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
         <ProductCardImage src={mainImage} alt={product.name} />
@@ -49,6 +56,14 @@ function ProductCardItem({ product }: { product: Product }) {
             category={product.subcategory_name}
           />
         <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
+        
+        <ProductCardPrice 
+          price={product.price || (product as any).selling_price} 
+          mrp={product.mrp} 
+          hasOffer={hasOffer} 
+          offerPercentage={bestOffer?.discount_percentage} 
+        />
+        
         <div className="flex items-center justify-between w-full mt-2">
           <div className="flex items-center gap-3">
             {!product.is_in_stock && (

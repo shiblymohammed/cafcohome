@@ -137,6 +137,7 @@ const menuTabs: MenuTab[] = [
     items: [
       { path: '/blog', label: 'Blog', adminOnly: true },
       { path: '/shop-by-room', label: 'Shop By Room', adminOnly: true },
+      { path: '/backup', label: 'Backup & Restore', adminOnly: true },
     ],
   },
 ];

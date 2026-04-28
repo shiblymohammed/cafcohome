@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ApiClient } from "../../lib/api/client";
-import { ProductCard, ProductCardImage, ProductCardImageContainer, ProductCardTitle, ProductCardDescription, ProductCardMeta, ProductCardWishlist, ProductCardBadgeGroup, ProductCardRating } from "@/src/components/ui/ProductCard";
+import { ProductCard, ProductCardImage, ProductCardImageContainer, ProductCardTitle, ProductCardDescription, ProductCardMeta, ProductCardWishlist, ProductCardBadgeGroup, ProductCardRating, ProductCardPrice } from "@/src/components/ui/ProductCard";
 
 const rooms = [
   { id: "living", label: "Living Room" },
@@ -96,7 +96,13 @@ export default function ShopByRoom() {
               {activeProducts.length > 0 ? (
                 activeProducts.map((p: any) => {
                   const mainImage = p.images && p.images.length > 0 ? p.images[0].url : (p.variants && p.variants.length > 0 && p.variants[0].images && p.variants[0].images.length > 0 ? p.variants[0].images[0].url : 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=800&auto=format&fit=crop');
+                  
+                  const applicableOffers = p.applicable_offers || [];
+                  const bestOffer = applicableOffers.length > 0 ? applicableOffers[0] : null;
+                  const hasOffer = !!bestOffer;
+
                   const relBadges = [
+                      ...(bestOffer ? [{ label: `${bestOffer.discount_percentage}% OFF`, variant: "sale" as const }] : []),
                       ...(p.is_bestseller ? [{ label: "Bestseller", variant: "gold" as const }] : []),
                       ...(p.is_hot_selling ? [{ label: "Hot", variant: "sale" as const }] : []),
                       ...(!p.is_in_stock ? [{ label: "Out of Stock", variant: "limited" as const }] : []),
@@ -104,7 +110,7 @@ export default function ShopByRoom() {
 
                   return (
                     <div key={p.id} className="flex-shrink-0 w-[280px] md:w-[320px] snap-start cursor-pointer">
-                      <ProductCard href={`/product/${p.slug}`}>
+                      <ProductCard href={`/product/${p.slug}`} hasOffer={hasOffer}>
                           <ProductCardImageContainer>
                               {relBadges.length > 0 && <ProductCardBadgeGroup badges={relBadges} />}
                               <ProductCardImage src={mainImage} alt={p.name} />
@@ -116,6 +122,14 @@ export default function ShopByRoom() {
                               <ProductCardDescription>{p.description || "Premium Collection"}</ProductCardDescription>
                               <ProductCardMeta collection={p.brand_name || p.category_name} category={p.subcategory_name} />
                               <ProductCardRating rating={p.average_rating || 0} reviewCount={p.review_count || 0} />
+                              
+                              <ProductCardPrice 
+                                price={p.price || p.selling_price} 
+                                mrp={p.mrp} 
+                                hasOffer={hasOffer} 
+                                offerPercentage={bestOffer?.discount_percentage} 
+                              />
+                              
                               <div className="flex items-center justify-between w-full mt-2">
                                   <div className="flex items-center gap-2">
                                       {!p.is_in_stock && (

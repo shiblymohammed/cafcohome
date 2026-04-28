@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Subcategory, Brand, Product, ProductVariant, Color, Material
+from .models import Category, Subcategory, Brand, Product, ProductVariant, Color, Material, Collection
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -11,6 +11,25 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'slug', 'subtitle', 'description', 'image_url', 'display_order', 'is_featured', 'is_active', 'product_count', 'created_at']
         read_only_fields = ['id', 'slug', 'product_count', 'created_at']
+
+
+class CollectionSerializer(serializers.ModelSerializer):
+    """Serializer for Collection model."""
+    
+    product_count = serializers.SerializerMethodField()
+    products = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        queryset=Product.objects.all(), 
+        required=False
+    )
+    
+    class Meta:
+        model = Collection
+        fields = ['id', 'name', 'slug', 'subtitle', 'description', 'tags', 'image_url', 'is_active', 'products', 'product_count', 'created_at']
+        read_only_fields = ['id', 'slug', 'product_count', 'created_at']
+        
+    def get_product_count(self, obj):
+        return obj.products.filter(is_active=True).count()
 
 
 class SubcategorySerializer(serializers.ModelSerializer):
@@ -299,12 +318,13 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     is_in_stock = serializers.BooleanField(read_only=True)
     is_low_stock = serializers.BooleanField(read_only=True)
     color_hex = serializers.SerializerMethodField()
+    material_image = serializers.SerializerMethodField()
     
     class Meta:
         model = ProductVariant
         fields = [
             'id', 'product', 'product_name', 'product_slug',
-            'color', 'color_hex', 'material', 'sku',
+            'color', 'color_hex', 'material', 'material_image', 'sku',
             'mrp', 'price', 'discount_percentage',
             'stock_quantity', 'low_stock_threshold', 'is_in_stock', 'is_low_stock',
             'images', 'is_active', 'is_default',
@@ -322,6 +342,17 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             return '#CCCCCC'
         except Exception:
             return '#CCCCCC'
+    
+    def get_material_image(self, obj):
+        """Get texture image URL for the material."""
+        try:
+            from products.models import Material
+            material = Material.objects.filter(name__iexact=obj.material, is_active=True).first()
+            if material and material.image_url:
+                return material.image_url
+            return None
+        except Exception:
+            return None
 
 
 class ProductVariantListSerializer(serializers.ModelSerializer):
@@ -330,12 +361,13 @@ class ProductVariantListSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     is_in_stock = serializers.BooleanField(read_only=True)
     color_hex = serializers.SerializerMethodField()
+    material_image = serializers.SerializerMethodField()
     
     class Meta:
         model = ProductVariant
         fields = [
             'id', 'product', 'product_name',
-            'color', 'color_hex', 'material', 'sku',
+            'color', 'color_hex', 'material', 'material_image', 'sku',
             'mrp', 'price', 'stock_quantity',
             'images', 'is_active', 'is_default', 'is_in_stock'
         ]
@@ -351,6 +383,17 @@ class ProductVariantListSerializer(serializers.ModelSerializer):
             return '#CCCCCC'
         except Exception:
             return '#CCCCCC'
+    
+    def get_material_image(self, obj):
+        """Get texture image URL for the material."""
+        try:
+            from products.models import Material
+            material = Material.objects.filter(name__iexact=obj.material, is_active=True).first()
+            if material and material.image_url:
+                return material.image_url
+            return None
+        except Exception:
+            return None
 
 
 class ProductVariantCreateSerializer(serializers.Serializer):
@@ -464,7 +507,7 @@ class MaterialSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Material
-        fields = ['id', 'name', 'description', 'is_active', 'created_at']
+        fields = ['id', 'name', 'title', 'description', 'image_url', 'is_active', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 class ShopByRoomSerializer(serializers.ModelSerializer):

@@ -21,19 +21,26 @@ import {
   ProductCardInfo,
 } from "@/src/components/ui/ProductCard";
 
+import { ProductCardPrice } from "@/src/components/ui/ProductCard";
+
 function ProductCardItem({ product }: { product: Product }) {
   const mainImage = product.images && product.images.length > 0
     ? product.images[0].url 
     : 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=800&auto=format&fit=crop';
 
+  const applicableOffers = (product as any).applicable_offers || [];
+  const bestOffer = applicableOffers.length > 0 ? applicableOffers[0] : null;
+  const hasOffer = !!bestOffer;
+
   const badges = [
+    ...(bestOffer ? [{ label: `${bestOffer.discount_percentage}% OFF`, variant: "sale" as const }] : []),
     ...(product.is_bestseller ? [{ label: "Bestseller", variant: "bestseller" as const }] : []),
     ...(product.is_hot_selling ? [{ label: "Hot", variant: "sale" as const }] : []),
     ...(!product.is_in_stock ? [{ label: "Out of Stock", variant: "limited" as const }] : []),
   ];
 
   return (
-    <ProductCard href={`/product/${product.slug}`}>
+    <ProductCard href={`/product/${product.slug}`} hasOffer={hasOffer}>
       <ProductCardImageContainer>
         <ProductCardImage src={mainImage} alt={product.name} />
         {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
@@ -50,6 +57,14 @@ function ProductCardItem({ product }: { product: Product }) {
           category={product.subcategory_name}
         />
         <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
+        
+        <ProductCardPrice 
+          price={product.price || (product as any).selling_price} 
+          mrp={product.mrp} 
+          hasOffer={hasOffer} 
+          offerPercentage={bestOffer?.discount_percentage} 
+        />
+        
         <div className="flex items-center justify-between gap-2 mt-3 text-xs">
           {product.is_in_stock ? (
             <span className="text-success font-primary font-medium">In Stock</span>
@@ -86,9 +101,6 @@ function FloatingOrb({ className }: { className?: string }) {
 }
 
 export default function HotSelling() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const leftPanelRef = useRef<HTMLDivElement>(null);
-  const [leftStyle, setLeftStyle] = useState<React.CSSProperties>({});
   const [hotProducts, setHotProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -96,7 +108,7 @@ export default function HotSelling() {
   useEffect(() => {
     async function loadHotSellingProducts() {
       try {
-        const response = await ApiClient.getProducts({ is_hot_selling: "true", page_size: "12" });
+        const response = await ApiClient.getProducts({ is_hot_selling: "true", page_size: "10" });
         const data = response.results || response;
         setHotProducts(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -111,229 +123,62 @@ export default function HotSelling() {
     loadHotSellingProducts();
   }, []);
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    const leftPanel = leftPanelRef.current;
-    if (!section || !leftPanel) return;
-
-    const handleScroll = () => {
-      const sectionRect = section.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const leftPanelWidth = leftPanel.offsetWidth;
-
-      // Section hasn't reached viewport top yet - left panel flows normally
-      if (sectionRect.top >= 0) {
-        setLeftStyle({
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: leftPanelWidth,
-        });
-      }
-      // Section is in view and scrolling - left panel is fixed
-      else if (sectionRect.top < 0 && sectionRect.bottom > viewportHeight) {
-        setLeftStyle({
-          position: "fixed",
-          top: 0,
-          left: sectionRect.left,
-          width: leftPanelWidth,
-        });
-      }
-      // Section is ending - left panel sticks to bottom
-      else if (sectionRect.bottom <= viewportHeight) {
-        setLeftStyle({
-          position: "absolute",
-          bottom: 0,
-          top: "auto",
-          left: 0,
-          width: leftPanelWidth,
-        });
-      }
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
-    };
-  }, []);
-
   return (
-    <section ref={sectionRef} className="relative overflow-hidden bg-gradient-to-b from-creme via-ivory to-creme">
-      {/* Ambient decorative orbs */}
-      <FloatingOrb className="w-[500px] h-[500px] bg-gold/40 -top-40 -left-40" />
-      <FloatingOrb className="w-[400px] h-[400px] bg-copper/30 bottom-20 right-10" />
-      <FloatingOrb className="w-[300px] h-[300px] bg-sage/25 top-1/3 left-1/4" />
+    <section className="relative overflow-hidden py-12 md:py-16 xl:py-24 bg-gradient-to-b from-[#fbfaf8] via-creme to-[#f8f6f0]">
+      {/* Intense Ambient Decorative Orbs for "Hot" vibe */}
+      <FloatingOrb className="w-[800px] h-[800px] bg-gold/15 -top-60 -left-40 mix-blend-multiply" />
+      <FloatingOrb className="w-[600px] h-[600px] bg-copper/10 bottom-0 right-0 mix-blend-multiply" />
+      <FloatingOrb className="w-[400px] h-[400px] bg-orange-500/5 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mix-blend-multiply" />
 
-      <div className="max-w-[1920px] mx-auto relative z-10">
-        {/* ═══════ MOBILE LAYOUT ═══════ */}
-        <div className="lg:hidden py-10 md:py-14">
-          {/* Header */}
-          <div className="flex flex-col items-center px-container mb-8">
-            <span className="inline-flex items-center gap-2 text-[0.65rem] font-primary uppercase tracking-[0.3em] text-gold mb-3">
-              <span className="w-6 h-px bg-gold/60" />
-              Trending Now
-              <span className="w-6 h-px bg-gold/60" />
+      <div className="w-full max-w-[2400px] mx-auto px-4 md:px-8 xl:px-16 2xl:px-24 relative z-10">
+        
+        {/* Massive Cinematic Header */}
+        <div className="flex flex-col xl:flex-row items-center xl:items-end justify-between mb-10 md:mb-16 gap-6 md:gap-10">
+          <div className="text-center xl:text-left flex-1">
+            <span className="inline-flex items-center justify-center xl:justify-start gap-4 text-xs md:text-sm font-primary uppercase tracking-[0.4em] text-gold font-bold mb-6 w-full xl:w-auto">
+              <span className="w-12 h-[2px] bg-gradient-to-r from-gold/0 via-gold to-gold/0 xl:from-gold xl:via-gold xl:to-gold/0" />
+              High Demand
+              <span className="w-12 h-[2px] bg-gradient-to-r from-gold/0 via-gold to-gold/0 xl:hidden" />
             </span>
-            <h2 className="text-3xl md:text-4xl font-inter font-black tracking-tighter text-alpha text-center leading-[1.05]">
-              Hot Selling
+            <h2 className="text-6xl md:text-[5.5rem] lg:text-[7rem] xl:text-[8rem] font-inter font-black tracking-tighter text-alpha leading-[0.85] uppercase">
+              Trending<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-alpha via-alpha/80 to-alpha/40">
+                Now
+              </span>
             </h2>
-            <p className="text-sm text-text-secondary mt-2 leading-relaxed text-center max-w-xs font-primary">
-              Our most sought-after pieces this season
+          </div>
+          
+          <div className="flex flex-col items-center xl:items-end max-w-md text-center xl:text-right gap-6">
+            <p className="text-alpha/60 font-primary text-sm md:text-base leading-relaxed">
+              Our most sought-after pieces this season. Exquisite craftsmanship meeting contemporary design, curated for the modern luxury home.
             </p>
-          </div>
-
-          {/* Products Swiper */}
-          <div className="pl-4">
-            <Swiper
-              modules={[FreeMode]}
-              spaceBetween={8}
-              slidesPerView={1.5}
-              speed={600}
-              freeMode={{ enabled: true, sticky: false, momentumRatio: 0.5 }}
-              grabCursor={true}
-              breakpoints={{
-                480: { slidesPerView: 2, spaceBetween: 10 },
-                640: { slidesPerView: 2.4, spaceBetween: 12 },
-              }}
-              className="!overflow-visible !pt-2 !pb-6"
-            >
-              {loading ? (
-                [...Array(4)].map((_, i) => (
-                  <SwiperSlide key={i} className="!h-auto">
-                    <ProductCardSkeleton />
-                  </SwiperSlide>
-                ))
-              ) : hotProducts.length > 0 ? (
-                hotProducts.map((product) => (
-                  <SwiperSlide key={product.id} className="!h-auto">
-                    <ProductCardItem product={product} />
-                  </SwiperSlide>
-                ))
-              ) : (
-                <div className="p-8 text-center mx-4 text-alpha/50 font-primary text-sm rounded-2xl bg-white/30 backdrop-blur-sm border border-white/40">
-                  No hot selling products found.
-                </div>
-              )}
-            </Swiper>
-          </div>
-
-          {/* Mobile CTA */}
-          <div className="flex justify-center mt-4 px-container">
-            <a
-              href="/collections"
-              className="inline-flex items-center gap-2.5 px-7 py-3 text-xs uppercase tracking-[0.15em] font-primary font-medium text-alpha bg-white/40 backdrop-blur-md border border-white/60 shadow-[inset_0_0_12px_rgba(255,255,255,0.4),0_4px_20px_rgba(0,0,0,0.06)] hover:bg-white/60 hover:shadow-[inset_0_0_16px_rgba(255,255,255,0.7),0_8px_28px_rgba(0,0,0,0.1)] rounded-full transition-all duration-400 group"
+            <a 
+              href="/collections" 
+              className="inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] font-primary font-bold text-alpha bg-white/60 backdrop-blur-md border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.05)] px-8 py-4 rounded-full hover:bg-white hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group"
             >
               Explore Collection
               <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </a>
           </div>
         </div>
 
-        {/* ═══════ DESKTOP LAYOUT ═══════ */}
-        <div className="hidden lg:block relative">
-          {/* Left Panel - Controlled via JS */}
-          <div 
-            ref={leftPanelRef}
-            style={leftStyle}
-            className="w-1/2 h-screen z-10"
-          >
-            <div className="relative h-full overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1200&auto=format&fit=crop"
-                alt="Trending Interior"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              {/* Multi-layer gradient overlay for depth */}
-              <div className="absolute inset-0 bg-gradient-to-t from-alpha/85 via-alpha/30 to-alpha/10" />
-              <div className="absolute inset-0 bg-gradient-to-r from-alpha/20 to-transparent" />
-              
-              {/* Content */}
-              <div className="absolute inset-0 flex flex-col justify-end p-12 xl:p-16 2xl:p-20">
-                {/* Accent line */}
-                <span className="inline-flex items-center gap-3 text-[0.65rem] font-primary uppercase tracking-[0.35em] text-ivory/70 mb-5">
-                  <span className="w-10 h-px bg-gradient-to-r from-gold to-gold/0" />
-                  Curated Selection
-                </span>
-
-                <h2 className="font-inter font-black text-5xl xl:text-6xl 2xl:text-7xl text-ivory leading-[1.02] tracking-tighter mb-6">
-                  Hot Selling<br />
-                  <span className="font-secondary italic font-normal tracking-normal text-ivory/90">Interiors</span><br />
-                  <span className="text-gold/80">2026</span>
-                </h2>
-
-                <p className="text-ivory/70 font-primary text-sm xl:text-base max-w-md leading-relaxed mb-10">
-                  From organic shapes to hand-painted ceramics and natural textures, 
-                  we craft timeless designs that tap into enduring elegance.
-                </p>
-
-                {/* CTA Button — Frosted glass pill */}
-                <a 
-                  href="/collections" 
-                  className="inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] font-primary font-medium text-ivory bg-white/10 backdrop-blur-md border border-white/20 shadow-[inset_0_0_12px_rgba(255,255,255,0.08)] px-8 py-4 w-fit rounded-full hover:bg-white/20 hover:border-white/30 hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-500 group"
-                >
-                  Explore Collection
-                  <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </a>
-              </div>
+        {/* Full Screen Edge-to-Edge Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 xl:gap-8">
+          {loading ? (
+            [...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)
+          ) : hotProducts.length > 0 ? (
+            hotProducts.map((product) => (
+              <ProductCardItem key={product.id} product={product} />
+            ))
+          ) : (
+            <div className="col-span-full py-24 text-center text-alpha/40 font-primary text-base rounded-3xl bg-white/30 backdrop-blur-md border border-white/50">
+              No trending products found at the moment.
             </div>
-          </div>
-
-          {/* Right Panel — Products Grid */}
-          <div className="w-1/2 ml-auto">
-            {/* Right panel header */}
-            <div className="relative px-12 xl:px-16 2xl:px-20 pt-14 xl:pt-16 pb-10 border-b border-alpha/[0.06]">
-              {/* Subtle decorative glow behind header */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
-              
-              <div className="relative">
-                <span className="inline-flex items-center gap-2 text-[0.6rem] font-primary uppercase tracking-[0.3em] text-gold/80 mb-3">
-                  <span className="w-5 h-px bg-gold/40" />
-                  This Season
-                </span>
-                <h3 className="font-inter font-black text-3xl xl:text-4xl 2xl:text-[2.75rem] text-alpha tracking-tighter leading-[1.05] mb-2">
-                  Hot Selling
-                </h3>
-                <p className="text-text-secondary text-sm font-primary max-w-sm leading-relaxed">
-                  Discover our most sought-after pieces — loved by designers and homeowners alike.
-                </p>
-                <a 
-                  href="/collections" 
-                  className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.2em] font-primary font-semibold text-alpha mt-5 px-5 py-2.5 bg-white/40 backdrop-blur-sm border border-white/60 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:bg-white/60 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300 group"
-                >
-                  View All
-                  <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            {/* Products grid */}
-            <div className="px-8 xl:px-12 2xl:px-16 py-10 xl:py-12">
-              <div className="grid grid-cols-2 gap-4 xl:gap-5 2xl:gap-6">
-                {loading ? (
-                  [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
-                ) : hotProducts.length > 0 ? (
-                  hotProducts.map((product) => (
-                    <ProductCardItem key={product.id} product={product} />
-                  ))
-                ) : (
-                  <div className="col-span-2 p-16 text-center text-alpha/40 font-primary text-sm rounded-2xl bg-white/30 backdrop-blur-sm border border-white/40">
-                    No hot selling products found.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
+
       </div>
     </section>
   );
