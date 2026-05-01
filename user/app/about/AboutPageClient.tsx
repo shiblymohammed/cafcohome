@@ -70,7 +70,7 @@ export default function AboutPageClient() {
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2600&auto=format&fit=crop"
-            alt="CAFCO Showroom"
+            alt="DravoHome Showroom"
             fill
             className={`object-cover transition-all duration-[2.5s] ease-[cubic-bezier(0.22,1,0.36,1)] ${heroAnim.visible ? 'scale-100' : 'scale-105'}`}
             priority
@@ -101,7 +101,7 @@ export default function AboutPageClient() {
               <div className="relative aspect-[3/4] overflow-hidden">
                 <Image
                   src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1200&auto=format&fit=crop"
-                  alt="CAFCO Workshop"
+                  alt="DravoHome Workshop"
                   fill
                   className="object-cover grayscale hover:grayscale-0 transition-all duration-[1.5s] ease-[cubic-bezier(0.22,1,0.36,1)]"
                 />
@@ -121,7 +121,7 @@ export default function AboutPageClient() {
 
               <div className="space-y-5 text-sm font-primary text-alpha/45 leading-[1.9] max-w-lg mb-10">
                 <p>
-                  Founded in 1985 in the heart of Milan, CAFCO began as a small workshop where master craftsmen pursued their passion for creating exceptional furniture.
+                  Founded in 1985 in the heart of Milan, DravoHome began as a small workshop where master craftsmen pursued their passion for creating exceptional furniture.
                 </p>
                 <p>
                   What started as a dream has grown into an internationally recognized name — yet our commitment to quality remains unchanged. Every piece carries the legacy of traditional techniques refined with contemporary sensibility.
@@ -273,7 +273,7 @@ export default function AboutPageClient() {
                 </svg>
               </Link>
               <Link
-                href="/collections/all"
+                href="/products"
                 className="inline-flex items-center justify-center px-7 py-3.5 border border-creme/15 text-creme/60 text-[10px] uppercase tracking-[0.2em] font-primary hover:border-creme/30 hover:text-creme transition-all duration-500"
               >
                 View Collections
@@ -285,7 +285,7 @@ export default function AboutPageClient() {
           <div className={`relative h-[280px] lg:h-auto overflow-hidden transition-all duration-[1.2s] delay-200 ${ctaAnim.visible ? 'opacity-100' : 'opacity-0'}`}>
             <Image
               src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200&auto=format&fit=crop"
-              alt="CAFCO Showroom"
+              alt="DravoHome Showroom"
               fill
               className="object-cover grayscale hover:grayscale-0 transition-all duration-[1.5s] ease-[cubic-bezier(0.22,1,0.36,1)]"
             />

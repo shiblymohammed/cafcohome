@@ -10,7 +10,7 @@ export const revalidate = 60;
 export async function generateMetadata(): Promise<Metadata> {
   return genMeta({
     title: "Special Offers & Deals - Exclusive Furniture Discounts",
-    description: "Discover exclusive furniture deals and promotions at CAFCOHOME. Save on quality furniture for your home with our limited-time offers on premium collections.",
+    description: "Discover exclusive furniture deals and promotions at DravoHome. Save on quality furniture for your home with our limited-time offers on premium collections.",
     url: "/offers",
     keywords: [
       "furniture deals",
@@ -175,7 +175,7 @@ export default async function OffersPage() {
                   Redeeming Your Offer
                </h3>
                <p className="text-creme/70 text-sm md:text-base font-primary leading-relaxed mb-10">
-                  Select your desired eligible pieces and proceed to checkout. Your dedicated CAFCO advisor will apply the applicable discounts directly on your personalized WhatsApp quotation.
+                  Select your desired eligible pieces and proceed to checkout. Your dedicated DravoHome advisor will apply the applicable discounts directly on your personalized WhatsApp quotation.
                </p>
                <Link
                   href="/products"

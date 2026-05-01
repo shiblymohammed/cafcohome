@@ -40,39 +40,42 @@ function ProductCardItem({ product }: { product: Product }) {
   ];
 
   return (
-    <ProductCard href={`/product/${product.slug}`} hasOffer={hasOffer}>
-      <ProductCardImageContainer>
-        <ProductCardImage src={mainImage} alt={product.name} />
+    <ProductCard href={`/product/${product.slug}`} hasOffer={hasOffer} className="h-full">
+      <ProductCardImageContainer className="aspect-[4/5] overflow-hidden rounded-2xl">
         {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
+        <ProductCardImage src={mainImage} alt={product.name} className="object-cover w-full h-full" />
         <ProductCardWishlist product={product} />
       </ProductCardImageContainer>
       
-      <ProductCardInfo>
-        <ProductCardTitle>{product.name}</ProductCardTitle>
-        <ProductCardDescription className="opacity-70">
-          {product.description}
-        </ProductCardDescription>
-        <ProductCardMeta
-          collection={product.category_name}
-          category={product.subcategory_name}
-        />
-        <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
+      <div className="flex flex-col items-start px-2 py-3 md:py-4">
+        <ProductCardTitle className="text-sm md:text-base font-medium text-alpha">{product.name}</ProductCardTitle>
+        <ProductCardDescription className="text-xs md:text-sm text-alpha/60 mt-1 line-clamp-1">{product.description || "Premium Collection"}</ProductCardDescription>
         
-        <ProductCardPrice 
-          price={product.price || (product as any).selling_price} 
-          mrp={product.mrp} 
-          hasOffer={hasOffer} 
-          offerPercentage={bestOffer?.discount_percentage} 
-        />
-        
-        <div className="flex items-center justify-between gap-2 mt-3 text-xs">
-          {product.is_in_stock ? (
-            <span className="text-success font-primary font-medium">In Stock</span>
-          ) : (
-            <span className="text-error font-primary font-medium">Out of Stock</span>
-          )}
+        <div className="flex items-center justify-between w-full mt-2">
+          <ProductCardMeta
+            collection={(product as any).brand_name || product.category_name}
+            category={product.subcategory_name}
+          />
+          <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
         </div>
-      </ProductCardInfo>
+        
+        <div className="mt-3 w-full">
+          <ProductCardPrice 
+            price={product.price || (product as any).selling_price} 
+            mrp={product.mrp} 
+            hasOffer={hasOffer} 
+            offerPercentage={bestOffer?.discount_percentage} 
+          />
+        </div>
+        
+        <div className="flex items-center justify-between w-full mt-2">
+          <div className="flex items-center gap-2">
+            {!product.is_in_stock && (
+              <span className="text-[10px] md:text-xs text-red-600 font-primary bg-red-50 px-2 py-0.5 rounded-full border border-red-100">Out of Stock</span>
+            )}
+          </div>
+        </div>
+      </div>
     </ProductCard>
   );
 }
@@ -153,7 +156,7 @@ export default function HotSelling() {
               Our most sought-after pieces this season. Exquisite craftsmanship meeting contemporary design, curated for the modern luxury home.
             </p>
             <a 
-              href="/collections" 
+              href="/products" 
               className="inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] font-primary font-bold text-alpha bg-white/60 backdrop-blur-md border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.05)] px-8 py-4 rounded-full hover:bg-white hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group"
             >
               Explore Collection

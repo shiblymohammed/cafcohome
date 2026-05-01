@@ -23,27 +23,27 @@ export interface SEOConfig {
 }
 
 export const seoConfig: SEOConfig = {
-  siteName: process.env.NEXT_PUBLIC_SITE_NAME || 'CAFCOHOME',
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://cafcohome.com',
-  defaultTitle: 'CAFCOHOME - Premium Furniture for Your Home',
+  siteName: process.env.NEXT_PUBLIC_SITE_NAME || 'DravoHome',
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://dravohome.com',
+  defaultTitle: 'DravoHome - Premium Furniture for Your Home',
   defaultDescription:
-    'Discover premium furniture collections for every room. Shop bestsellers, hot-selling items, and exclusive collections at CAFCOHOME. Transform your space with quality furniture and home decor.',
+    'Discover premium furniture collections for every room. Shop bestsellers, hot-selling items, and exclusive collections at DravoHome. Transform your space with quality furniture and home decor.',
   defaultImage: '/og-default.jpg',
   twitterHandle: process.env.NEXT_PUBLIC_TWITTER_HANDLE,
   facebookAppId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL,
   organization: {
-    name: 'CAFCOHOME',
+    name: 'DravoHome',
     logo: '/logo.png',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://cafcohome.com',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://dravohome.com',
     description:
-      'CAFCOHOME is a premium furniture retailer offering high-quality furniture and home decor for every room in your home. We specialize in modern, contemporary, and classic furniture designs.',
+      'DravoHome is a premium furniture retailer offering high-quality furniture and home decor for every room in your home. We specialize in modern, contemporary, and classic furniture designs.',
     contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL,
     socialProfiles: [
       // Add social media URLs here
-      // 'https://www.facebook.com/cafcohome',
-      // 'https://www.instagram.com/cafcohome',
-      // 'https://twitter.com/cafcohome',
+      // 'https://www.facebook.com/dravohome',
+      // 'https://www.instagram.com/dravohome',
+      // 'https://twitter.com/dravohome',
     ],
   },
 };

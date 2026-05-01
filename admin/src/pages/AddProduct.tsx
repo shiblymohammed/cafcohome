@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient, { extractData } from '../utils/api';
 import MultiImageCropperWithUpload from '../components/MultiImageCropperWithUpload';
+import CustomSelect from '../components/CustomSelect';
 import { IMAGE_CONFIGS } from '../config/imageConfig';
 import './AddProduct.css';
 
@@ -560,22 +561,6 @@ const AddProduct = () => {
             </p>
           </div>
         </div>
-        <div className="add-product-header-actions">
-          <button 
-            className="btn-secondary" 
-            onClick={() => handleSubmit(true)}
-            disabled={submitting}
-          >
-            Save as Draft
-          </button>
-          <button 
-            className="btn-primary" 
-            onClick={() => handleSubmit(false)}
-            disabled={submitting}
-          >
-            {submitting ? 'Saving...' : isEditMode ? 'Update Product' : 'Create Product'}
-          </button>
-        </div>
       </div>
 
       <div className="add-product-layout">
@@ -611,48 +596,37 @@ const AddProduct = () => {
 
               <div className="form-group">
                 <label>Category <span className="required">*</span></label>
-                <select
+                <CustomSelect
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: parseInt(e.target.value) || '', subcategory: '' })}
-                  className={formErrors.category ? 'error' : ''}
-                >
-                  <option value="">Select category...</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
+                  onChange={v => setFormData({ ...formData, category: v === '' ? '' : Number(v), subcategory: '' })}
+                  options={[{ value: '', label: 'Select category…' }, ...categories.map(c => ({ value: c.id, label: c.name }))]}
+                  placeholder="Select category…"
+                  error={!!formErrors.category}
+                />
                 {formErrors.category && <span className="error-text">{formErrors.category}</span>}
               </div>
 
               <div className="form-group">
                 <label>Subcategory <span className="required">*</span></label>
-                <select
+                <CustomSelect
                   value={formData.subcategory}
-                  onChange={(e) => setFormData({ ...formData, subcategory: parseInt(e.target.value) || '' })}
+                  onChange={v => setFormData({ ...formData, subcategory: v === '' ? '' : Number(v) })}
+                  options={[{ value: '', label: 'Select subcategory…' }, ...subcategories.filter(s => s.category === formData.category).map(s => ({ value: s.id, label: s.name }))]}
+                  placeholder="Select subcategory…"
                   disabled={!formData.category}
-                  className={formErrors.subcategory ? 'error' : ''}
-                >
-                  <option value="">Select subcategory...</option>
-                  {subcategories
-                    .filter((sub) => sub.category === formData.category)
-                    .map((sub) => (
-                      <option key={sub.id} value={sub.id}>{sub.name}</option>
-                    ))}
-                </select>
+                  error={!!formErrors.subcategory}
+                />
                 {formErrors.subcategory && <span className="error-text">{formErrors.subcategory}</span>}
               </div>
 
               <div className="form-group">
                 <label>Brand</label>
-                <select
+                <CustomSelect
                   value={formData.brand}
-                  onChange={(e) => setFormData({ ...formData, brand: parseInt(e.target.value) || '' })}
-                >
-                  <option value="">No brand</option>
-                  {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                  ))}
-                </select>
+                  onChange={v => setFormData({ ...formData, brand: v === '' ? '' : Number(v) })}
+                  options={[{ value: '', label: 'No brand' }, ...brands.map(b => ({ value: b.id, label: b.name }))]}
+                  placeholder="No brand"
+                />
               </div>
             </div>
           </div>
@@ -690,15 +664,16 @@ const AddProduct = () => {
               </div>
               <div className="form-group">
                 <label>Unit</label>
-                <select
+                <CustomSelect
                   value={formData.dimensions.unit}
-                  onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, unit: e.target.value } })}
-                >
-                  <option value="cm">cm</option>
-                  <option value="inch">inch</option>
-                  <option value="m">m</option>
-                  <option value="ft">ft</option>
-                </select>
+                  onChange={v => setFormData({ ...formData, dimensions: { ...formData.dimensions, unit: String(v) } })}
+                  options={[
+                    { value: 'cm', label: 'cm' },
+                    { value: 'inch', label: 'inch' },
+                    { value: 'm', label: 'm' },
+                    { value: 'ft', label: 'ft' },
+                  ]}
+                />
               </div>
             </div>
           </div>
@@ -715,19 +690,12 @@ const AddProduct = () => {
             <div className="variant-add-section">
               <div className="form-group">
                 <label>Select Material <span className="required">*</span></label>
-                <select
+                <CustomSelect
                   value={selectedMaterialId}
-                  onChange={(e) => {
-                    setSelectedMaterialId(parseInt(e.target.value) || '');
-                    setSelectedColorIds([]);
-                  }}
-                  className="variant-select-full"
-                >
-                  <option value="">Choose a material...</option>
-                  {materials.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
+                  onChange={v => { setSelectedMaterialId(v === '' ? '' : Number(v)); setSelectedColorIds([]); }}
+                  options={[{ value: '', label: 'Choose a material…' }, ...materials.map(m => ({ value: m.id, label: m.name }))]}
+                  placeholder="Choose a material…"
+                />
               </div>
 
               {selectedMaterialId && (
@@ -1159,34 +1127,107 @@ const AddProduct = () => {
 
           {/* Cross-sell Products */}
           <div className="add-product-card">
-            <h2 className="card-title">Frequently Bought Together</h2>
-            <div className="crosssell-selector">
-              {products
-                .filter(p => !formData.frequently_bought_together.includes(p.id))
-                .slice(0, 10)
-                .map((product) => (
-                  <label key={product.id} className="crosssell-item">
-                    <input
-                      type="checkbox"
-                      checked={formData.frequently_bought_together.includes(product.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            frequently_bought_together: [...formData.frequently_bought_together, product.id],
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            frequently_bought_together: formData.frequently_bought_together.filter(id => id !== product.id),
-                          });
-                        }
-                      }}
-                    />
-                    <span>{product.name}</span>
-                  </label>
-                ))}
+            <div className="card-header-with-action">
+              <h2 className="card-title">Frequently Bought Together</h2>
+              {formData.frequently_bought_together.length > 0 && (
+                <span className="crosssell-count">{formData.frequently_bought_together.length} selected</span>
+              )}
             </div>
+            {products.filter(p => p.slug !== (isEditMode ? slug : undefined)).length === 0 ? (
+              <p className="crosssell-empty">No other products available.</p>
+            ) : (
+              <div className="crosssell-selector">
+                {products
+                  .filter(p => p.slug !== (isEditMode ? slug : undefined))
+                  .slice(0, 20)
+                  .map((product) => {
+                    const isChecked = formData.frequently_bought_together.includes(product.id);
+                    return (
+                      <label key={product.id} className={`crosssell-item ${isChecked ? 'selected' : ''}`}>
+                        <div className="crosssell-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({
+                                  ...formData,
+                                  frequently_bought_together: [...formData.frequently_bought_together, product.id],
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  frequently_bought_together: formData.frequently_bought_together.filter(id => id !== product.id),
+                                });
+                              }
+                            }}
+                          />
+                          <div className="crosssell-checkmark">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          </div>
+                        </div>
+                        <span className="crosssell-name">{product.name}</span>
+                      </label>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Save Footer */}
+      <div className="add-product-footer">
+        <div className="add-product-footer-inner">
+          <div className="add-product-footer-info">
+            <span className="footer-product-name">{formData.name || 'Untitled Product'}</span>
+            <span className="footer-variant-count">
+              {formData.variants.length} variant{formData.variants.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="add-product-footer-actions">
+            <button
+              type="button"
+              className="ap-btn-cancel"
+              onClick={() => navigate('/products')}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="ap-btn-draft"
+              onClick={() => handleSubmit(true)}
+              disabled={submitting}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              Save as Draft
+            </button>
+            <button
+              type="button"
+              className="ap-btn-save"
+              onClick={() => handleSubmit(false)}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <>
+                  <div className="ap-btn-spinner" />
+                  Saving…
+                </>
+              ) : (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  {isEditMode ? 'Update Product' : 'Create Product'}
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

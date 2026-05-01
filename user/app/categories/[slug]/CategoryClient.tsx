@@ -243,13 +243,17 @@ export default function CategoryClient({
     <main className="bg-creme min-h-screen pt-16 md:pt-20 lg:pt-24 pb-20">
       {/* Hero Section - Full Width */}
       <section className="relative h-[50vh] md:h-[60vh] lg:h-[70vh] overflow-hidden">
-        <Image
-          src={category.image_url}
-          alt={category.name}
-          fill
-          className="object-cover"
-          priority
-        />
+        {category.image_url ? (
+          <Image
+            src={category.image_url}
+            alt={category.name}
+            fill
+            className="object-cover"
+            priority
+          />
+        ) : (
+          <div className="absolute inset-0 bg-alpha" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-alpha via-alpha/60 to-alpha/20" />
         <div className="absolute inset-0 flex items-end">
           <div className="w-full px-4 md:px-8 lg:px-12 pb-8 md:pb-12 lg:pb-16">

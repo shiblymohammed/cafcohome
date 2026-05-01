@@ -9,7 +9,7 @@ import { seoConfig } from './config';
 export function getProductFallbackMetadata(slug: string): Metadata {
   return generateMetadata({
     title: 'Product Details',
-    description: 'Discover premium furniture and home decor at CAFCOHOME. Browse our collection of high-quality products.',
+    description: 'Discover premium furniture and home decor at DravoHome. Browse our collection of high-quality products.',
     url: `/product/${slug}`,
     type: 'product',
     keywords: ['furniture', 'home decor', 'premium furniture'],
@@ -20,7 +20,7 @@ export function getProductFallbackMetadata(slug: string): Metadata {
 export function getCollectionFallbackMetadata(slug: string): Metadata {
   return generateMetadata({
     title: 'Collection',
-    description: 'Explore our curated furniture collections. Find the perfect pieces for your home at CAFCOHOME.',
+    description: 'Explore our curated furniture collections. Find the perfect pieces for your home at DravoHome.',
     url: `/collections/${slug}`,
     keywords: ['furniture collection', 'home decor', 'furniture'],
   });
@@ -29,7 +29,7 @@ export function getCollectionFallbackMetadata(slug: string): Metadata {
 export function getCategoryFallbackMetadata(slug: string): Metadata {
   return generateMetadata({
     title: 'Category',
-    description: 'Browse furniture by category. Discover quality pieces for every room at CAFCOHOME.',
+    description: 'Browse furniture by category. Discover quality pieces for every room at DravoHome.',
     url: `/categories/${slug}`,
     keywords: ['furniture category', 'home furnishing', 'furniture'],
   });
@@ -80,7 +80,7 @@ export function getBlogFallbackSchema(slug: string) {
     url: `${seoConfig.siteUrl}/blogs/${slug}`,
     author: {
       '@type': 'Person',
-      name: 'CAFCOHOME Team',
+      name: 'DravoHome Team',
     },
     publisher: {
       '@type': 'Organization',

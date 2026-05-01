@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import apiClient, { extractData } from '../utils/api';
-import DataTable from '../components/DataTable';
 import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
 import { IMAGE_CONFIGS } from '../config/imageConfig';
 import './Materials.css';
@@ -221,14 +220,78 @@ const Materials = () => {
         </button>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={materials}
-        onEdit={openEdit}
-        onDelete={handleDelete}
-        loading={loading}
-        emptyMessage="No materials found. Create your first material!"
-      />
+      <div className="mat-list">
+        <div className="mat-list-header">
+          <span>Image</span>
+          <span>Name</span>
+          <span>Display Title</span>
+          <span>Colors</span>
+          <span>Status</span>
+          <span>Manage</span>
+          <span>Actions</span>
+        </div>
+        {loading ? (
+          <div className="mat-loading"><div className="mat-spinner" /><span>Loading…</span></div>
+        ) : materials.length === 0 ? (
+          <div className="mat-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <p>No materials found</p>
+            <button className="mat-btn-add" onClick={openAdd}>Create first material</button>
+          </div>
+        ) : (
+          materials.map(item => (
+            <div key={item.id} className="mat-list-row">
+              <div>
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} className="material-thumbnail" />
+                ) : (
+                  <div className="material-thumbnail-placeholder">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="mat-list-name">{item.name}</div>
+              <div className="mat-list-title">{item.title || <span className="mat-no-value">No title set</span>}</div>
+              <div>
+                <div className="mat-color-dots">
+                  {item.available_colors?.length > 0 ? (
+                    <>
+                      {item.available_colors.slice(0, 6).map(mc => (
+                        <div key={mc.id} className="mat-color-dot" style={{ background: mc.color_hex_code || '#ccc' }} title={mc.color_name} />
+                      ))}
+                      {item.available_colors.length > 6 && (
+                        <span className="mat-color-more">+{item.available_colors.length - 6}</span>
+                      )}
+                    </>
+                  ) : <span className="mat-no-value">None</span>}
+                </div>
+              </div>
+              <div>
+                <span className={`mat-status ${item.is_active ? 'active' : 'inactive'}`}>
+                  {item.is_active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div>
+                <button className="mat-btn-colors" onClick={e => { e.stopPropagation(); openColors(item); }}>
+                  Colors ({item.available_colors?.length || 0})
+                </button>
+              </div>
+              <div className="mat-list-actions">
+                <button className="mat-btn-edit" onClick={() => openEdit(item)}>Edit</button>
+                <button className="mat-btn-delete" onClick={() => handleDelete(item)}>Delete</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       {/* ── Add / Edit Material Panel ── */}
       {isModalOpen && (

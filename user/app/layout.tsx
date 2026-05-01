@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+        import type { Metadata } from "next";
 import { Hammersmith_One, Playfair_Display, Inter, Abril_Fatface } from "next/font/google";
 import "./globals.css";
 import "@/src/styles/select-override.css";
@@ -10,6 +10,8 @@ import SessionProvider from "@/src/components/providers/SessionProvider";
 import { CartProvider } from "@/src/contexts/CartContext";
 import { WishlistProvider } from "@/src/contexts/WishlistContext";
 import { ToastProvider } from "@/src/contexts/ToastContext";
+import OfferMarquee from "@/src/components/layout/OfferMarquee";
+import WelcomeOfferModal from "@/src/components/modals/WelcomeOfferModal";
 
 const hammersmith = Hammersmith_One({
     subsets: ["latin"],
@@ -41,8 +43,8 @@ const abrilFatface = Abril_Fatface({
 });
 
 export const metadata: Metadata = {
-    title: "CAFCOHOME - Furniture Ecommerce",
-    description: "Premium furniture for your home",
+    title: "DravoHome - Premium Furniture Ecommerce",
+    description: "Premium furniture for your dream home",
 };
 
 export default function RootLayout({
@@ -57,6 +59,8 @@ export default function RootLayout({
                     <ToastProvider>
                         <CartProvider>
                             <WishlistProvider>
+                                <WelcomeOfferModal />
+                                <OfferMarquee />
                                 <Navbar />
                                 <main className="overflow-x-clip">
                                     {children}

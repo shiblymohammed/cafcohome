@@ -69,7 +69,7 @@ function ParallaxCategoryCard({ category, isMobile = false }: { category: Catego
       href={`/categories/${category.slug}`}
       className="relative flex-1 hover:flex-[2.5] lg:hover:flex-[3] group transition-all duration-[900ms] ease-in-out cursor-pointer overflow-hidden border-r border-white/10 last:border-0 h-full block"
     >
-      <div className="absolute inset-0 w-full h-full">
+      <motion.div style={{ y }} className="absolute inset-x-0 w-full h-[160%] -top-[30%]">
         <Image
           src={category.image_url || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1200'}
           alt={category.name}
@@ -77,7 +77,7 @@ function ParallaxCategoryCard({ category, isMobile = false }: { category: Catego
           sizes="33vw"
           className="object-cover scale-110 lg:scale-125 group-hover:scale-100 transition-transform duration-[1200ms] ease-out"
         />
-      </div>
+      </motion.div>
       <div className="absolute inset-0 bg-gradient-to-t from-alpha via-alpha/60 to-transparent opacity-90 group-hover:opacity-40 transition-opacity duration-700" />
       
       {/* Vertical text state (default) */}

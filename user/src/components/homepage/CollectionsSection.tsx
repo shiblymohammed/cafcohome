@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode, Navigation, Autoplay } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/navigation";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ApiClient } from "@/src/lib/api/client";
+import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 
 interface Collection {
   id: number;
@@ -21,6 +17,223 @@ interface Collection {
   image_url: string;
 }
 
+// Sub-component for Desktop Accordion Card with Parallax
+const DesktopCollectionCard = ({ 
+  collection, 
+  index, 
+  isActive, 
+  onMouseEnter,
+  scrollYProgress
+}: { 
+  collection: Collection, 
+  index: number, 
+  isActive: boolean, 
+  onMouseEnter: () => void,
+  scrollYProgress: MotionValue<number>
+}) => {
+  // Match the dramatic ["-30%", "30%"] parallax speed from Categories
+  const y = useTransform(scrollYProgress, [0, 1], ["-30%", "30%"]);
+
+  return (
+    <div
+      onMouseEnter={onMouseEnter}
+      className={`relative overflow-hidden rounded-[2rem] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer group ${
+        isActive ? "flex-[3]" : "flex-[1]"
+      }`}
+    >
+      <Link href={`/collections/${collection.slug}`} className="absolute inset-0 block w-full h-full overflow-hidden">
+        
+        <motion.div 
+          style={{ y }} 
+          className="absolute inset-x-0 w-full h-[160%] top-[-30%]"
+        >
+          <Image
+            src={collection.image_url || 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200'}
+            alt={collection.name}
+            fill
+            className={`object-cover transition-transform duration-1000 ease-out ${
+              isActive ? "scale-105" : "scale-100 grayscale-[30%]"
+            }`}
+            sizes={isActive ? "50vw" : "20vw"}
+          />
+        </motion.div>
+        
+        <div 
+          className={`absolute inset-0 transition-opacity duration-700 ${
+            isActive 
+              ? "bg-gradient-to-t from-alpha/90 via-alpha/10 to-transparent opacity-90" 
+              : "bg-alpha/30"
+          }`}
+        />
+        
+        <div className={`absolute inset-0 flex flex-col justify-end p-8 transition-all duration-700 ${
+          isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        }`}>
+          {collection.tags && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {collection.tags.split(',').slice(0, 2).map((tag, idx) => (
+                <span key={idx} className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[10px] uppercase tracking-widest font-semibold rounded-full border border-white/20">
+                  {tag.trim()}
+                </span>
+              ))}
+            </div>
+          )}
+          <h3 className="text-3xl lg:text-5xl font-secondary text-white mb-3 leading-tight drop-shadow-sm">
+            {collection.name}
+          </h3>
+          <div className="overflow-hidden">
+            <p className={`text-white/80 font-primary text-sm lg:text-base max-w-md line-clamp-2 transition-all duration-700 delay-100 ${
+              isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}>
+              {collection.subtitle || "Explore this premium collection crafted for perfection."}
+            </p>
+          </div>
+          
+          <div className="mt-6 flex items-center gap-3 text-white text-xs lg:text-sm font-primary font-bold uppercase tracking-widest">
+            <span className="relative overflow-hidden group/btn">
+              <span className="inline-block transition-transform duration-300 group-hover/btn:-translate-y-full">View Collection</span>
+              <span className="absolute left-0 top-0 inline-block transition-transform duration-300 translate-y-full group-hover/btn:translate-y-0">View Collection</span>
+            </span>
+            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transform group-hover:translate-x-2 transition-transform duration-300">
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+
+        <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-500 delay-100 ${
+          isActive ? "opacity-0 scale-95" : "opacity-100 scale-100"
+        }`}>
+          <h3 className="text-white font-secondary text-2xl lg:text-3xl whitespace-nowrap -rotate-90 tracking-wide drop-shadow-md">
+            {collection.name}
+          </h3>
+        </div>
+      </Link>
+    </div>
+  );
+};
+
+// Sub-component for Mobile Card with Parallax
+const MobileCollectionCard = ({ 
+  collection, 
+  index, 
+  scrollYProgress 
+}: { 
+  collection: Collection, 
+  index: number, 
+  scrollYProgress: MotionValue<number> 
+}) => {
+  // Match the dramatic ["-30%", "30%"] parallax speed from Categories
+  const y = useTransform(scrollYProgress, [0, 1], ["-30%", "30%"]);
+
+  return (
+    <Link 
+      href={`/collections/${collection.slug}`}
+      className={`relative overflow-hidden rounded-3xl block w-full group ${
+        index === 0 ? "h-[400px]" : "h-[250px]"
+      }`}
+    >
+      <motion.div style={{ y }} className="absolute inset-x-0 w-full h-[160%] top-[-30%]">
+        <Image
+          src={collection.image_url || 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200'}
+          alt={collection.name}
+          fill
+          className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+          sizes="95vw"
+        />
+      </motion.div>
+      <div className="absolute inset-0 bg-gradient-to-t from-alpha/90 via-alpha/30 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
+      
+      <div className="absolute inset-0 p-6 flex flex-col justify-end">
+        {collection.tags && index === 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {collection.tags.split(',').slice(0, 1).map((tag, idx) => (
+              <span key={idx} className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[9px] uppercase tracking-widest font-bold rounded-full">
+                {tag.trim()}
+              </span>
+            ))}
+          </div>
+        )}
+        <h3 className={`font-secondary text-white leading-tight ${
+          index === 0 ? "text-3xl mb-2" : "text-2xl mb-1"
+        }`}>
+          {collection.name}
+        </h3>
+        {collection.subtitle && index === 0 && (
+          <p className="text-white/70 font-primary text-xs line-clamp-2 mb-4">
+            {collection.subtitle}
+          </p>
+        )}
+        
+        <div className="flex items-center gap-2 text-white text-[10px] font-primary font-bold uppercase tracking-widest mt-2">
+          Explore
+          <ArrowRight className="w-3.5 h-3.5" />
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+// Extracted inner component to ensure useScroll is only called when ref is definitely rendered
+const CollectionsSlider = ({ collections }: { collections: Collection[] }) => {
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+
+  return (
+    <section ref={sectionRef} className="relative overflow-hidden py-16 md:py-24 bg-white border-t border-black/5">
+      <div className="max-w-[1920px] mx-auto px-4 md:px-12">
+        
+        {/* Header - Centered & Elegant */}
+        <div className="flex flex-col items-center justify-center text-center mb-10 md:mb-16">
+          <span className="text-[10px] md:text-xs font-primary uppercase tracking-[0.3em] text-alpha/50 mb-3 block font-bold">
+            Curated For You
+          </span>
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-secondary text-alpha tracking-tight">
+            Exclusive Collections
+          </h2>
+          <p className="text-alpha/60 font-primary text-sm md:text-base mt-4 max-w-lg">
+            Discover our handpicked selections designed to elevate your living spaces with uncompromising luxury and style.
+          </p>
+        </div>
+
+        {/* Desktop Interactive Accordion Layout */}
+        <div className="hidden md:flex w-full h-[500px] lg:h-[650px] gap-4">
+          {collections.map((collection, index) => {
+            const isActive = activeId === collection.id || (activeId === null && index === 0);
+            return (
+              <DesktopCollectionCard 
+                key={collection.id}
+                collection={collection}
+                index={index}
+                isActive={isActive}
+                onMouseEnter={() => setActiveId(collection.id)}
+                scrollYProgress={scrollYProgress}
+              />
+            );
+          })}
+        </div>
+
+        {/* Mobile Vertical Bento Layout */}
+        <div className="md:hidden flex flex-col gap-4">
+          {collections.map((collection, index) => (
+            <MobileCollectionCard
+              key={collection.id}
+              collection={collection}
+              index={index}
+              scrollYProgress={scrollYProgress}
+            />
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
 export default function CollectionsSection() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +244,7 @@ export default function CollectionsSection() {
         const response = await ApiClient.getCollections();
         const data = response.results || response;
         if (Array.isArray(data)) {
-          setCollections(data);
+          setCollections(data.slice(0, 5)); // Limit to 5 for optimal accordion look
         }
       } catch (error) {
         console.error("Failed to load collections:", error);
@@ -44,124 +257,20 @@ export default function CollectionsSection() {
 
   if (loading) {
     return (
-      <section className="py-16 md:py-24 bg-white border-t border-alpha/5">
-        <div className="max-w-[2400px] mx-auto px-4 md:px-8 xl:px-16 2xl:px-24">
-          <div className="h-8 w-48 bg-black/5 rounded animate-pulse mb-12" />
-          <div className="flex gap-6 overflow-hidden">
-             <div className="w-[80vw] md:w-[60vw] h-[400px] bg-black/5 rounded-3xl animate-pulse shrink-0" />
-             <div className="w-[80vw] md:w-[60vw] h-[400px] bg-black/5 rounded-3xl animate-pulse shrink-0" />
+      <section className="py-12 md:py-20 bg-ivory border-t border-black/5">
+        <div className="max-w-[1920px] mx-auto px-4 md:px-12">
+          <div className="h-4 w-32 bg-black/5 rounded animate-pulse mb-8" />
+          <div className="flex flex-col md:flex-row gap-4 h-[600px]">
+             <div className="flex-1 bg-black/5 rounded-3xl animate-pulse" />
+             <div className="flex-[2] bg-black/5 rounded-3xl animate-pulse hidden md:block" />
+             <div className="flex-1 bg-black/5 rounded-3xl animate-pulse hidden md:block" />
           </div>
         </div>
       </section>
     );
   }
 
-  if (collections.length === 0) {
-    return null; // Hide section if no collections
-  }
+  if (collections.length === 0) return null;
 
-  return (
-    <section className="relative overflow-hidden py-16 md:py-24 xl:py-32 bg-white">
-      <div className="w-full max-w-[2400px] mx-auto relative z-10">
-        
-        {/* Header */}
-        <div className="px-4 md:px-8 xl:px-16 2xl:px-24 mb-10 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <span className="inline-flex items-center gap-4 text-xs md:text-sm font-primary uppercase tracking-[0.3em] text-gold font-bold mb-4">
-              <span className="w-8 h-[2px] bg-gold" />
-              Curated Collections
-            </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-inter font-black tracking-tighter text-alpha leading-[1.1] uppercase">
-              Exclusive <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-alpha/80 to-alpha/40">Editions</span>
-            </h2>
-          </div>
-          
-          {/* Custom Navigation */}
-          <div className="flex items-center gap-3 hidden md:flex">
-            <button className="col-prev w-12 h-12 rounded-full border border-alpha/10 flex items-center justify-center hover:bg-alpha hover:text-white transition-colors duration-300">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button className="col-next w-12 h-12 rounded-full border border-alpha/10 flex items-center justify-center hover:bg-alpha hover:text-white transition-colors duration-300">
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Carousel */}
-        <div className="w-full pl-4 md:pl-8 xl:pl-16 2xl:pl-24 pr-4">
-          <Swiper
-            modules={[FreeMode, Navigation, Autoplay]}
-            spaceBetween={24}
-            slidesPerView={1.1}
-            speed={800}
-            navigation={{
-              nextEl: '.col-next',
-              prevEl: '.col-prev',
-            }}
-            autoplay={{
-              delay: 5000,
-              disableOnInteraction: true,
-            }}
-            freeMode={{ enabled: true, sticky: false, momentumRatio: 0.8 }}
-            breakpoints={{
-              640: { slidesPerView: 1.5, spaceBetween: 32 },
-              1024: { slidesPerView: 2.2, spaceBetween: 40 },
-              1536: { slidesPerView: 2.8, spaceBetween: 48 },
-            }}
-            className="!overflow-visible"
-          >
-            {collections.map((collection) => (
-              <SwiperSlide key={collection.id} className="!h-auto">
-                <Link 
-                  href={`/collections/${collection.slug}`}
-                  className="block relative aspect-[4/3] md:aspect-[16/10] rounded-[2rem] overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-700"
-                >
-                  <Image
-                    src={collection.image_url || 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200'}
-                    alt={collection.name}
-                    fill
-                    className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
-                    sizes="(max-width: 768px) 90vw, (max-width: 1200px) 60vw, 40vw"
-                  />
-                  
-                  {/* Subtle Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
-                  
-                  {/* Content */}
-                  <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end">
-                    {collection.tags && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {collection.tags.split(',').map((tag, idx) => (
-                          <span key={idx} className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[10px] uppercase tracking-wider font-bold rounded-full">
-                            {tag.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <h3 className="text-3xl md:text-4xl lg:text-5xl font-inter font-bold text-white mb-3">
-                      {collection.name}
-                    </h3>
-                    {collection.subtitle && (
-                      <p className="text-white/80 font-primary text-sm md:text-base max-w-md mb-6 line-clamp-2">
-                        {collection.subtitle}
-                      </p>
-                    )}
-                    
-                    <div className="inline-flex items-center gap-3 text-white text-sm font-primary font-bold uppercase tracking-wider mt-auto transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                      Explore Collection
-                      <div className="w-8 h-8 rounded-full bg-white text-alpha flex items-center justify-center">
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
-
-      </div>
-    </section>
-  );
+  return <CollectionsSlider collections={collections} />;
 }

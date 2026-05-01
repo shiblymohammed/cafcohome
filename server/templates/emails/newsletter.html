@@ -1,0 +1,14 @@
+{% extends "emails/base.html" %}
+
+{% block title %}DravoHome Newsletter{% endblock %}
+
+{% block content %}
+{{ content|safe }}
+
+<div class="divider"></div>
+
+<p style="text-align: center; color: #999; font-size: 14px;">
+    You're receiving this email because you subscribed to DravoHome newsletter.<br>
+    <a href="#" style="color: #667eea;">Unsubscribe</a> | <a href="#" style="color: #667eea;">Update Preferences</a>
+</p>
+{% endblock %}

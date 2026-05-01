@@ -44,6 +44,7 @@ export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -58,10 +59,12 @@ export default function OrdersPage() {
 
     try {
       setLoading(true);
+      setFetchError(false);
       const response = await ApiClient.getOrders(session.accessToken);
       setOrders(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
+      setFetchError(true);
       setOrders([]);
     } finally {
       setLoading(false);
@@ -104,7 +107,25 @@ export default function OrdersPage() {
         </div>
 
         {/* Orders List */}
-        {orders.length === 0 ? (
+        {fetchError ? (
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Package className="w-10 h-10 text-red-300" />
+            </div>
+            <h2 className="text-xl font-secondary text-alpha mb-2">
+              Couldn&apos;t load orders
+            </h2>
+            <p className="text-sm text-alpha/60 mb-8">
+              Something went wrong. Please try again.
+            </p>
+            <button
+              onClick={fetchOrders}
+              className="bg-alpha text-creme px-8 py-3 text-xs uppercase tracking-[0.2em] hover:bg-alpha/90 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : orders.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-20 h-20 bg-alpha/5 rounded-full flex items-center justify-center mx-auto mb-6">
               <Package className="w-10 h-10 text-alpha/30" />
@@ -185,7 +206,7 @@ export default function OrdersPage() {
                       {order.items.map((item) => {
                         const itemImage =
                           item.product_snapshot?.images?.[0]?.url ||
-                          "/placeholder-product.jpg";
+                          "/placeholder-product.svg";
                         const itemName =
                           item.product_snapshot?.name || item.product.name;
 

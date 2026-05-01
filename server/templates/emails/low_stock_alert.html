@@ -1,0 +1,28 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Low Stock Alert - {{ product_name }}{% endblock %}
+
+{% block content %}
+<h2>⚠️ Low Stock Alert</h2>
+
+<p>This is an automated alert to notify you that a product is running low on stock.</p>
+
+<div class="info-box" style="border-left-color: #ffc107;">
+    <strong>Product:</strong> {{ product_name }}<br>
+    <strong>Variant:</strong> {{ variant_color }} - {{ variant_material }}<br>
+    <strong>SKU:</strong> {{ sku }}<br>
+    <strong>Current Stock:</strong> <span style="color: #dc3545; font-weight: 600;">{{ current_stock }} units</span><br>
+    <strong>Low Stock Threshold:</strong> {{ low_stock_threshold }} units<br>
+    <strong>Reorder Point:</strong> {{ reorder_point }} units
+</div>
+
+<h3 style="margin-top: 30px; color: #333;">Recommended Action:</h3>
+
+<p>Consider reordering <strong>{{ reorder_quantity }} units</strong> to maintain adequate stock levels.</p>
+
+<a href="http://localhost:5173/inventory" class="button">View Inventory</a>
+
+<p style="margin-top: 30px; color: #999; font-size: 14px;">
+    This is an automated alert from your inventory management system.
+</p>
+{% endblock %}

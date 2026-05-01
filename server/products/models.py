@@ -139,8 +139,7 @@ class Category(models.Model):
         
         return slug
     
-    @property
-    def product_count(self):
+    def get_product_count(self):
         """Get the number of active products in this category."""
         return self.products.filter(is_active=True).count()
 
@@ -417,32 +416,22 @@ class ProductVariant(models.Model):
         if self.mrp > 0:
             return round(((self.mrp - self.price) / self.mrp) * 100, 2)
         return 0
-    
-    @property
-    def is_in_stock(self):
-        """Check if variant is in stock."""
-        return self.stock_quantity > 0
-    
-    @property
-    def is_low_stock(self):
-        """Check if variant stock is low."""
-        return 0 < self.stock_quantity <= self.low_stock_threshold
-    
+
     @property
     def available_quantity(self):
         """Calculate available quantity (stock - reserved)."""
         return max(0, self.stock_quantity - self.reserved_quantity)
-    
+
     @property
     def is_in_stock(self):
-        """Check if variant is in stock."""
+        """Check if variant is in stock (uses available_quantity)."""
         return self.available_quantity > 0
-    
+
     @property
     def is_low_stock(self):
-        """Check if variant stock is low."""
+        """Check if variant stock is low (uses available_quantity)."""
         return 0 < self.available_quantity <= self.low_stock_threshold
-    
+
     @property
     def is_out_of_stock(self):
         """Check if variant is out of stock."""

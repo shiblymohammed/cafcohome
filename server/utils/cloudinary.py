@@ -42,7 +42,7 @@ def validate_cloudinary_config() -> bool:
 
 def upload_image(
     file,
-    folder: str = 'cafcohome',
+    folder: str = 'dravohome',
     public_id: Optional[str] = None,
     transformation: Optional[Dict[str, Any]] = None,
     **kwargs
@@ -52,7 +52,7 @@ def upload_image(
     
     Args:
         file: File object or file path to upload
-        folder: Cloudinary folder to upload to (default: 'cafcohome')
+        folder: Cloudinary folder to upload to (default: 'dravohome')
         public_id: Optional custom public ID for the image
         transformation: Optional transformation to apply during upload
         **kwargs: Additional Cloudinary upload parameters
@@ -232,7 +232,7 @@ def upload_product_image(
     
     return upload_image(
         file,
-        folder='cafcohome/products',
+        folder='dravohome/products',
         public_id=public_id,
         transformation={
             'quality': 'auto',
@@ -254,7 +254,7 @@ def upload_collection_image(file, collection_slug: str) -> Dict[str, Any]:
     """
     return upload_image(
         file,
-        folder='cafcohome/collections',
+        folder='dravohome/collections',
         public_id=collection_slug
     )
 
@@ -272,7 +272,7 @@ def upload_brand_logo(file, brand_slug: str) -> Dict[str, Any]:
     """
     return upload_image(
         file,
-        folder='cafcohome/brands',
+        folder='dravohome/brands',
         public_id=brand_slug
     )
 
@@ -290,6 +290,6 @@ def upload_blog_image(file, blog_slug: str) -> Dict[str, Any]:
     """
     return upload_image(
         file,
-        folder='cafcohome/blog',
+        folder='dravohome/blog',
         public_id=blog_slug
     )

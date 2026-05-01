@@ -51,7 +51,7 @@ export default function Backup() {
       const a = document.createElement('a');
       const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       a.href = url;
-      a.download = `cafcohome_backup_${ts}.json`;
+      a.download = `dravohome_backup_${ts}.json`;
       a.click();
       URL.revokeObjectURL(url);
       setPhase('idle');
@@ -96,6 +96,7 @@ export default function Backup() {
     if (!window.confirm(`Restore database using strategy: "${STRATEGY_INFO[strategy].label}"?\n\nThis will modify your database. Make sure you have a current backup.`)) return;
     setPhase('restoring');
     setError('');
+    setRestoreResult(null);
     try {
       const fd = new FormData();
       fd.append('backup_file', backupFile);
@@ -106,7 +107,9 @@ export default function Backup() {
       setRestoreResult(res.data);
       setPhase('done');
     } catch (e: any) {
-      setError(e.response?.data?.error || 'Restore failed.');
+      const errorMsg = e.response?.data?.error || e.response?.data?.message || 'Restore failed.';
+      const errorDetails = e.response?.data?.details || '';
+      setError(errorDetails ? `${errorMsg}\n\nDetails: ${errorDetails}` : errorMsg);
       setPhase('previewing');
     }
   };
@@ -367,68 +370,179 @@ export default function Backup() {
         </div>
       )}
 
+      {/* ── Restoring Overlay ── */}
+      {phase === 'restoring' && (
+        <div className="bk-restoring-overlay animate-fadeIn">
+          <div className="bk-restoring-card">
+            <div className="bk-restoring-spinner">
+              <div className="bk-spinner-large" />
+            </div>
+            <h3 className="bk-restoring-title">Restoring Database...</h3>
+            <p className="bk-restoring-desc">
+              Applying {preview?.summary.total_records} records using <strong>{STRATEGY_INFO[strategy].label}</strong> strategy
+            </p>
+            <div className="bk-restoring-progress">
+              <div className="bk-progress-bar">
+                <div className="bk-progress-fill" />
+              </div>
+              <p className="bk-restoring-note">This may take a few moments. Please don't close this window.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Restore Result ── */}
       {restoreResult && phase === 'done' && (
         <div className="bk-result animate-fadeIn">
           <div className="bk-result-header">
-            <div className="bk-result-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <div className="bk-result-icon bk-result-icon-success">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
             <div>
-              <h2 className="bk-result-title">Restore Complete</h2>
-              <p className="bk-result-sub">Strategy used: <strong>{STRATEGY_INFO[restoreResult.strategy as Strategy]?.label}</strong></p>
+              <h2 className="bk-result-title">Restore Complete!</h2>
+              <p className="bk-result-sub">
+                Successfully restored using <strong>{STRATEGY_INFO[restoreResult.strategy as Strategy]?.label}</strong> strategy
+              </p>
             </div>
           </div>
 
+          {/* Summary Stats */}
           <div className="bk-result-summary">
             {[
-              { key: 'created',     label: 'Created',     color: 'var(--color-delta)' },
-              { key: 'overwritten', label: 'Overwritten', color: 'var(--color-epsilon)' },
-              { key: 'skipped',     label: 'Skipped',     color: 'var(--color-zeta)' },
-              { key: 'renamed',     label: 'Renamed',     color: 'var(--color-gamma)' },
-              { key: 'errors',      label: 'Errors',      color: 'var(--color-epsilon)' },
-            ].map(({ key, label, color }) => (
-              <div key={key} className="bk-result-stat" style={{ '--stat-color': color } as any}>
-                <span className="bk-result-num">{(restoreResult.summary as any)[key]}</span>
-                <span className="bk-result-label">{label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Per-table results */}
-          <div className="bk-tables">
-            {Object.entries(restoreResult.tables).map(([key, t]) => (
-              <div key={key} className="bk-table-row">
-                <div className="bk-table-row-header">
-                  <span className="bk-table-model">{key.split('.')[1]}</span>
-                  <div className="bk-table-stats">
-                    {t.created > 0     && <span className="bk-stat-new">{t.created} created</span>}
-                    {t.overwritten > 0 && <span className="bk-stat-conflict">{t.overwritten} overwritten</span>}
-                    {t.skipped > 0     && <span className="bk-stat-total">{t.skipped} skipped</span>}
-                    {t.renamed > 0     && <span className="bk-stat-renamed">{t.renamed} renamed</span>}
-                    {t.errors.length > 0 && <span className="bk-stat-error">{t.errors.length} errors</span>}
+              { key: 'created',     label: 'Created',     color: 'var(--color-delta)', icon: 'M12 5v14M5 12h14' },
+              { key: 'overwritten', label: 'Overwritten', color: 'var(--color-gamma)', icon: 'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7' },
+              { key: 'skipped',     label: 'Skipped',     color: 'var(--color-zeta)', icon: 'M9 11l3 3L22 4' },
+              { key: 'renamed',     label: 'Renamed',     color: 'var(--color-beta)', icon: 'M16 3h5v5M4 20L21 3' },
+              { key: 'errors',      label: 'Errors',      color: 'var(--color-epsilon)', icon: 'M12 8v4M12 16h.01' },
+            ].map(({ key, label, color, icon }) => {
+              const value = (restoreResult.summary as any)[key];
+              return (
+                <div key={key} className={`bk-result-stat ${value > 0 ? 'has-value' : ''}`} 
+                  style={{ '--stat-color': color } as any}>
+                  <div className="bk-result-stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d={icon} />
+                    </svg>
+                  </div>
+                  <div className="bk-result-stat-content">
+                    <span className="bk-result-num">{value}</span>
+                    <span className="bk-result-label">{label}</span>
                   </div>
                 </div>
-                {t.errors.length > 0 && (
-                  <div className="bk-conflicts-list">
-                    {t.errors.map((e, i) => (
-                      <div key={i} className="bk-conflict-item bk-conflict-error">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-                          <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        {e}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <button className="bk-btn-cancel" onClick={reset}>Start Over</button>
+          {/* Detailed breakdown */}
+          <div className="bk-result-details">
+            <h3 className="bk-result-details-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+              </svg>
+              Table-by-Table Breakdown
+            </h3>
+            <div className="bk-tables">
+              {Object.entries(restoreResult.tables)
+                .sort(([, a], [, b]) => (b.created + b.overwritten) - (a.created + a.overwritten))
+                .map(([key, t]) => {
+                  const hasActivity = t.created > 0 || t.overwritten > 0 || t.renamed > 0 || t.skipped > 0;
+                  const hasErrors = t.errors.length > 0;
+                  
+                  return (
+                    <div key={key} className={`bk-table-row ${hasErrors ? 'has-errors' : ''} ${!hasActivity ? 'no-activity' : ''}`}>
+                      <div className="bk-table-row-header"
+                        onClick={() => hasErrors ? setExpandedTable(expandedTable === key ? null : key) : null}
+                        style={{ cursor: hasErrors ? 'pointer' : 'default' }}>
+                        <div className="bk-table-name">
+                          <span className="bk-table-app">{key.split('.')[0]}</span>
+                          <span className="bk-table-model">{key.split('.')[1]}</span>
+                          {hasErrors && (
+                            <span className="bk-table-error-badge">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                              </svg>
+                              {t.errors.length} error{t.errors.length > 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                        <div className="bk-table-stats">
+                          {t.created > 0     && <span className="bk-stat-new">+{t.created}</span>}
+                          {t.overwritten > 0 && <span className="bk-stat-overwritten">↻{t.overwritten}</span>}
+                          {t.renamed > 0     && <span className="bk-stat-renamed">⤷{t.renamed}</span>}
+                          {t.skipped > 0     && <span className="bk-stat-skipped">⊘{t.skipped}</span>}
+                          {!hasActivity && <span className="bk-stat-none">No changes</span>}
+                          {hasErrors && (
+                            <svg className={`bk-chevron ${expandedTable === key ? 'open' : ''}`}
+                              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      {expandedTable === key && hasErrors && (
+                        <div className="bk-conflicts-list">
+                          {t.errors.map((e, i) => (
+                            <div key={i} className="bk-conflict-item bk-conflict-error">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                              </svg>
+                              <span>{e}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Success message */}
+          {restoreResult.summary.errors === 0 && (
+            <div className="bk-success-message">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              <span>All records restored successfully with no errors!</span>
+            </div>
+          )}
+
+          {/* Warning message */}
+          {restoreResult.summary.errors > 0 && (
+            <div className="bk-warning-message">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>
+                Restore completed with {restoreResult.summary.errors} error{restoreResult.summary.errors > 1 ? 's' : ''}. 
+                Expand tables above to see details.
+              </span>
+            </div>
+          )}
+
+          <div className="bk-result-actions">
+            <button className="bk-btn-secondary" onClick={reset}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+              </svg>
+              Restore Another Backup
+            </button>
+            <button className="bk-btn-primary" onClick={() => window.location.reload()}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+              </svg>
+              Refresh Page
+            </button>
+          </div>
         </div>
       )}
     </div>

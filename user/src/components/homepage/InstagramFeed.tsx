@@ -25,7 +25,7 @@ const INSTAGRAM_POSTS = [
     thumbnail: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop",
     likes: "8.9K",
     comments: "156",
-    username: "@cafcohome.fan"
+    username: "@dravohome.fan"
   },
   {
     id: "3",
@@ -81,7 +81,7 @@ export default function InstagramFeed() {
             <span className="w-8 h-[2px] bg-gold" />
           </span>
           <h2 className="text-4xl md:text-6xl lg:text-[5.5rem] font-inter font-black tracking-tighter text-alpha leading-[0.9] uppercase">
-            #CafcoHome
+            #DravoHome
           </h2>
           <p className="text-alpha/60 font-primary text-sm md:text-base max-w-lg leading-relaxed mt-4">
             Explore how our community styles their spaces. Tag us on Instagram to be featured in our daily interior inspirations.

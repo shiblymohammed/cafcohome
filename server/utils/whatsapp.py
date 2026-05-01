@@ -287,7 +287,7 @@ def format_quotation_message(
     message_lines = [
         f"Hello {customer_name}!",
         "",
-        "Thank you for your order with CAFCO Home!",
+        "Thank you for your order with DravoHome!",
         "",
         f"Order Number: {order_number}",
         "",
@@ -328,7 +328,7 @@ def format_quotation_message(
         "",
         "If you have any questions, feel free to reach out!",
         "",
-        "Thank you for choosing CAFCO Home!"
+        "Thank you for choosing DravoHome!"
     ])
     
     return "\n".join(message_lines)
@@ -535,7 +535,7 @@ def format_tracking_update_message(
         "",
         stage_info['message'],
         "",
-        "Thank you for choosing CAFCO Home! ✨"
+        "Thank you for choosing DravoHome! ✨"
     ]
     
     return "\n".join(message_lines)
@@ -589,7 +589,7 @@ def send_order_confirmation(
     """
     message = f"""Hello {customer_name}! 👋
 
-Thank you for your order with CAFCO Home! 🛋️
+Thank you for your order with DravoHome! 🛋️
 
 *Order Number:* {order_number}
 
@@ -597,6 +597,6 @@ Your order has been received and we will send you a detailed quotation shortly.
 
 Our team will contact you to confirm the details and arrange delivery. 📞
 
-Thank you for choosing CAFCO Home! ✨"""
+Thank you for choosing DravoHome! ✨"""
     
     return send_whatsapp_message(phone_number, message)

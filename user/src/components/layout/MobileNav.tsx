@@ -131,7 +131,7 @@ export default function MobileNav() {
               }}
             />
             <span className="relative z-10">
-              CAFCO
+              DRAVO
             </span>
           </button>
 
@@ -206,7 +206,7 @@ export default function MobileNav() {
                 { href: "/", label: "Home" },
                 { href: "/about", label: "About" },
                 { href: "/categories", label: "Categories" },
-                { href: "/collections", label: "Collections" },
+                { href: "/products", label: "All Products" },
                 { href: "/blogs", label: "Blogs" },
                 { href: "/contact", label: "Contact" },
               ].map((link, index) => (

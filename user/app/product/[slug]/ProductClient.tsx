@@ -368,9 +368,9 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                         <nav className="flex items-center gap-2 text-[10px] md:text-xs text-alpha/60 font-primary">
                             <Link href="/" className="hover:text-alpha transition-colors">Home</Link>
                             <span className="text-alpha/30">/</span>
-                            <Link href="/collections" className="hover:text-alpha transition-colors">Collections</Link>
+                            <Link href="/categories" className="hover:text-alpha transition-colors">Categories</Link>
                             <span className="text-alpha/30">/</span>
-                            <Link href={`/collections/${product.collection_slug}`} className="hover:text-alpha transition-colors">{product.collection_name}</Link>
+                            <Link href={`/categories/${product.category_slug}`} className="hover:text-alpha transition-colors">{product.category_name}</Link>
                             <span className="text-alpha/30">/</span>
                             <span className="text-alpha font-medium">{product.name}</span>
                         </nav>
@@ -795,7 +795,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                 <span className="text-xs font-primary uppercase tracking-wider text-alpha/70 mb-3 block">
                                     Quantity
                                 </span>
-                                <div className="inline-flex items-center gap-0 border-2 border-alpha/20 rounded-lg overflow-hidden bg-white">
+                                <div className="inline-flex items-center gap-0 border-2 border-alpha/20 rounded-full overflow-hidden bg-white">
                                     <button
                                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                         className="w-12 h-12 hover:bg-alpha/5 flex items-center justify-center transition-colors border-r border-alpha/10"
@@ -822,7 +822,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                     id="buy-now-btn"
                                     onClick={handleBuyNow}
                                     disabled={!isHydrated || !isInStock || !selectedVariant || buyNowLoading}
-                                    className="relative w-full overflow-hidden group bg-gold text-white py-4 md:py-5 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider rounded-lg shadow-lg hover:shadow-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#8C6A54]"
+                                    className="relative w-full overflow-hidden group bg-gold text-white py-4 md:py-5 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider rounded-full shadow-lg hover:shadow-xl font-medium flex items-center justify-center gap-3 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#8C6A54]"
                                 >
                                     {/* shimmer sweep */}
                                     <span className="pointer-events-none absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -847,7 +847,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                     id="add-to-cart-btn"
                                     onClick={handleAddToCart}
                                     disabled={!isHydrated || !isInStock || !selectedVariant}
-                                    className="w-full bg-alpha text-creme py-4 md:py-4 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-lg font-medium border-2 border-alpha"
+                                    className="w-full bg-alpha text-creme py-4 md:py-4 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-full font-medium border-2 border-alpha"
                                 >
                                     <ShoppingCart className="w-5 h-5" />
                                     {!isHydrated ? 'Loading…' : !selectedVariant ? 'Select Options' : isInStock ? 'Add to Cart' : 'Out of Stock'}
@@ -857,7 +857,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                                 <button
                                     onClick={handleToggleWishlist}
                                     disabled={!isHydrated}
-                                    className={`w-full border-2 py-3 md:py-3.5 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-3 rounded-lg font-medium ${
+                                    className={`w-full border-2 py-3 md:py-3.5 px-6 md:px-8 text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-3 rounded-full font-medium ${
                                         isProductInWishlist
                                             ? 'border-red-500 text-red-600 bg-red-50 hover:bg-red-100 shadow-sm'
                                             : 'border-alpha/20 text-alpha hover:border-alpha hover:shadow-md bg-white'
@@ -973,7 +973,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-[3px] md:gap-1 lg:gap-1">
                             {relatedProducts.map(p => {
-                                const mainImage = p.images && p.images.length > 0 ? p.images[0].url : '/placeholder-product.jpg';
+                                const mainImage = p.images && p.images.length > 0 ? p.images[0].url : '/placeholder-product.svg';
                                 const relBadges = [
                                     ...(p.is_bestseller ? [{ label: "Bestseller", variant: "gold" as const }] : []),
                                     ...(p.is_hot_selling ? [{ label: "Hot", variant: "sale" as const }] : []),
@@ -1015,7 +1015,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                     {/* Wishlist icon */}
                     <button
                         onClick={handleToggleWishlist}
-                        className={`flex-shrink-0 w-11 h-11 border-2 rounded-lg flex items-center justify-center transition-all ${
+                        className={`flex-shrink-0 w-11 h-11 border-2 rounded-full flex items-center justify-center transition-all ${
                             isProductInWishlist
                                 ? 'border-red-500 text-red-600 bg-red-50'
                                 : 'border-alpha/20 text-alpha bg-white'
@@ -1030,7 +1030,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                     <button
                         onClick={handleAddToCart}
                         disabled={!isHydrated || !isInStock || !selectedVariant}
-                        className="flex-1 bg-alpha text-creme py-3 px-3 text-[11px] uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 rounded-lg font-medium"
+                        className="flex-1 bg-alpha text-creme py-3 px-3 text-[11px] uppercase tracking-wider hover:bg-alpha/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 rounded-full font-medium"
                     >
                         <ShoppingCart className="w-4 h-4 flex-shrink-0" />
                         <span className="truncate">{!isHydrated ? 'Loading…' : !selectedVariant ? 'Select' : isInStock ? 'Add to Cart' : 'Out of Stock'}</span>
@@ -1040,7 +1040,7 @@ export default function ProductClient({ product, variants = [], relatedProducts 
                     <button
                         onClick={handleBuyNow}
                         disabled={!isHydrated || !isInStock || !selectedVariant || buyNowLoading}
-                        className="flex-1 relative overflow-hidden group bg-gold text-white py-3 px-3 text-[11px] uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 rounded-lg font-medium shadow-md hover:bg-[#8C6A54]"
+                        className="flex-1 relative overflow-hidden group bg-gold text-white py-3 px-3 text-[11px] uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 rounded-full font-medium shadow-md hover:bg-[#8C6A54]"
                     >
                         <span className="pointer-events-none absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                         {buyNowLoading ? (

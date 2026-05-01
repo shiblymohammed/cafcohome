@@ -339,7 +339,7 @@ const Blog = () => {
                   <>
                     <div className="blog-seo-preview">
                       <div className="blog-seo-preview-title">{formData.meta_title || formData.title || 'Page Title'}</div>
-                      <div className="blog-seo-preview-url">cafcohome.com/blog/{editingPost?.slug || 'post-slug'}</div>
+                      <div className="blog-seo-preview-url">dravohome.com/blog/{editingPost?.slug || 'post-slug'}</div>
                       <div className="blog-seo-preview-desc">{formData.meta_description || 'Meta description will appear here…'}</div>
                     </div>
                     <div className="blog-form-group">

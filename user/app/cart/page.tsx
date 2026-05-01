@@ -20,10 +20,10 @@ export default function CartPage() {
             Start adding some beautiful furniture to your cart!
           </p>
           <Link
-            href="/collections"
+            href="/products"
             className="inline-block bg-alpha text-creme px-8 py-4 text-xs uppercase tracking-widest hover:bg-alpha/90 transition font-primary"
           >
-            Browse Collections
+            Browse Products
           </Link>
         </div>
       </div>
@@ -89,7 +89,7 @@ export default function CartPage() {
               </Link>
 
               <Link
-                href="/collections"
+                href="/products"
                 className="block w-full text-center text-alpha/60 hover:text-alpha transition font-primary text-xs uppercase tracking-widest"
               >
                 Continue Shopping

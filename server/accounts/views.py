@@ -2,6 +2,7 @@ from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
+from rest_framework.throttling import AnonRateThrottle
 from django.contrib.auth import authenticate, login, logout
 from .models import User, Staff
 from .tokens import StaffToken
@@ -14,6 +15,12 @@ from .serializers import (
     StaffCreateSerializer
 )
 from .contact_serializers import ContactFormSerializer
+
+
+class LoginRateThrottle(AnonRateThrottle):
+    """Strict throttle for login endpoints — 10 attempts per minute."""
+    rate = '10/minute'
+    scope = 'login'
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -30,6 +37,16 @@ class UserRegistrationView(generics.CreateAPIView):
             # Create token
             from .tokens import UserToken
             token, _ = UserToken.objects.get_or_create(user=user)
+            
+            # Send welcome email
+            try:
+                from utils.email_service import EmailService
+                EmailService.send_welcome_email(user)
+            except Exception as e:
+                # Log error but don't fail registration
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to send welcome email to {user.email}: {str(e)}")
             
             return Response({
                 'user': UserSerializer(user).data,
@@ -51,8 +68,9 @@ class UserRegistrationView(generics.CreateAPIView):
 
 class UserLoginView(APIView):
     """Login with email and password."""
-    
+
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [LoginRateThrottle]
     
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
@@ -213,8 +231,9 @@ class GoogleAuthView(APIView):
 
 class StaffLoginView(APIView):
     """Login endpoint for admin and staff users."""
-    
+
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [LoginRateThrottle]
     
     def post(self, request):
         serializer = StaffLoginSerializer(data=request.data, context={'request': request})

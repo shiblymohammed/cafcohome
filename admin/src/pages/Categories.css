@@ -1,4 +1,4 @@
-﻿/* ========================================
+/* ========================================
    CATEGORIES PAGE
    ======================================== */
 
@@ -659,6 +659,31 @@
   height: 200px;
   object-fit: cover;
   display: block;
+}
+.cat-drop-replace-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+.cat-drop-replace-overlay span {
+  color: #fff;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.cat-drop-zone:hover .cat-drop-replace-overlay {
+  opacity: 1;
 }
 .cat-drop-remove {
   position: absolute;

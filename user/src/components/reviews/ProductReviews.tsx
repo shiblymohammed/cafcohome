@@ -28,13 +28,17 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       if (filterRating) filters.rating = filterRating;
       if (verifiedOnly) filters.verified_only = 'true';
 
-      const [reviewsData, summaryData] = await Promise.all([
+      const [reviewsData, summaryData] = await Promise.allSettled([
         ApiClient.getReviews(filters),
         ApiClient.getReviewSummary(productId),
       ]);
 
-      setReviews(reviewsData.results || reviewsData);
-      setSummary(summaryData);
+      if (reviewsData.status === 'fulfilled') {
+        setReviews(reviewsData.value.results || reviewsData.value);
+      }
+      if (summaryData.status === 'fulfilled') {
+        setSummary(summaryData.value);
+      }
     } catch (error) {
       console.error('Failed to fetch reviews:', error);
     } finally {

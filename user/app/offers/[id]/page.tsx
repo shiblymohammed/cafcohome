@@ -19,12 +19,12 @@ export async function generateMetadata({ params }: OfferDetailPageProps) {
     const offer = await ApiClient.getOfferById(id);
     
     return {
-      title: `${offer.name} - Special Offer | CAFCO Home`,
+      title: `${offer.name} - Special Offer | DravoHome`,
       description: offer.description,
     };
   } catch (error) {
     return {
-      title: "Offer Not Found - CAFCO Home",
+      title: "Offer Not Found - DravoHome",
       description: "The offer you're looking for could not be found.",
     };
   }
@@ -174,7 +174,7 @@ export default async function OfferDetailPage({ params }: OfferDetailPageProps) 
                   Seamless Redemption
                </h3>
                <p className="text-creme/70 text-sm md:text-base font-primary leading-relaxed mb-10">
-                  Select your desired eligible pieces and proceed to checkout. Your dedicated CAFCO advisor will apply the <strong className="text-tango font-normal">{offer.discount_percentage}% {offer.name}</strong> discount directly on your personalized WhatsApp quotation.
+                  Select your desired eligible pieces and proceed to checkout. Your dedicated DravoHome advisor will apply the <strong className="text-tango font-normal">{offer.discount_percentage}% {offer.name}</strong> discount directly on your personalized WhatsApp quotation.
                </p>
                <Link
                   href="/cart"

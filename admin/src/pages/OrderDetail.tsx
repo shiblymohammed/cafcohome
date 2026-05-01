@@ -192,7 +192,7 @@ const OrderDetail = () => {
   const handleSendQuotation = async () => {
     if (!order) return;
     const s = order.order_summary;
-    let msg = `🏠 *CAFCO FURNITURE QUOTATION*\n\n📋 *Order #${order.order_number}*\nCustomer: ${order.user.name}\nDate: ${new Date(order.created_at).toLocaleDateString()}\n\n🛋️ *Items*\n`;
+    let msg = `🏠 *DRAVOHOME FURNITURE QUOTATION*\n\n📋 *Order #${order.order_number}*\nCustomer: ${order.user.name}\nDate: ${new Date(order.created_at).toLocaleDateString()}\n\n🛋️ *Items*\n`;
     order.items.forEach((item, i) => {
       const name = item.product_snapshot?.name || item.product?.name || 'Product';
       const p = item.pricing_details;
@@ -206,7 +206,7 @@ const OrderDetail = () => {
     const total = parseFloat(order.total);
     msg += `💰 *Total: ₹${total > 0 ? total.toLocaleString() : 'As per discussion'}*\n`;
     if (s?.total_mrp_savings > 0) msg += `💚 You Save: ₹${s.total_mrp_savings.toLocaleString()}\n`;
-    msg += `\n📍 ${order.delivery_address}\n\nThank you for choosing CAFCO! 🙏`;
+    msg += `\n📍 ${order.delivery_address}\n\nThank you for choosing DravoHome! 🙏`;
 
     window.open(`https://wa.me/${order.phone_number.replace(/[^\d+]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
     try { await apiClient.post(`/orders/${order.order_number}/quotation-sent/`); } catch {}

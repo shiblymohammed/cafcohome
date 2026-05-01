@@ -1,0 +1,27 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Contact Form Submission{% endblock %}
+
+{% block content %}
+<h2>New Contact Form Submission 📬</h2>
+
+<p>You have received a new contact form submission from your website.</p>
+
+<div class="info-box">
+    <strong>Name:</strong> {{ name }}<br>
+    <strong>Email:</strong> <a href="mailto:{{ email }}" style="color: #667eea;">{{ email }}</a><br>
+    <strong>Phone:</strong> {{ phone }}
+</div>
+
+<h3 style="margin-top: 30px; color: #333;">Message:</h3>
+
+<div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <p style="white-space: pre-wrap; color: #333;">{{ message }}</p>
+</div>
+
+<p style="margin-top: 30px; color: #666;">
+    Please respond to this inquiry as soon as possible.
+</p>
+
+<a href="mailto:{{ email }}" class="button">Reply to {{ name }}</a>
+{% endblock %}

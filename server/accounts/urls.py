@@ -17,6 +17,7 @@ from .views import (
     PincodeLookupView
 )
 from .dashboard_views import DashboardStatsView
+from .otp_views import SendOTPView, VerifyOTPView, ResendOTPView
 
 app_name = 'accounts'
 
@@ -30,6 +31,11 @@ urlpatterns = [
     path('auth/google/', GoogleAuthView.as_view(), name='google-login'),
     path('auth/admin-login/', StaffLoginView.as_view(), name='admin-login'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
+    
+    # OTP Verification
+    path('auth/otp/send/', SendOTPView.as_view(), name='send-otp'),
+    path('auth/otp/verify/', VerifyOTPView.as_view(), name='verify-otp'),
+    path('auth/otp/resend/', ResendOTPView.as_view(), name='resend-otp'),
     
     # User profile
     path('users/profile/', UserProfileView.as_view(), name='user-profile'),

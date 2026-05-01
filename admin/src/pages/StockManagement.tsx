@@ -32,7 +32,7 @@ interface ProductVariant {
   retail_value: number;
 }
 
-interface StockAdjustmentData {
+interface AdjustmentData {
   variant_id: number;
   adjustment_type: 'restock' | 'adjustment' | 'damage' | 'return';
   quantity: number;
@@ -40,317 +40,302 @@ interface StockAdjustmentData {
   notes: string;
 }
 
+const ADJUSTMENT_TYPES = [
+  { value: 'restock', label: 'Restock', desc: 'Add incoming stock', color: 'delta', sign: '+' },
+  { value: 'return', label: 'Return', desc: 'Customer return', color: 'zeta', sign: '+' },
+  { value: 'adjustment', label: 'Adjustment', desc: 'Manual correction', color: 'gamma', sign: '±' },
+  { value: 'damage', label: 'Damage / Loss', desc: 'Remove damaged stock', color: 'epsilon', sign: '-' },
+];
+
 const StockManagement = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [stockStatusFilter, setStockStatusFilter] = useState('');
-  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [stockFilter, setStockFilter] = useState('');
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [adjustmentData, setAdjustmentData] = useState<StockAdjustmentData>({
-    variant_id: 0,
-    adjustment_type: 'restock',
-    quantity: 0,
-    notes: ''
+  const [adjustData, setAdjustData] = useState<AdjustmentData>({
+    variant_id: 0, adjustment_type: 'restock', quantity: 0, notes: '',
   });
   const [adjusting, setAdjusting] = useState(false);
 
+  useEffect(() => { fetchInventory(); }, [searchTerm, stockFilter]);
+
   useEffect(() => {
-    fetchInventory();
-    
-    // Check if we need to open adjustment modal for a specific variant
     const variantId = searchParams.get('variant');
-    if (variantId) {
-      // Will open modal after variants are loaded
-      setTimeout(() => {
-        const variant = variants.find(v => v.id === parseInt(variantId));
-        if (variant) {
-          openAdjustModal(variant);
-        }
-      }, 500);
+    if (variantId && variants.length > 0) {
+      const v = variants.find(x => x.id === parseInt(variantId));
+      if (v) openAdjustPanel(v);
     }
-  }, [searchTerm, stockStatusFilter]);
+  }, [variants, searchParams]);
 
   const fetchInventory = async () => {
     try {
       setLoading(true);
-      const params: any = {};
-      
+      const params: Record<string, string> = {};
       if (searchTerm) params.search = searchTerm;
-      if (stockStatusFilter) params.stock_status = stockStatusFilter;
-
+      if (stockFilter) params.stock_status = stockFilter;
       const response = await apiClient.get('/inventory/', { params });
-      // API returns paginated response: { count, next, previous, results: [...] }
       const data = response.data;
       setVariants(Array.isArray(data) ? data : data.results || []);
     } catch (error) {
       console.error('Failed to fetch inventory:', error);
-      alert('Failed to load inventory');
+      setVariants([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const openAdjustModal = (variant: ProductVariant) => {
+  const openAdjustPanel = (variant: ProductVariant) => {
     setSelectedVariant(variant);
-    setAdjustmentData({
+    setAdjustData({
       variant_id: variant.id,
       adjustment_type: 'restock',
-      quantity: variant.reorder_quantity,
+      quantity: variant.reorder_quantity || 1,
       cost_price: variant.cost_price ? parseFloat(variant.cost_price) : undefined,
-      notes: ''
+      notes: '',
     });
-    setShowAdjustModal(true);
+    setIsPanelOpen(true);
   };
 
-  const closeAdjustModal = () => {
-    setShowAdjustModal(false);
-    setSelectedVariant(null);
-    setAdjustmentData({
-      variant_id: 0,
-      adjustment_type: 'restock',
-      quantity: 0,
-      notes: ''
-    });
-  };
-
-  const handleAdjustStock = async () => {
-    if (!selectedVariant || adjustmentData.quantity <= 0) {
-      alert('Please enter a valid quantity');
-      return;
-    }
-
+  const handleAdjust = async () => {
+    if (!selectedVariant || adjustData.quantity <= 0) return;
     setAdjusting(true);
     try {
-      await apiClient.post('/inventory/adjust/', adjustmentData);
-      alert('Stock adjusted successfully');
-      closeAdjustModal();
+      await apiClient.post('/inventory/adjust/', adjustData);
+      setIsPanelOpen(false);
       fetchInventory();
     } catch (error: any) {
-      console.error('Failed to adjust stock:', error);
       alert(error.response?.data?.error?.message || 'Failed to adjust stock');
     } finally {
       setAdjusting(false);
     }
   };
 
-  const getStockStatusBadge = (variant: ProductVariant) => {
-    if (variant.is_out_of_stock) {
-      return <span className="stock-badge out">🔴 Out of Stock</span>;
-    } else if (variant.is_low_stock) {
-      return <span className="stock-badge low">🟡 Low Stock</span>;
-    } else {
-      return <span className="stock-badge in">🟢 In Stock</span>;
-    }
+  const getNewStock = () => {
+    if (!selectedVariant) return 0;
+    const qty = adjustData.quantity;
+    if (adjustData.adjustment_type === 'damage') return selectedVariant.stock_quantity - qty;
+    return selectedVariant.stock_quantity + qty;
   };
 
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setStockStatusFilter('');
-  };
+  const inStock = variants.filter(v => v.is_in_stock && !v.is_low_stock).length;
+  const lowStock = variants.filter(v => v.is_low_stock).length;
+  const outOfStock = variants.filter(v => v.is_out_of_stock).length;
 
   return (
-    <div className="stock-management-page">
-      <div className="page-header">
-        <div>
-          <h1>📦 Stock Management</h1>
-          <p className="page-subtitle">Manage inventory levels and stock adjustments</p>
+    <div className="sm-page">
+      {/* Header */}
+      <div className="sm-header">
+        <div className="sm-header-left">
+          <button className="sm-btn-back" onClick={() => navigate('/inventory')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div>
+            <h1 className="sm-title">Stock Management</h1>
+            <p className="sm-subtitle">Adjust inventory levels and track stock</p>
+          </div>
         </div>
-        <button className="btn-back" onClick={() => navigate('/inventory')}>
-          ← Back to Dashboard
-        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="sm-stats">
+        <div className="sm-stat">
+          <div className="sm-stat-val">{variants.length}</div>
+          <div className="sm-stat-label">Total Variants</div>
+        </div>
+        <div className="sm-stat sm-stat-good">
+          <div className="sm-stat-val">{inStock}</div>
+          <div className="sm-stat-label">In Stock</div>
+        </div>
+        <div className="sm-stat sm-stat-warn">
+          <div className="sm-stat-val">{lowStock}</div>
+          <div className="sm-stat-label">Low Stock</div>
+        </div>
+        <div className="sm-stat sm-stat-danger">
+          <div className="sm-stat-val">{outOfStock}</div>
+          <div className="sm-stat-label">Out of Stock</div>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="filters-section">
-        <div className="filters-row">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search by product name, SKU, color, or material..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          
-          <select
-            className="filter-select"
-            value={stockStatusFilter}
-            onChange={(e) => setStockStatusFilter(e.target.value)}
-          >
-            <option value="">All Stock Status</option>
-            <option value="in_stock">In Stock</option>
-            <option value="low_stock">Low Stock</option>
-            <option value="out_of_stock">Out of Stock</option>
-          </select>
-
-          {(searchTerm || stockStatusFilter) && (
-            <button className="btn-clear-filters" onClick={handleClearFilters}>
-              Clear Filters
-            </button>
-          )}
+      <div className="sm-filters">
+        <div className="sm-search-wrap">
+          <svg className="sm-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input className="sm-search" type="text" placeholder="Search by product, SKU, color, material…"
+            value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
         </div>
+        <select className="sm-filter-select" value={stockFilter} onChange={e => setStockFilter(e.target.value)}>
+          <option value="">All Status</option>
+          <option value="in_stock">In Stock</option>
+          <option value="low_stock">Low Stock</option>
+          <option value="out_of_stock">Out of Stock</option>
+        </select>
+        {(searchTerm || stockFilter) && (
+          <button className="sm-btn-clear" onClick={() => { setSearchTerm(''); setStockFilter(''); }}>Clear</button>
+        )}
       </div>
 
-      {/* Stock Table */}
+      {/* Table */}
       {loading ? (
-        <div className="loading">Loading inventory...</div>
+        <div className="sm-loading"><div className="sm-spinner" /><span>Loading…</span></div>
       ) : variants.length === 0 ? (
-        <div className="no-data">No inventory items found</div>
+        <div className="sm-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+          </svg>
+          <p>No inventory items found</p>
+        </div>
       ) : (
-        <div className="stock-table-container">
-          <table className="stock-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Variant</th>
-                <th>Stock</th>
-                <th>Reserved</th>
-                <th>Available</th>
-                <th>Status</th>
-                <th>Value</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {variants.map((variant) => (
-                <tr key={variant.id}>
-                  <td>
-                    <div className="product-info">
-                      <div className="product-name">{variant.product_name}</div>
-                      <div className="product-category">{variant.category_name}</div>
-                    </div>
-                  </td>
-                  <td className="sku">{variant.sku}</td>
-                  <td>
-                    <div className="variant-info">
-                      <div>{variant.color}</div>
-                      <div className="variant-material">{variant.material}</div>
-                    </div>
-                  </td>
-                  <td className="stock-qty">{variant.stock_quantity}</td>
-                  <td className="reserved-qty">{variant.reserved_quantity}</td>
-                  <td className="available-qty">
-                    <strong>{variant.available_quantity}</strong>
-                  </td>
-                  <td>{getStockStatusBadge(variant)}</td>
-                  <td>
-                    <div className="value-info">
-                      {variant.inventory_value && (
-                        <div className="cost-value">₹{variant.inventory_value.toLocaleString()}</div>
-                      )}
-                      <div className="retail-value">₹{variant.retail_value.toLocaleString()}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-adjust"
-                      onClick={() => openAdjustModal(variant)}
-                    >
-                      Adjust
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="sm-table-wrap">
+          <div className="sm-table-header">
+            <span>Product</span>
+            <span>SKU</span>
+            <span>Variant</span>
+            <span>Stock</span>
+            <span>Reserved</span>
+            <span>Available</span>
+            <span>Status</span>
+            <span>Value</span>
+            <span>Action</span>
+          </div>
+          {variants.map(v => (
+            <div key={v.id} className={`sm-table-row ${v.is_out_of_stock ? 'out' : v.is_low_stock ? 'low' : ''}`}>
+              <div className="sm-product-cell">
+                <div className="sm-product-name">{v.product_name}</div>
+                <div className="sm-product-cat">{v.category_name}</div>
+              </div>
+              <div className="sm-sku">{v.sku}</div>
+              <div className="sm-variant-cell">
+                <div className="sm-variant-color">{v.color}</div>
+                <div className="sm-variant-mat">{v.material}</div>
+              </div>
+              <div className="sm-qty">{v.stock_quantity}</div>
+              <div className="sm-qty sm-qty-reserved">{v.reserved_quantity}</div>
+              <div className="sm-qty sm-qty-available"><strong>{v.available_quantity}</strong></div>
+              <div>
+                {v.is_out_of_stock ? (
+                  <span className="sm-stock-badge out">Out of Stock</span>
+                ) : v.is_low_stock ? (
+                  <span className="sm-stock-badge low">Low Stock</span>
+                ) : (
+                  <span className="sm-stock-badge in">In Stock</span>
+                )}
+              </div>
+              <div className="sm-value-cell">
+                {v.inventory_value != null && (
+                  <div className="sm-cost-val">₹{v.inventory_value.toLocaleString()}</div>
+                )}
+                <div className="sm-retail-val">₹{v.retail_value.toLocaleString()}</div>
+              </div>
+              <div>
+                <button className="sm-btn-adjust" onClick={() => openAdjustPanel(v)}>Adjust</button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Stock Adjustment Modal */}
-      {showAdjustModal && selectedVariant && (
-        <div className="modal-overlay" onClick={closeAdjustModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Adjust Stock</h2>
-              <button className="modal-close" onClick={closeAdjustModal}>✕</button>
+      {/* Adjust Panel */}
+      {isPanelOpen && selectedVariant && (
+        <div className="sm-overlay" onClick={e => { if (e.target === e.currentTarget) setIsPanelOpen(false); }}>
+          <div className="sm-panel">
+            <div className="sm-panel-header">
+              <h2 className="sm-panel-title">Adjust Stock</h2>
+              <button className="sm-panel-close" onClick={() => setIsPanelOpen(false)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
-            
-            <div className="modal-body">
-              <div className="variant-summary">
-                <h3>{selectedVariant.product_name}</h3>
-                <p>{selectedVariant.color} / {selectedVariant.material}</p>
-                <p className="sku">SKU: {selectedVariant.sku}</p>
-                <div className="current-stock">
-                  Current Stock: <strong>{selectedVariant.stock_quantity}</strong> units
+            <div className="sm-panel-body">
+
+              {/* Variant Summary */}
+              <div className="sm-variant-summary">
+                <div className="sm-vs-name">{selectedVariant.product_name}</div>
+                <div className="sm-vs-meta">{selectedVariant.color} · {selectedVariant.material}</div>
+                <div className="sm-vs-sku">SKU: {selectedVariant.sku}</div>
+                <div className="sm-vs-stock">
+                  <div className="sm-vs-stock-item">
+                    <span className="sm-vs-stock-val">{selectedVariant.stock_quantity}</span>
+                    <span className="sm-vs-stock-label">Total</span>
+                  </div>
+                  <div className="sm-vs-stock-divider" />
+                  <div className="sm-vs-stock-item">
+                    <span className="sm-vs-stock-val sm-reserved">{selectedVariant.reserved_quantity}</span>
+                    <span className="sm-vs-stock-label">Reserved</span>
+                  </div>
+                  <div className="sm-vs-stock-divider" />
+                  <div className="sm-vs-stock-item">
+                    <span className="sm-vs-stock-val sm-available">{selectedVariant.available_quantity}</span>
+                    <span className="sm-vs-stock-label">Available</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Adjustment Type</label>
-                <select
-                  value={adjustmentData.adjustment_type}
-                  onChange={(e) => setAdjustmentData({
-                    ...adjustmentData,
-                    adjustment_type: e.target.value as any
-                  })}
-                >
-                  <option value="restock">Restock (Add Stock)</option>
-                  <option value="adjustment">Manual Adjustment</option>
-                  <option value="damage">Damage/Loss (Reduce Stock)</option>
-                  <option value="return">Customer Return (Add Stock)</option>
-                </select>
+              {/* Adjustment Type */}
+              <div className="sm-form-section">
+                <div className="sm-form-section-title">Adjustment Type</div>
+                <div className="sm-adj-types">
+                  {ADJUSTMENT_TYPES.map(t => (
+                    <div key={t.value}
+                      className={`sm-adj-type ${adjustData.adjustment_type === t.value ? 'selected' : ''} sm-adj-${t.color}`}
+                      onClick={() => setAdjustData({ ...adjustData, adjustment_type: t.value as any })}>
+                      <div className="sm-adj-sign">{t.sign}</div>
+                      <div className="sm-adj-label">{t.label}</div>
+                      <div className="sm-adj-desc">{t.desc}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Quantity</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={adjustmentData.quantity}
-                  onChange={(e) => setAdjustmentData({
-                    ...adjustmentData,
-                    quantity: parseInt(e.target.value) || 0
-                  })}
-                />
+              {/* Quantity */}
+              <div className="sm-form-section">
+                <div className="sm-form-section-title">Quantity</div>
+                <div className="sm-qty-input-wrap">
+                  <button type="button" className="sm-qty-btn"
+                    onClick={() => setAdjustData({ ...adjustData, quantity: Math.max(1, adjustData.quantity - 1) })}>−</button>
+                  <input className="sm-qty-input" type="number" min="1"
+                    value={adjustData.quantity}
+                    onChange={e => setAdjustData({ ...adjustData, quantity: parseInt(e.target.value) || 0 })} />
+                  <button type="button" className="sm-qty-btn"
+                    onClick={() => setAdjustData({ ...adjustData, quantity: adjustData.quantity + 1 })}>+</button>
+                </div>
+                <div className="sm-preview">
+                  <span>New stock after adjustment:</span>
+                  <strong className={getNewStock() < 0 ? 'negative' : ''}>{Math.max(0, getNewStock())} units</strong>
+                </div>
               </div>
 
-              {adjustmentData.adjustment_type === 'restock' && (
-                <div className="form-group">
-                  <label>Cost Price (Optional)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={adjustmentData.cost_price || ''}
-                    onChange={(e) => setAdjustmentData({
-                      ...adjustmentData,
-                      cost_price: parseFloat(e.target.value) || undefined
-                    })}
-                    placeholder="Enter cost price per unit"
-                  />
+              {/* Cost Price (restock only) */}
+              {adjustData.adjustment_type === 'restock' && (
+                <div className="sm-form-section">
+                  <div className="sm-form-section-title">Cost Price (Optional)</div>
+                  <input className="sm-form-input" type="number" step="0.01" placeholder="₹ per unit"
+                    value={adjustData.cost_price || ''}
+                    onChange={e => setAdjustData({ ...adjustData, cost_price: parseFloat(e.target.value) || undefined })} />
                 </div>
               )}
 
-              <div className="form-group">
-                <label>Notes</label>
-                <textarea
-                  value={adjustmentData.notes}
-                  onChange={(e) => setAdjustmentData({
-                    ...adjustmentData,
-                    notes: e.target.value
-                  })}
-                  placeholder="Add notes about this adjustment..."
-                  rows={3}
-                />
+              {/* Notes */}
+              <div className="sm-form-section">
+                <div className="sm-form-section-title">Notes</div>
+                <textarea className="sm-form-textarea" rows={3} placeholder="Reason for adjustment…"
+                  value={adjustData.notes}
+                  onChange={e => setAdjustData({ ...adjustData, notes: e.target.value })} />
               </div>
 
-              <div className="adjustment-preview">
-                {adjustmentData.adjustment_type === 'damage' ? (
-                  <p>New Stock: <strong>{selectedVariant.stock_quantity - adjustmentData.quantity}</strong> units</p>
-                ) : (
-                  <p>New Stock: <strong>{selectedVariant.stock_quantity + adjustmentData.quantity}</strong> units</p>
-                )}
-              </div>
             </div>
-
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={closeAdjustModal} disabled={adjusting}>
-                Cancel
-              </button>
-              <button className="btn-confirm" onClick={handleAdjustStock} disabled={adjusting}>
-                {adjusting ? 'Adjusting...' : 'Confirm Adjustment'}
+            <div className="sm-panel-footer">
+              <button className="sm-btn-cancel" onClick={() => setIsPanelOpen(false)} disabled={adjusting}>Cancel</button>
+              <button className="sm-btn-confirm" onClick={handleAdjust} disabled={adjusting || adjustData.quantity <= 0}>
+                {adjusting ? 'Adjusting…' : 'Confirm Adjustment'}
               </button>
             </div>
           </div>

@@ -85,103 +85,51 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return variant_details
     
     def get_pricing_details(self, obj):
-        """Get detailed pricing breakdown with offer calculations."""
-        from django.utils import timezone
-        from offers.models import Offer
-        from decimal import Decimal
-        
-        # Try to get MRP and offer details from product snapshot first
-        mrp = None
-        offer_type = None
-        offer_discount = 0
-        offer_name = None
-        
-        if obj.product_snapshot:
-            mrp = obj.product_snapshot.get('mrp')
-            offer_type = obj.product_snapshot.get('offer_type')
-            offer_discount = obj.product_snapshot.get('offer_discount', 0)
-            offer_name = obj.product_snapshot.get('offer_name')
-        
-        # If MRP not in snapshot, try to get from current product variant
-        if not mrp:
+        """Get pricing breakdown — reads from snapshot, no extra queries."""
+        snapshot = obj.product_snapshot or {}
+
+        mrp_raw = snapshot.get('mrp')
+        if not mrp_raw:
+            # Fallback to prefetched variants
             try:
-                # Get default variant or first active variant
-                variant = obj.product.variants.filter(is_active=True, is_default=True).first()
-                if not variant:
-                    variant = obj.product.variants.filter(is_active=True).first()
-                
-                if variant:
-                    mrp = str(variant.mrp)
-            except:
+                variants = [v for v in obj.product.variants.all() if v.is_active]
+                default = next((v for v in variants if v.is_default), None) or (variants[0] if variants else None)
+                if default:
+                    mrp_raw = str(default.mrp)
+            except Exception:
                 pass
-        
-        # Check for current active offers if not in snapshot
-        current_offer = None
-        if not offer_name:
-            try:
-                # Find active offers for this product
-                now = timezone.now()
-                active_offers = Offer.objects.filter(
-                    is_active=True,
-                    start_date__lte=now,
-                    end_date__gte=now
-                )
-                
-                for offer in active_offers:
-                    if (offer.apply_to == 'product' and obj.product in offer.products.all()) or \
-                       (offer.apply_to == 'collection' and obj.product.category in offer.collections.all()) or \
-                       (offer.apply_to == 'category' and obj.product.subcategory in offer.categories.all()) or \
-                       (offer.apply_to == 'brand' and obj.product.brand and obj.product.brand in offer.brands.all()):
-                        current_offer = offer
-                        offer_name = offer.name
-                        offer_type = offer.apply_to
-                        offer_discount = float(offer.discount_percentage)
-                        break
-            except:
-                pass
-        
-        # Calculate pricing details
+
         unit_price = float(obj.unit_price)
-        discount = float(obj.discount)
-        total = float(obj.total)
-        
-        # Calculate various price points
-        mrp_value = float(mrp) if mrp else 0
-        
-        # Calculate what the price would be with current offers
-        offer_price = mrp_value
-        if current_offer and mrp_value > 0:
-            offer_price = mrp_value * (1 - (offer_discount / 100))
-        
-        # Calculate discount percentages
-        mrp_discount_percentage = 0
-        offer_discount_percentage = float(offer_discount) if offer_discount else 0
-        
-        if mrp_value > 0:
-            mrp_discount_percentage = round(((mrp_value - unit_price) / mrp_value) * 100, 2)
-        
-        # Determine pricing breakdown
-        pricing_breakdown = {
+        discount   = float(obj.discount)
+        total      = float(obj.total)
+        mrp_value  = float(mrp_raw) if mrp_raw else 0
+
+        mrp_discount_pct = 0
+        if mrp_value > 0 and unit_price < mrp_value:
+            mrp_discount_pct = round(((mrp_value - unit_price) / mrp_value) * 100, 2)
+
+        offer_name     = snapshot.get('offer_name')
+        offer_type     = snapshot.get('offer_type')
+        offer_discount = float(snapshot.get('offer_discount') or 0)
+
+        return {
             'mrp': str(mrp_value) if mrp_value > 0 else None,
-            'offer_price': offer_price if current_offer and offer_price != mrp_value else None,
+            'offer_price': None,
             'unit_price': unit_price,
             'discount': discount,
             'total': total,
-            'mrp_discount_percentage': mrp_discount_percentage,
-            'offer_discount_percentage': offer_discount_percentage,
+            'mrp_discount_percentage': mrp_discount_pct,
+            'offer_discount_percentage': offer_discount,
             'offer_type': offer_type,
             'offer_name': offer_name,
             'subtotal_before_discount': unit_price * obj.quantity,
             'total_discount': discount * obj.quantity,
             'final_total': total,
-            # Additional calculations
-            'mrp_savings': (mrp_value - unit_price) * obj.quantity if mrp_value > unit_price else 0,
-            'offer_savings': (offer_price - unit_price) * obj.quantity if current_offer and offer_price > unit_price else 0,
-            'has_active_offer': bool(current_offer),
-            'price_matches_offer': abs(unit_price - offer_price) < 0.01 if current_offer else False
+            'mrp_savings': max(0, (mrp_value - unit_price) * obj.quantity) if mrp_value > 0 else 0,
+            'offer_savings': 0,
+            'has_active_offer': bool(offer_name),
+            'price_matches_offer': False,
         }
-        
-        return pricing_breakdown
 
 
 class OrderTrackingSerializer(serializers.ModelSerializer):
@@ -235,104 +183,60 @@ class OrderSerializer(serializers.ModelSerializer):
         return None
     
     def get_order_summary(self, obj):
-        """Get order summary with item counts and totals including offer calculations."""
-        from django.utils import timezone
-        from offers.models import Offer
-        
+        """Get order summary — uses prefetched items, no extra queries."""
         items = obj.items.all()
         total_items = sum(item.quantity for item in items)
         unique_products = items.count()
-        
-        # Calculate pricing summary
+
         total_mrp = 0
-        total_offer_price = 0
-        total_discount = 0
-        has_offers = False
-        active_offers_count = 0
         total_mrp_savings = 0
-        total_offer_savings = 0
-        
+
         for item in items:
-            item_mrp = 0
-            item_offer_price = 0
-            
-            # Try to get MRP from product snapshot first
+            mrp = 0
             if item.product_snapshot:
-                snapshot_mrp = item.product_snapshot.get('mrp')
-                if snapshot_mrp:
-                    item_mrp = float(snapshot_mrp)
-                
-                if item.product_snapshot.get('offer_type'):
-                    has_offers = True
-            
-            # If no MRP in snapshot, try to get from current product variant
-            if item_mrp == 0:
+                raw = item.product_snapshot.get('mrp')
+                if raw:
+                    try:
+                        mrp = float(raw)
+                    except (TypeError, ValueError):
+                        pass
+
+            if mrp == 0:
+                # Fallback: use prefetched variants
                 try:
-                    variant = item.product.variants.filter(is_active=True, is_default=True).first()
-                    if not variant:
-                        variant = item.product.variants.filter(is_active=True).first()
-                    
-                    if variant and variant.mrp:
-                        item_mrp = float(variant.mrp)
-                except:
+                    variants = [v for v in item.product.variants.all() if v.is_active]
+                    default = next((v for v in variants if v.is_default), None) or (variants[0] if variants else None)
+                    if default:
+                        mrp = float(default.mrp)
+                except Exception:
                     pass
-            
-            # Check for current active offers
-            current_offer = None
-            if item_mrp > 0:
-                try:
-                    now = timezone.now()
-                    active_offers = Offer.objects.filter(
-                        is_active=True,
-                        start_date__lte=now,
-                        end_date__gte=now
-                    )
-                    
-                    for offer in active_offers:
-                        if (offer.apply_to == 'product' and item.product in offer.products.all()) or \
-                           (offer.apply_to == 'collection' and item.product.category in offer.collections.all()) or \
-                           (offer.apply_to == 'category' and item.product.subcategory in offer.categories.all()) or \
-                           (offer.apply_to == 'brand' and item.product.brand and item.product.brand in offer.brands.all()):
-                            current_offer = offer
-                            has_offers = True
-                            active_offers_count += 1
-                            item_offer_price = item_mrp * (1 - (float(offer.discount_percentage) / 100))
-                            break
-                except:
-                    pass
-            
-            # Calculate totals
-            if item_mrp > 0:
-                total_mrp += item_mrp * item.quantity
-                
-                # Calculate savings
-                unit_price = float(item.unit_price)
-                total_mrp_savings += (item_mrp - unit_price) * item.quantity
-                
-                if current_offer and item_offer_price > 0:
-                    total_offer_price += item_offer_price * item.quantity
-                    if item_offer_price > unit_price:
-                        total_offer_savings += (item_offer_price - unit_price) * item.quantity
-            
-            total_discount += float(item.discount) * item.quantity
-        
+
+            if mrp > 0:
+                total_mrp += mrp * item.quantity
+                total_mrp_savings += (mrp - float(item.unit_price)) * item.quantity
+
+        has_offers = any(
+            item.product_snapshot and item.product_snapshot.get('offer_type')
+            for item in items
+        )
+
         return {
             'total_items': total_items,
             'unique_products': unique_products,
             'total_mrp': total_mrp if total_mrp > 0 else None,
-            'total_offer_price': total_offer_price if total_offer_price > 0 else None,
-            'total_discount': total_discount,
+            'total_offer_price': None,
+            'total_discount': float(obj.discount),
             'has_offers': has_offers,
-            'active_offers_count': active_offers_count,
+            'active_offers_count': 0,
             'final_total': float(obj.total),
-            'total_mrp_savings': total_mrp_savings,
-            'total_offer_savings': total_offer_savings,
+            'total_mrp_savings': max(0, total_mrp_savings),
+            'total_offer_savings': 0,
             'pricing_breakdown': {
                 'mrp_total': total_mrp if total_mrp > 0 else None,
-                'offer_total': total_offer_price if total_offer_price > 0 else None,
+                'offer_total': None,
                 'final_total': float(obj.total),
-                'you_saved_from_mrp': total_mrp_savings,
-                'additional_offer_savings': total_offer_savings
+                'you_saved_from_mrp': max(0, total_mrp_savings),
+                'additional_offer_savings': 0,
             }
         }
 
@@ -361,67 +265,88 @@ class OrderCreateSerializer(serializers.Serializer):
     
     @transaction.atomic
     def create(self, validated_data):
-        """Create order with items."""
+        """Create order with items and product snapshots."""
         from products.models import Product, ProductVariant
         from decimal import Decimal
-        
+
         user = self.context['request'].user
         items_data = validated_data.pop('items')
-        
-        # Calculate totals
+
         subtotal = Decimal('0.00')
-        total_discount = Decimal('0.00')
         order_items = []
-        
+
         for item_data in items_data:
             try:
-                product = Product.objects.get(id=item_data['product_id'], is_active=True)
+                product = Product.objects.select_related(
+                    'category', 'subcategory', 'brand'
+                ).prefetch_related('variants').get(
+                    id=item_data['product_id'], is_active=True
+                )
             except Product.DoesNotExist:
-                raise serializers.ValidationError(f"Product with id {item_data['product_id']} not found")
-            
+                raise serializers.ValidationError(
+                    f"Product with id {item_data['product_id']} not found or inactive"
+                )
+
             quantity = item_data['quantity']
-            
-            # Get unit price from item data or variant
-            unit_price = item_data.get('unit_price', Decimal('0.00'))
-            
-            # If no price provided, try to get from variant
-            if unit_price == 0 and item_data.get('variant_id'):
+
+            # Resolve variant
+            variant = None
+            if item_data.get('variant_id'):
                 try:
-                    variant = ProductVariant.objects.get(id=item_data['variant_id'], product=product, is_active=True)
-                    unit_price = variant.price
+                    variant = product.variants.get(id=item_data['variant_id'], is_active=True)
                 except ProductVariant.DoesNotExist:
                     pass
-            
-            # Calculate item totals
-            item_subtotal = unit_price * quantity
-            item_discount = Decimal('0.00')  # No discounts for now
-            item_total = item_subtotal - item_discount
-            
-            subtotal += item_subtotal
-            total_discount += item_discount
-            
+
+            if variant is None:
+                variant = product.variants.filter(is_active=True, is_default=True).first()
+                if variant is None:
+                    variant = product.variants.filter(is_active=True).first()
+
+            # Determine unit price
+            unit_price = item_data.get('unit_price', Decimal('0.00'))
+            if unit_price == 0 and variant:
+                unit_price = variant.price
+
+            item_total = unit_price * quantity
+            subtotal += item_total
+
+            # Build product snapshot — captures state at order time
+            snapshot = {
+                'name': product.name,
+                'slug': product.slug,
+                'images': variant.images if variant else [],
+                'dimensions': product.dimensions,
+                'colors': [variant.color] if variant else [],
+                'materials': [variant.material] if variant else [],
+                'color': variant.color if variant else None,
+                'material': variant.material if variant else None,
+                'sku': variant.sku if variant else None,
+                'mrp': str(variant.mrp) if variant else None,
+                'price': str(variant.price) if variant else str(unit_price),
+                'offer_type': None,
+                'offer_name': None,
+                'offer_discount': None,
+            }
+
             order_items.append({
                 'product': product,
                 'quantity': quantity,
                 'unit_price': unit_price,
-                'discount': item_discount,
+                'discount': Decimal('0.00'),
                 'total': item_total,
+                'product_snapshot': snapshot,
             })
-        
-        total = subtotal - total_discount
-        
-        # Create order
+
         order = Order.objects.create(
             user=user,
             delivery_address=validated_data['delivery_address'],
             phone_number=validated_data['phone_number'],
             subtotal=subtotal,
-            discount=total_discount,
-            total=total,
+            discount=Decimal('0.00'),
+            total=subtotal,
             stage='order_received'
         )
-        
-        # Create order items
+
         for item_data in order_items:
             OrderItem.objects.create(
                 order=order,
@@ -429,16 +354,16 @@ class OrderCreateSerializer(serializers.Serializer):
                 quantity=item_data['quantity'],
                 unit_price=item_data['unit_price'],
                 discount=item_data['discount'],
-                total=item_data['total']
+                total=item_data['total'],
+                product_snapshot=item_data['product_snapshot'],
             )
-        
-        # Create initial tracking entry
+
         OrderTracking.objects.create(
             order=order,
             stage='order_received',
             notes='Order created'
         )
-        
+
         return order
 
 

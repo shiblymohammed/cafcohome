@@ -1,0 +1,127 @@
+/* ========================================
+   CUSTOM SELECT  (prefix: csel-)
+   ======================================== */
+
+.csel-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.csel-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-elevated);
+  border: var(--border-width-thin) solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+}
+
+.csel-trigger:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  background: var(--slate-700);
+}
+
+.csel-wrap.open .csel-trigger {
+  border-color: var(--color-alpha);
+  background: var(--slate-700);
+  box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.08);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-md) var(--radius-md);
+}
+
+.csel-wrap.error .csel-trigger {
+  border-color: var(--color-epsilon);
+}
+
+.csel-wrap.disabled .csel-trigger {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.csel-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.csel-value.placeholder {
+  color: var(--text-muted);
+}
+
+.csel-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform var(--transition-base);
+}
+
+.csel-wrap.open .csel-chevron {
+  transform: rotate(180deg);
+  color: var(--color-alpha);
+}
+
+/* Dropdown */
+.csel-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: var(--z-dropdown);
+  background: var(--bg-card);
+  border: var(--border-width-thin) solid var(--border-hover);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 245, 255, 0.06);
+  overflow: hidden;
+  animation: cselDropIn 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--slate-600) transparent;
+}
+
+.csel-dropdown::-webkit-scrollbar { width: 4px; }
+.csel-dropdown::-webkit-scrollbar-track { background: transparent; }
+.csel-dropdown::-webkit-scrollbar-thumb { background: var(--slate-600); border-radius: 2px; }
+
+@keyframes cselDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.csel-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-bottom: var(--border-width-thin) solid var(--border-primary);
+}
+
+.csel-option:last-child { border-bottom: none; }
+
+.csel-option:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.csel-option.selected {
+  background: rgba(0, 245, 255, 0.06);
+  color: var(--color-alpha);
+  font-weight: var(--font-semibold);
+}
+
+.csel-option.selected svg {
+  color: var(--color-alpha);
+  flex-shrink: 0;
+}

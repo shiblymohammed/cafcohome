@@ -124,7 +124,7 @@ export function generateArticleSchema(blog: BlogPostData): StructuredData {
     dateModified: blog.updated_at,
     author: {
       '@type': 'Person',
-      name: blog.author_name || 'CAFCOHOME Team',
+      name: blog.author_name || 'DravoHome Team',
     },
     publisher: {
       '@type': 'Organization',

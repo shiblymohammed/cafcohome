@@ -1,0 +1,47 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Welcome to DravoHome!{% endblock %}
+
+{% block content %}
+<h2>Welcome to DravoHome! 🏠</h2>
+
+<p>Hi {{ user_name }},</p>
+
+<p>Thank you for joining DravoHome! We're thrilled to have you as part of our furniture family.</p>
+
+<p>At DravoHome, we believe that great furniture transforms houses into homes. Whether you're furnishing your first apartment or redesigning your dream space, we're here to help you every step of the way.</p>
+
+<div class="info-box">
+    <strong>Your Account Email:</strong> {{ user_email }}
+</div>
+
+<h3 style="margin-top: 30px; color: #333;">What You Can Do Now:</h3>
+
+<ul style="color: #666; margin-left: 20px; margin-bottom: 20px; line-height: 1.8;">
+    <li><strong>Browse Our Collection:</strong> Explore thousands of premium furniture pieces</li>
+    <li><strong>Create Wishlists:</strong> Save your favorite items for later</li>
+    <li><strong>Track Orders:</strong> Monitor your purchases in real-time</li>
+    <li><strong>Get Exclusive Offers:</strong> Be the first to know about sales and promotions</li>
+</ul>
+
+<a href="http://localhost:3000/products" class="button">Start Shopping</a>
+
+<div class="divider"></div>
+
+<h3 style="color: #333;">Need Help?</h3>
+
+<p>Our customer support team is always ready to assist you:</p>
+<ul style="color: #666; margin-left: 20px; margin-bottom: 20px;">
+    <li>📧 Email: support@dravohome.com</li>
+    <li>📞 Phone: +91 XXXXXXXXXX</li>
+    <li>💬 Live Chat: Available on our website</li>
+</ul>
+
+<p style="margin-top: 30px;">We're excited to help you create the home of your dreams!</p>
+
+<p style="font-weight: 600; color: #667eea;">Happy Shopping! ✨</p>
+
+<p style="color: #999; font-size: 14px; margin-top: 30px;">
+    This email was sent to {{ user_email }} because you created an account at DravoHome.
+</p>
+{% endblock %}

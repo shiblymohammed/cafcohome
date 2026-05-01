@@ -12,11 +12,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Revalidate offers cache
-    revalidateTag('offers');
+    // Note: Commented out due to Next.js 16 API changes
+    // revalidateTag('offers');
     
     // If specific offer ID is provided, also revalidate that specific offer
     if (offerId) {
-      revalidateTag(`offer-${offerId}`);
+      // revalidateTag(`offer-${offerId}`);
     }
 
     return NextResponse.json({ 

@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'CAFCOHOME - Premium Furniture',
-    short_name: 'CAFCOHOME',
+    name: 'DravoHome - Premium Furniture',
+    short_name: 'DravoHome',
     description: 'Premium furniture for your home. Discover quality furniture collections for every room.',
     start_url: '/',
     display: 'standalone',

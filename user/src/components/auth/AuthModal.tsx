@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import CustomSelect from "../ui/CustomSelect";
+import OTPVerificationModal from "./OTPVerificationModal";
 
 type AuthMode = "login" | "signup";
 
@@ -33,6 +34,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login", isNe
   const [availableAreas, setAvailableAreas] = useState<string[]>([]);
   const [showOptionalFields, setShowOptionalFields] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [pendingRegistration, setPendingRegistration] = useState<{email: string; name: string; password: string} | null>(null);
 
   useEffect(() => {
     setMode(initialMode);
@@ -152,33 +155,29 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login", isNe
 
     try {
       if (mode === "signup") {
-        // Register new user
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/v1/auth/register/`, {
+        // Send OTP for email verification
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/v1/auth/otp/send/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({ 
+            email: formData.email,
+            name: formData.name 
+          }),
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.error?.message || 'Registration failed');
+          throw new Error(data.error?.message || 'Failed to send verification code');
         }
 
-        // Auto-login after registration
-        const result = await signIn('credentials', {
-          redirect: false,
+        // Store registration data and show OTP modal
+        setPendingRegistration({
           email: formData.email,
-          password: formData.password,
+          name: formData.name,
+          password: formData.password
         });
-
-        if (result?.error) {
-          throw new Error('Registration successful but auto-login failed. Please sign in.');
-        }
-
-        // Show optional fields modal after successful registration
-        setJustRegistered(true);
-        setShowOptionalFields(true);
+        setShowOTPModal(true);
       } else {
         // Login existing user
         const result = await signIn('credentials', {
@@ -197,6 +196,54 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login", isNe
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOTPVerified = async () => {
+    if (!pendingRegistration) return;
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Now register the user after email verification
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/v1/auth/register/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: pendingRegistration.name,
+          email: pendingRegistration.email,
+          password: pendingRegistration.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || 'Registration failed');
+      }
+
+      // Auto-login after registration
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: pendingRegistration.email,
+        password: pendingRegistration.password,
+      });
+
+      if (result?.error) {
+        throw new Error('Registration successful but auto-login failed. Please sign in.');
+      }
+
+      // Close OTP modal and show optional fields
+      setShowOTPModal(false);
+      setPendingRegistration(null);
+      setJustRegistered(true);
+      setShowOptionalFields(true);
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+      setShowOTPModal(false);
     } finally {
       setIsLoading(false);
     }
@@ -283,6 +330,22 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login", isNe
   };
 
   if (!isOpen) return null;
+
+  // Show OTP verification modal
+  if (showOTPModal && pendingRegistration) {
+    return (
+      <OTPVerificationModal
+        isOpen={showOTPModal}
+        onClose={() => {
+          setShowOTPModal(false);
+          setPendingRegistration(null);
+        }}
+        email={pendingRegistration.email}
+        name={pendingRegistration.name}
+        onVerified={handleOTPVerified}
+      />
+    );
+  }
 
   // Show optional fields modal after registration
   if (showOptionalFields && justRegistered) {
@@ -523,8 +586,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login", isNe
           </h2>
           <p className="text-sm font-primary text-alpha/60 leading-relaxed max-w-xs mx-auto">
             {mode === "login" 
-              ? "Continue your journey with CAFCO's curated collection."
-              : "Join the CAFCO family and discover timeless furniture."
+              ? "Continue your journey with DravoHome's curated collection."
+              : "Join the DravoHome family and discover timeless furniture."
             }
           </p>
         </div>

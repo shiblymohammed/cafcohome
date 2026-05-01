@@ -87,7 +87,7 @@ export default function AboutSection() {
               variants={itemVariants}
               className="text-sm text-alpha/45 font-primary leading-[1.9] max-w-md mb-6"
             >
-              Since 1985, CAFCO has preserved the art of traditional joinery while exploring organic, contemporary forms. Each piece is a quiet dialogue between material and maker.
+              Since 1985, DravoHome has preserved the art of traditional joinery while exploring organic, contemporary forms. Each piece is a quiet dialogue between material and maker.
             </motion.p>
 
             <motion.p 

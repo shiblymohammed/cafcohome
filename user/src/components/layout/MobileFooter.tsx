@@ -30,23 +30,26 @@ export default function MobileFooter() {
       <div className="flex justify-center gap-8 mt-10 relative z-10">
         {/* Column 1 */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[9px] uppercase tracking-widest text-tango mb-1">About</span>
-          <a href="#" className="text-xs text-text-muted hover:text-ivory transition-colors">About Us</a>
-          <a href="#" className="text-xs text-text-muted hover:text-ivory transition-colors">Furnitures</a>
+          <span className="text-[9px] uppercase tracking-widest text-tango mb-1">Explore</span>
+          <a href="/about" className="text-xs text-text-muted hover:text-ivory transition-colors">About Us</a>
+          <a href="/products" className="text-xs text-text-muted hover:text-ivory transition-colors">All Products</a>
+          <a href="/blogs" className="text-xs text-text-muted hover:text-ivory transition-colors">Blog</a>
         </div>
 
         {/* Column 2 */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[9px] uppercase tracking-widest text-tango mb-1">Info</span>
-          <a href="#" className="text-xs text-text-muted hover:text-ivory transition-colors">Contact</a>
-          <a href="#" className="text-xs text-text-muted hover:text-ivory transition-colors">Gallery</a>
+          <span className="text-[9px] uppercase tracking-widest text-tango mb-1">Shop</span>
+          <a href="/categories" className="text-xs text-text-muted hover:text-ivory transition-colors">Categories</a>
+          <a href="/offers" className="text-xs text-text-muted hover:text-ivory transition-colors">Offers</a>
+          <a href="/contact" className="text-xs text-text-muted hover:text-ivory transition-colors">Contact</a>
         </div>
 
         {/* Column 3 */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[9px] uppercase tracking-widest text-tango mb-1">Socials</span>
-          <a href="#" className="text-xs text-text-muted hover:text-ivory transition-colors">Support</a>
-          <a href="#" className="text-xs text-text-muted hover:text-ivory transition-colors">Instagram</a>
+          <span className="text-[9px] uppercase tracking-widest text-tango mb-1">Account</span>
+          <a href="/orders" className="text-xs text-text-muted hover:text-ivory transition-colors">My Orders</a>
+          <a href="/wishlist" className="text-xs text-text-muted hover:text-ivory transition-colors">Wishlist</a>
+          <a href="/profile" className="text-xs text-text-muted hover:text-ivory transition-colors">Profile</a>
         </div>
       </div>
 
@@ -54,7 +57,7 @@ export default function MobileFooter() {
       <div className="absolute bottom-[-18%] left-0 w-full select-none pointer-events-none">
         <div className="flex items-end justify-center">
           <span className="text-[30vw] font-bold tracking-[0.1em] text-charcoal/40 leading-none">
-            CAFCO
+            DRAVO
           </span>
         </div>
       </div>

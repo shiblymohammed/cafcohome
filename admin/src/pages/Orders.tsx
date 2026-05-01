@@ -106,7 +106,7 @@ const Orders = () => {
   const sendQuotation = (order: Order) => {
     const s = order.order_summary;
     const total = parseFloat(order.total);
-    let msg = `🏠 *CAFCO FURNITURE*\n\nHi ${order.user.name}!\n\n`;
+    let msg = `🏠 *DRAVOHOME FURNITURE*\n\nHi ${order.user.name}!\n\n`;
     msg += `📋 Order #${order.order_number}\n📅 ${new Date(order.created_at).toLocaleDateString()}\n\n`;
     msg += `🛋️ ${s?.total_items || 0} items (${s?.unique_products || 0} products)\n\n`;
     if (total > 0) {
@@ -116,7 +116,7 @@ const Orders = () => {
     } else {
       msg += `💰 Total: As per discussion\n`;
     }
-    msg += `\n📞 Reply or call us for details.\nThank you for choosing CAFCO! 🙏`;
+    msg += `\n📞 Reply or call us for details.\nThank you for choosing DravoHome! 🙏`;
     window.open(`https://wa.me/${order.phone_number.replace(/[^\d+]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 

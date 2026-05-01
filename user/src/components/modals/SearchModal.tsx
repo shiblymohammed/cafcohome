@@ -76,7 +76,7 @@ export default function SearchModal({
   /* ── Load recent searches + focus ──────────────────────── */
   useEffect(() => {
     if (isOpen) {
-      const saved = localStorage.getItem('cafco_recentSearches');
+      const saved = localStorage.getItem('dravo_recentSearches');
       if (saved) setRecentSearches(JSON.parse(saved));
       setActiveIndex(-1);
       if (isMobile) setTimeout(() => inputRef.current?.focus(), 120);
@@ -169,7 +169,7 @@ export default function SearchModal({
     if (!t) return;
     const updated = [t, ...recentSearches.filter(s => s !== t)].slice(0, 6);
     setRecentSearches(updated);
-    localStorage.setItem('cafco_recentSearches', JSON.stringify(updated));
+    localStorage.setItem('dravo_recentSearches', JSON.stringify(updated));
   };
 
   const handleProductClick = (product: SearchResult) => {
@@ -182,7 +182,7 @@ export default function SearchModal({
     if (!query.trim()) return;
     saveRecentSearch(query);
     onClose();
-    router.push(`/categories?search=${encodeURIComponent(query.trim())}`);
+    router.push(`/products?q=${encodeURIComponent(query.trim())}`);
   };
 
   const handleTermClick = (term: string) => {
@@ -269,7 +269,7 @@ export default function SearchModal({
                       <Clock size={10} /> Recent
                     </span>
                     <button
-                      onClick={() => { setRecentSearches([]); localStorage.removeItem('cafco_recentSearches'); }}
+                      onClick={() => { setRecentSearches([]); localStorage.removeItem('dravo_recentSearches'); }}
                       className="text-[10px] font-primary text-alpha/30 hover:text-alpha transition-colors uppercase tracking-wider"
                     >
                       Clear
@@ -445,10 +445,10 @@ export default function SearchModal({
                 Try a different keyword
               </p>
               <button
-                onClick={() => { onClose(); router.push('/categories'); }}
+                onClick={() => { onClose(); router.push('/products'); }}
                 className="mt-4 px-4 py-1.5 text-[10px] font-primary text-alpha/60 hover:text-alpha border border-alpha/12 hover:border-alpha/25 rounded-full transition-all uppercase tracking-wider"
               >
-                Browse Categories
+                Browse All Products
               </button>
             </div>
           )}

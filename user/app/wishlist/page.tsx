@@ -26,10 +26,10 @@ export default function WishlistPage() {
             Start adding products you love to your wishlist!
           </p>
           <Link
-            href="/collections"
+            href="/products"
             className="inline-block bg-alpha text-creme px-8 py-4 text-xs uppercase tracking-widest hover:bg-alpha/90 transition font-primary"
           >
-            Browse Collections
+            Browse Products
           </Link>
         </div>
       </div>

@@ -189,7 +189,7 @@ const TopNavigation = ({ userRole, userName, onLogout }: TopNavigationProps) => 
             <span>C</span>
           </div>
           <div className="top-nav-logo-text">
-            <span className="top-nav-brand">CAFCO</span>
+            <span className="top-nav-brand">DravoHome</span>
             <span className="top-nav-brand-sub">Admin Panel</span>
           </div>
         </div>

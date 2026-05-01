@@ -252,7 +252,7 @@ const Sidebar = ({
             <span>C</span>
           </div>
           <div className="sidebar__logo-text">
-            <span className="sidebar__brand">CAFCO</span>
+            <span className="sidebar__brand">DravoHome</span>
             <span className="sidebar__brand-sub">Admin</span>
           </div>
           <button className="sidebar__close-btn" onClick={onClose}>

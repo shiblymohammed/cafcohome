@@ -4,7 +4,7 @@ import { authOptions } from '@/auth';
 import ProfileClient from './ProfileClient';
 
 export const metadata = {
-  title: 'My Profile - CAFCO Home',
+  title: 'My Profile - DravoHome',
   description: 'Manage your account settings and personal information',
 };
 

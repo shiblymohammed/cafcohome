@@ -83,7 +83,7 @@ export default function RegisterPage() {
             Create <span className="italic font-light text-alpha/80">Account</span>
           </h2>
           <p className="text-sm font-primary text-alpha/60 leading-relaxed">
-            Join the CAFCO family and discover timeless furniture.
+            Join the DravoHome family and discover timeless furniture.
           </p>
         </div>
 

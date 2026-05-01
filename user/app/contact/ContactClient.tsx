@@ -175,7 +175,7 @@ export default function ContactClient() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="text-sm font-secondary text-alpha mb-1">CAFCO Showroom</h4>
+                    <h4 className="text-sm font-secondary text-alpha mb-1">DravoHome Showroom</h4>
                     <p className="text-xs font-primary text-alpha/60 leading-relaxed">
                       123 Design District, Milan, Italy 20121
                     </p>

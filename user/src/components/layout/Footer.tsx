@@ -7,11 +7,9 @@ export default function Footer() {
 
         {/* LEFT — LOGO + SLOGAN */}
         <div className="flex flex-col gap-4">
-          {/* Small decorative icon */}
           <div className="w-6 h-6 border border-text-secondary rounded-full flex items-center justify-center">
             <div className="w-2 h-2 bg-text-secondary rounded-full"></div>
           </div>
-          {/* Slogan */}
           <div>
             <div className="text-sm text-text-muted font-light leading-relaxed">
               Designing spaces
@@ -26,23 +24,26 @@ export default function Footer() {
         <div className="flex gap-24">
           {/* Column 1 */}
           <div className="flex flex-col gap-2">
-            <span className="text-[10px] uppercase tracking-widest text-tango mb-2">About</span>
-            <a href="#" className="text-sm text-text-muted hover:text-ivory transition-colors">About Us</a>
-            <a href="#" className="text-sm text-text-muted hover:text-ivory transition-colors">Furnitures</a>
+            <span className="text-[10px] uppercase tracking-widest text-tango mb-2">Explore</span>
+            <a href="/about" className="text-sm text-text-muted hover:text-ivory transition-colors">About Us</a>
+            <a href="/products" className="text-sm text-text-muted hover:text-ivory transition-colors">All Products</a>
+            <a href="/blogs" className="text-sm text-text-muted hover:text-ivory transition-colors">Blog</a>
           </div>
 
           {/* Column 2 */}
           <div className="flex flex-col gap-2">
-            <span className="text-[10px] uppercase tracking-widest text-tango mb-2">Info</span>
-            <a href="#" className="text-sm text-text-muted hover:text-ivory transition-colors">Contact</a>
-            <a href="#" className="text-sm text-text-muted hover:text-ivory transition-colors">Gallery</a>
+            <span className="text-[10px] uppercase tracking-widest text-tango mb-2">Shop</span>
+            <a href="/categories" className="text-sm text-text-muted hover:text-ivory transition-colors">Categories</a>
+            <a href="/offers" className="text-sm text-text-muted hover:text-ivory transition-colors">Offers</a>
+            <a href="/contact" className="text-sm text-text-muted hover:text-ivory transition-colors">Contact</a>
           </div>
 
           {/* Column 3 */}
           <div className="flex flex-col gap-2">
-            <span className="text-[10px] uppercase tracking-widest text-tango mb-2">Socials</span>
-            <a href="#" className="text-sm text-text-muted hover:text-ivory transition-colors">Support</a>
-            <a href="#" className="text-sm text-text-muted hover:text-ivory transition-colors">Instagram</a>
+            <span className="text-[10px] uppercase tracking-widest text-tango mb-2">Account</span>
+            <a href="/orders" className="text-sm text-text-muted hover:text-ivory transition-colors">My Orders</a>
+            <a href="/wishlist" className="text-sm text-text-muted hover:text-ivory transition-colors">Wishlist</a>
+            <a href="/profile" className="text-sm text-text-muted hover:text-ivory transition-colors">Profile</a>
           </div>
         </div>
       </div>
@@ -51,7 +52,7 @@ export default function Footer() {
       <div className="absolute ml-10 bottom-[-65%] left-0 w-full select-none pointer-events-none">
         <div className="relative flex items-end justify-center">
           <span className="text-[28vw] font-bold tracking-[0.15em] text-charcoal/40 leading-none">
-            CAFCO
+            DRAVO
           </span>
         </div>
       </div>

@@ -313,7 +313,7 @@ export default function CheckoutPage() {
                   {items.map((item) => {
                     const mainImage = item.product.images && item.product.images.length > 0
                       ? item.product.images[0].url 
-                      : '/placeholder-product.jpg';
+                      : '/placeholder-product.svg';
                     return (
                       <div key={item.product.id} className="p-5 flex gap-4">
                         <div className="relative w-20 h-24 bg-sand flex-shrink-0">
@@ -596,7 +596,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <span className="text-sm text-alpha/70 leading-relaxed">
-                  I consent to receive my order details and updates via WhatsApp. I understand that CAFCO will contact me on the provided number.
+                  I consent to receive my order details and updates via WhatsApp. I understand that DravoHome will contact me on the provided number.
                 </span>
               </label>
             </div>

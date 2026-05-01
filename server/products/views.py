@@ -35,20 +35,26 @@ class CategoryListView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     
     def get_queryset(self):
+        from django.db.models import Count, Q
+        annotation = Count('products', filter=Q(products__is_active=True), distinct=True)
         # For admin users, show all categories (including inactive)
         if self.request.user and self.request.user.is_authenticated and hasattr(self.request.user, 'role') and self.request.user.role == 'admin':
-            return Category.objects.all().order_by('display_order', 'name')
+            return Category.objects.annotate(product_count=annotation).order_by('display_order', 'name')
         # For public, only show active categories
-        return Category.objects.filter(is_active=True).order_by('display_order', 'name')
+        return Category.objects.filter(is_active=True).annotate(product_count=annotation).order_by('display_order', 'name')
 
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Retrieve, update or delete a category."""
     
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
+    serializer_class = CategorySerializer
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        from django.db.models import Count, Q
+        annotation = Count('products', filter=Q(products__is_active=True), distinct=True)
+        return Category.objects.annotate(product_count=annotation)
 
 
 class SubcategoryListView(generics.ListCreateAPIView):

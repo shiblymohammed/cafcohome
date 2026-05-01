@@ -65,6 +65,9 @@ class Order(models.Model):
             models.Index(fields=['order_number']),
             models.Index(fields=['stage']),
             models.Index(fields=['created_at']),
+            models.Index(fields=['user', 'created_at']),       # customer order history
+            models.Index(fields=['assigned_to', 'stage']),     # staff workload queries
+            models.Index(fields=['stage', 'created_at']),      # stage + date filtering
         ]
     
     def __str__(self):

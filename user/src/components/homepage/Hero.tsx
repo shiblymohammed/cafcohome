@@ -1,13 +1,46 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function Hero() {
+  const containerRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+  
+  // Parallax shift downwards as user scrolls down
+  const y = useTransform(scrollYProgress, [0, 1], ["0vh", "40vh"]);
+
+  // Framer Motion variants for perfect staggering
+  const textContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.25, delayChildren: 0.2 }
+    }
+  };
+
+  const textItem = {
+    hidden: { opacity: 0, y: 60, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: { duration: 1.2, ease: [0.22, 1, 0.36, 1] } 
+    }
+  };
+
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-alpha">
-      {/* Background Layer - Smooth Scale Entrance */}
-      <div className="absolute inset-0 z-0">
-        <div className="relative w-full h-full animate-[scale_1.5s_ease-out_forwards]">
+    <section ref={containerRef} className="relative h-screen w-full overflow-hidden bg-[#050505]">
+      {/* Background Layer - Smooth Parallax */}
+      <motion.div 
+        style={{ y }}
+        className="absolute -top-[15%] -bottom-[15%] left-0 right-0 z-0 origin-center"
+      >
+        <div className="relative w-full h-full">
             {/* Desktop Hero Image */}
             <Image 
                 src="/herodesktop.jpg" 
@@ -33,30 +66,35 @@ export default function Hero() {
             {/* Minimal Overlay - Just enough for text contrast */}
             <div className="absolute inset-0 bg-black/20" />
         </div>
-      </div>
+      </motion.div>
 
       {/* Content Layer - Centered & Minimal */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-6">
+      <motion.div 
+        variants={textContainer}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-6"
+      >
         
-        {/* Main Headline - High visual impact, no clutter */}
+        {/* Main Headline */}
         <h1 className="flex flex-col items-center text-creme font-secondary mix-blend-overlay">
-          <span className="block text-[4rem] md:text-[9rem] leading-[0.85] tracking-tighter opacity-0 animate-[slide-up_1s_cubic-bezier(0.2,0.8,0.2,1)_0.2s_forwards]">
+          <motion.span variants={textItem} className="block text-[4rem] md:text-[9rem] leading-[0.85] tracking-tighter">
             MODERN
-          </span>
-          <span className="block text-[4rem] md:text-[9rem] leading-[0.85] font-serif italic font-light tracking-tight opacity-0 animate-[slide-up_1s_cubic-bezier(0.2,0.8,0.2,1)_0.4s_forwards]">
+          </motion.span>
+          <motion.span variants={textItem} className="block text-[4rem] md:text-[9rem] leading-[0.85] font-serif italic font-light tracking-tight">
             SILENCE
-          </span>
+          </motion.span>
         </h1>
 
         {/* Minimal Subheader */}
-        <p className="mt-8 text-creme/90 text-xs md:text-sm uppercase tracking-[0.3em] font-medium opacity-0 animate-[fade-in_1s_ease-out_0.8s_forwards] max-w-xs md:max-w-md">
+        <motion.p variants={textItem} className="mt-8 text-creme/90 text-xs md:text-sm uppercase tracking-[0.3em] font-medium max-w-xs md:max-w-md">
             The 2025 Winter Collection
-        </p>
+        </motion.p>
 
-        {/* Minimal CTA - Line button */}
-        <div className="mt-12 opacity-0 animate-[fade-in_1s_ease-out_1.0s_forwards]">
+        {/* Minimal CTA */}
+        <motion.div variants={textItem} className="mt-12">
           <a 
-            href="/collections/all" 
+            href="/products" 
             className="group relative inline-flex items-center gap-2 text-creme text-sm font-bold uppercase tracking-widest pb-2 overflow-hidden"
           >
             <span className="relative z-10 transition-transform duration-500 group-hover:-translate-y-[110%]">Explore Now</span>
@@ -64,14 +102,19 @@ export default function Hero() {
             <span className="absolute bottom-0 left-0 w-full h-[1px] bg-creme/50 transform origin-left transition-transform duration-500 ease-out group-hover:scale-x-0"></span>
             <span className="absolute bottom-0 left-0 w-full h-[1px] bg-creme transform origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100"></span>
           </a>
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
 
       {/* Subtle Scroll Hint */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 opacity-0 animate-[fade-in_1s_ease-out_1.5s_forwards]">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20"
+      >
         <div className="w-[1px] h-16 bg-gradient-to-b from-creme/0 via-creme/50 to-creme/0 animate-pulse"></div>
-      </div>
+      </motion.div>
     </section>
   );
 }

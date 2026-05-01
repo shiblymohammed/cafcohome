@@ -2,7 +2,7 @@
 Order Signals
 
 This module contains Django signals for order-related events,
-including automatic WhatsApp notifications on order stage updates.
+including automatic WhatsApp and email notifications on order stage updates.
 """
 
 import logging
@@ -13,19 +13,47 @@ from .models import Order, OrderTracking
 logger = logging.getLogger(__name__)
 
 
+@receiver(post_save, sender=Order)
+def send_order_confirmation_email(sender, instance, created, **kwargs):
+    """
+    Send order confirmation email when a new order is created.
+    
+    This signal is triggered after an Order is saved.
+    It sends a confirmation email to the customer with order details.
+    """
+    if not created:
+        # Only send email for new orders
+        return
+    
+    from utils.email_service import EmailService
+    
+    try:
+        email_sent = EmailService.send_order_confirmation(instance)
+        
+        if email_sent:
+            logger.info(f"Order confirmation email sent for order {instance.order_number}")
+        else:
+            logger.warning(f"Order confirmation email failed for order {instance.order_number}")
+        
+    except Exception as e:
+        # Log error but don't raise exception to avoid breaking order creation
+        logger.error(f"Failed to send order confirmation email for order {instance.order_number}: {str(e)}", exc_info=True)
+
+
 @receiver(post_save, sender=OrderTracking)
 def send_tracking_notification(sender, instance, created, **kwargs):
     """
-    Send WhatsApp notification when a new tracking entry is created.
+    Send WhatsApp and email notifications when a new tracking entry is created.
     
     This signal is triggered after an OrderTracking record is saved.
-    It sends a tracking update message to the customer via WhatsApp.
+    It sends tracking update messages to the customer via WhatsApp and Email.
     """
     if not created:
         # Only send notification for new tracking entries
         return
     
     from utils.whatsapp import send_tracking_update
+    from utils.email_service import EmailService
     
     order = instance.order
     
@@ -36,6 +64,11 @@ def send_tracking_notification(sender, instance, created, **kwargs):
         logger.info(f"Skipping tracking notification for initial order_received stage of order {order.order_number}")
         return
     
+    # Get previous stage for email
+    previous_tracking = order.tracking_history.exclude(id=instance.id).first()
+    old_stage = previous_tracking.stage if previous_tracking else 'order_received'
+    
+    # Send WhatsApp notification
     try:
         # Get stage display name
         stage_display = dict(Order.STAGE_CHOICES).get(instance.stage, instance.stage)
@@ -53,11 +86,28 @@ def send_tracking_notification(sender, instance, created, **kwargs):
         if isinstance(result, dict) and result.get('error'):
             logger.warning(f"WhatsApp tracking notification failed for order {order.order_number}: {result.get('error')}")
         else:
-            logger.info(f"Tracking notification sent for order {order.order_number}, stage: {instance.stage}")
+            logger.info(f"WhatsApp tracking notification sent for order {order.order_number}, stage: {instance.stage}")
         
     except Exception as e:
         # Log error but don't raise exception to avoid breaking the order update
-        logger.error(f"Failed to send tracking notification for order {order.order_number}: {str(e)}", exc_info=True)
+        logger.error(f"Failed to send WhatsApp tracking notification for order {order.order_number}: {str(e)}", exc_info=True)
+    
+    # Send Email notification
+    try:
+        email_sent = EmailService.send_order_status_update(
+            order=order,
+            old_stage=old_stage,
+            new_stage=instance.stage
+        )
+        
+        if email_sent:
+            logger.info(f"Email tracking notification sent for order {order.order_number}, stage: {instance.stage}")
+        else:
+            logger.warning(f"Email tracking notification failed for order {order.order_number}")
+        
+    except Exception as e:
+        # Log error but don't raise exception to avoid breaking the order update
+        logger.error(f"Failed to send email tracking notification for order {order.order_number}: {str(e)}", exc_info=True)
 
 
 @receiver(post_save, sender=OrderTracking)

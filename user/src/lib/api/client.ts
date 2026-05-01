@@ -449,7 +449,20 @@ export class ApiClient {
     );
   }
 
-  // Shop By Room
+  // ==========================================
+  // Materials
+  // ==========================================
+  static async getMaterials() {
+    return request<any>(
+      "/v1/materials/",
+      { method: "GET" },
+      {},
+      { revalidate: defaultCacheConfig.static.revalidate, tags: ["materials"] }
+    );
+  }
+
+  // ==========================================
+  // Shop By Rooms
   static async getShopByRooms() {
     return request<any>(
       "/v1/shop-by-rooms/",

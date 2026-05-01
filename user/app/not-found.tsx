@@ -51,10 +51,10 @@ export default function NotFound() {
             </Link>
 
             <Link
-              href="/collections/all"
+              href="/products"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-alpha text-alpha text-xs uppercase tracking-widest font-primary hover:bg-alpha hover:text-creme transition-colors"
             >
-              Browse Collections
+              Browse All Products
             </Link>
           </div>
 

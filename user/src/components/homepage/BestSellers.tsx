@@ -1,10 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode, Pagination } from "swiper/modules";
+import { FreeMode, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/free-mode";
-import "swiper/css/pagination";
 import { ApiClient, ApiClientError } from "@/src/lib/api/client";
 import type { Product } from "@/src/contexts/CartContext";
 
@@ -35,39 +34,44 @@ function ProductCardItem({ product }: { product: Product }) {
 
   const badges = [
     ...(bestOffer ? [{ label: `${bestOffer.discount_percentage}% OFF`, variant: "sale" as const }] : []),
-    ...(product.is_bestseller ? [{ label: "Bestseller", variant: "bestseller" as const }] : []),
+    ...(product.is_bestseller ? [{ label: "Bestseller", variant: "gold" as const }] : []),
     ...(product.is_hot_selling ? [{ label: "Hot", variant: "sale" as const }] : []),
     ...(!product.is_in_stock ? [{ label: "Out of Stock", variant: "limited" as const }] : []),
   ];
 
   return (
-    <ProductCard href={`/product/${product.slug}`} hasOffer={hasOffer}>
-      <ProductCardImageContainer>
+    <ProductCard href={`/product/${product.slug}`} hasOffer={hasOffer} className="h-full">
+      <ProductCardImageContainer className="aspect-[4/5] overflow-hidden rounded-2xl">
         {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
-        <ProductCardImage src={mainImage} alt={product.name} />
+        <ProductCardImage src={mainImage} alt={product.name} className="object-cover w-full h-full" />
         <ProductCardWishlist product={product} />
       </ProductCardImageContainer>
       
-      <div className="flex flex-col items-start px-1.5 md:px-2 py-2 md:py-3">
-        <ProductCardTitle>{product.name}</ProductCardTitle>
-        <ProductCardDescription>{product.description}</ProductCardDescription>
-        <ProductCardMeta
-            collection={product.category_name}
-            category={product.subcategory_name}
-          />
-        <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
-        
-        <ProductCardPrice 
-          price={product.price || (product as any).selling_price} 
-          mrp={product.mrp} 
-          hasOffer={hasOffer} 
-          offerPercentage={bestOffer?.discount_percentage} 
-        />
+      <div className="flex flex-col items-start px-2 py-3 md:py-4">
+        <ProductCardTitle className="text-sm md:text-base font-medium text-alpha">{product.name}</ProductCardTitle>
+        <ProductCardDescription className="text-xs md:text-sm text-alpha/60 mt-1 line-clamp-1">{product.description || "Premium Collection"}</ProductCardDescription>
         
         <div className="flex items-center justify-between w-full mt-2">
-          <div className="flex items-center gap-3">
+          <ProductCardMeta
+            collection={(product as any).brand_name || product.category_name}
+            category={product.subcategory_name}
+          />
+          <ProductCardRating rating={product.average_rating || 0} reviewCount={product.review_count || 0} />
+        </div>
+        
+        <div className="mt-3 w-full">
+          <ProductCardPrice 
+            price={product.price || (product as any).selling_price} 
+            mrp={product.mrp} 
+            hasOffer={hasOffer} 
+            offerPercentage={bestOffer?.discount_percentage} 
+          />
+        </div>
+        
+        <div className="flex items-center justify-between w-full mt-2">
+          <div className="flex items-center gap-2">
             {!product.is_in_stock && (
-              <span className="text-xs text-red-600 font-primary">Out of Stock</span>
+              <span className="text-[10px] md:text-xs text-red-600 font-primary bg-red-50 px-2 py-0.5 rounded-full border border-red-100">Out of Stock</span>
             )}
           </div>
         </div>
@@ -144,7 +148,7 @@ export default function BestSellers() {
             We're curating our bestselling products. Check back soon or explore our collections.
           </p>
           <a
-            href="/collections"
+            href="/products"
             className="inline-flex items-center gap-2 text-xs uppercase tracking-wider font-medium text-alpha hover:text-alpha/70 transition-colors group"
           >
             Browse Collections
@@ -190,64 +194,33 @@ export default function BestSellers() {
         </a>
       </div>
 
-      {/* Products Swiper */}
-      <div className="animate-fade-in">
+      {/* Infinite Swiper Carousel */}
+      <div className="animate-fade-in w-full max-w-[1920px] mx-auto px-4 md:px-12">
         <Swiper
-          modules={[FreeMode, Pagination]}
-          spaceBetween={4}
-          slidesPerView={1.4}
-          slidesOffsetBefore={0}
-          slidesOffsetAfter={0}
-          freeMode={{ enabled: true, sticky: false }}
-          pagination={{
-            clickable: true,
-            el: ".best-sellers-pagination",
+          modules={[FreeMode, Autoplay]}
+          spaceBetween={16}
+          slidesPerView="auto"
+          loop={true}
+          speed={800}
+          autoplay={{
+            delay: 4000,
+            disableOnInteraction: true,
           }}
-          grabCursor={true}
+          freeMode={{ enabled: true, sticky: false, momentumRatio: 0.8 }}
           breakpoints={{
-            480: {
-              slidesPerView: 1.8,
-              spaceBetween: 4,
-              slidesOffsetBefore: 0,
-              slidesOffsetAfter: 0,
-            },
-            640: {
-              slidesPerView: 2.3,
-              spaceBetween: 6,
-              slidesOffsetBefore: 32,
-              slidesOffsetAfter: 32,
-            },
-            768: {
-              slidesPerView: 3,
-              spaceBetween: 8,
-              slidesOffsetBefore: 32,
-              slidesOffsetAfter: 32,
-            },
-            1024: {
-              slidesPerView: 4,
-              spaceBetween: 8,
-              slidesOffsetBefore: 32,
-              slidesOffsetAfter: 32,
-            },
-            1280: {
-              slidesPerView: 4,
-              spaceBetween: 10,
-              slidesOffsetBefore: 32,
-              slidesOffsetAfter: 32,
-            },
+            768: { spaceBetween: 24 },
           }}
-          className="best-sellers-swiper !pb-6 !pt-4"
+          className="!overflow-visible pb-8 pt-2"
         >
           {products.map((product) => (
-            <SwiperSlide key={product.id} className="!h-auto">
-              <ProductCardItem product={product} />
+            <SwiperSlide key={product.id} className="!w-[240px] sm:!w-[260px] md:!w-[300px] lg:!w-[320px]">
+              <div className="transition-transform duration-300 hover:-translate-y-1 h-full">
+                <ProductCardItem product={product} />
+              </div>
             </SwiperSlide>
           ))}
         </Swiper>
       </div>
-
-      {/* Pagination Dots */}
-      <div className="best-sellers-pagination flex justify-center gap-2 px-container pt-1.5" />
 
       {/* Mobile View All Link */}
       <div className="md:hidden flex justify-center mt-2.5 px-container">

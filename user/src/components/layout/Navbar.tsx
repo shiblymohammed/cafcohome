@@ -23,8 +23,10 @@ export default function Navbar() {
   const showSearch = pathname === "/" || 
                      pathname === "/categories" || 
                      pathname === "/blogs" ||
+                     pathname === "/products" ||
                      pathname.startsWith("/categories/") ||
-                     pathname.startsWith("/subcategories/");
+                     pathname.startsWith("/subcategories/") ||
+                     pathname.startsWith("/products");
   
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOverOffers, setIsOverOffers] = useState(false);
@@ -131,9 +133,10 @@ export default function Navbar() {
   return (
     <>
       <nav 
-        className={`hidden md:flex flex-col fixed top-0 left-0 right-0 z-[100] transition-all duration-500 will-change-transform ${
+        className={`hidden md:flex flex-col fixed left-0 right-0 z-[100] transition-all duration-500 will-change-transform ${
           isScrolled ? "py-1" : "py-2"
         }`}
+        style={{ top: 'var(--marquee-height, 0px)' }}
       >
         {/* Unified Glass Background */}
         <div 
@@ -253,7 +256,7 @@ export default function Navbar() {
                 transition: 'color 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.08s',
               }}
             >
-              CAFCO
+              DRAVO
             </Link>
           </div>
 

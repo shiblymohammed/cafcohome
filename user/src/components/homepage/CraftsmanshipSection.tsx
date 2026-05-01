@@ -1,231 +1,168 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-const stats = [
-  { value: "1985", label: "Est." },
-  { value: "40+", label: "Artisans" },
-  { value: "38+", label: "Years" },
-  { value: "100%", label: "Handcrafted" },
-];
-
-const processKeywords = [
-  "Solid Teak",
-  "Hand-Jointed",
-  "Natural Oils",
-  "Mortise & Tenon",
-  "Kiln-Dried",
-  "Zero Emissions",
-  "Reclaimed Wood",
-  "Artisan Carved",
-  "Slow Made",
-  "Sustainably Sourced",
-];
-
-const pillars = [
+const storySteps = [
   {
-    index: "01",
-    title: "Material Integrity",
-    body: "Every piece begins with responsibly sourced solid hardwoods — teak, walnut, and oak — selected for grain character and long-term stability.",
+    id: "step-1",
+    headline: "Uncompromising Materials.",
+    subheadline: "Selected by hand.",
+    description: "Every piece begins with responsibly sourced solid hardwoods — teak, walnut, and oak. We reject particle boards and veneers. Only materials that age gracefully make the cut.",
+    image: "https://images.unsplash.com/photo-1611084225028-2ab96a928ba5?q=80&w=1600",
   },
   {
-    index: "02",
-    title: "Artisan Process",
-    body: "Our craftsmen use time-honoured joinery techniques passed across generations. No shortcuts. No particle board. No compromises.",
+    id: "step-2",
+    headline: "Time-Honored Joinery.",
+    subheadline: "No shortcuts.",
+    description: "Mortise and tenon. Hand-cut dovetails. Wooden pegs. We use techniques that have stood the test of centuries, ensuring structural integrity that outlasts screws and glue.",
+    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=1600",
   },
   {
-    index: "03",
-    title: "Designed to Last",
-    body: "We design against obsolescence. Our furniture is built to be repaired, refinished, and passed on — not replaced.",
+    id: "step-3",
+    headline: "Designed for Generations.",
+    subheadline: "Built to remain.",
+    description: "We design against obsolescence. A DravoHome piece is built to be repaired, refinished, and passed on. A true heirloom only gets better with time.",
+    image: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?q=80&w=1600",
   },
 ];
 
 export default function CraftsmanshipSection() {
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
+    target: containerRef,
+    offset: ["start start", "end end"],
   });
 
-  // Parallax on background image
-  const bgY = useTransform(scrollYProgress, [0, 1], ["-12%", "12%"]);
-  // Marquee controlled by scroll
-  const marqueeX = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
+  // Calculate opacities for the 3 images based on scroll progress
+  // 0.0 to 0.33 -> Image 1
+  // 0.33 to 0.66 -> Image 2
+  // 0.66 to 1.0 -> Image 3
+  
+  const img1Opacity = useTransform(scrollYProgress, [0, 0.25, 0.35], [1, 1, 0]);
+  const img2Opacity = useTransform(scrollYProgress, [0.25, 0.35, 0.6, 0.7], [0, 1, 1, 0]);
+  const img3Opacity = useTransform(scrollYProgress, [0.6, 0.7, 1], [0, 1, 1]);
+
+  const img1Scale = useTransform(scrollYProgress, [0, 0.35], [1, 1.05]);
+  const img2Scale = useTransform(scrollYProgress, [0.25, 0.7], [1, 1.05]);
+  const img3Scale = useTransform(scrollYProgress, [0.6, 1], [1, 1.05]);
 
   return (
-    <section ref={sectionRef} className="relative w-full bg-alpha overflow-hidden">
-
-      {/* ─── Part 1: Full-bleed parallax image with big statement ─── */}
-      <div className="relative w-full h-[80vh] md:h-screen overflow-hidden">
-
-        {/* Parallax image */}
-        <motion.div style={{ y: bgY }} className="absolute inset-x-0 w-full h-[130%] -top-[15%]">
-          <Image
-            src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=2400"
-            alt="Master craftsman at work"
-            fill
-            sizes="100vw"
-            quality={90}
-            className="object-cover object-center"
-            priority
-          />
-        </motion.div>
-
-        {/* Layered overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-alpha/70 via-alpha/30 to-alpha" />
-        <div className="absolute inset-0 bg-gradient-to-r from-alpha/60 via-transparent to-transparent" />
-
-        {/* Top label */}
-        <div className="absolute top-14 left-8 md:left-20 z-10">
-          <span className="text-[10px] font-primary uppercase tracking-[0.4em] text-gold/70">
-            Our Philosophy
-          </span>
-        </div>
-
-        {/* Centred headline */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6 text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="font-secondary text-creme text-[3rem] md:text-[6rem] lg:text-[8rem] leading-[0.88] tracking-tight"
-          >
-            Made to<br />
-            <em className="font-light not-italic text-creme/50">Last Forever.</em>
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-8 max-w-xl text-creme/50 font-primary text-sm md:text-base leading-[1.9]"
-          >
-            Since 1985, CAFCO has believed that great furniture is not manufactured — it is crafted, with patience,
-            with skill, and with a deep respect for the material.
-          </motion.p>
-        </div>
-
-        {/* Stat row — pinned to bottom of this panel */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-creme/[0.08]">
-          <div className="flex divide-x divide-creme/[0.08]">
-            {stats.map((s) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="flex-1 py-8 md:py-10 px-4 text-center"
-              >
-                <span className="block font-secondary text-creme text-3xl md:text-5xl mb-1">{s.value}</span>
-                <span className="text-[9px] font-primary uppercase tracking-[0.3em] text-creme/30">{s.label}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Part 2: Scroll-driven marquee ─── */}
-      <div className="relative py-10 border-y border-creme/[0.06] overflow-hidden">
-        <motion.div
-          style={{ x: marqueeX }}
-          className="flex gap-12 whitespace-nowrap will-change-transform"
+    <section className="bg-[#000000] text-[#f5f5f7] selection:bg-white/20">
+      
+      {/* Intro sequence */}
+      <div className="h-[70vh] flex flex-col items-center justify-center text-center px-6">
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-[#86868b] font-inter text-sm md:text-base tracking-[0.2em] uppercase mb-6"
         >
-          {/* Duplicate for seamless loop feel */}
-          {[...processKeywords, ...processKeywords, ...processKeywords].map((word, i) => (
-            <span key={i} className="flex items-center gap-12 flex-shrink-0">
-              <span className="font-secondary text-creme/20 text-3xl md:text-5xl italic">{word}</span>
-              <span className="w-2 h-2 rounded-full bg-gold/30 flex-shrink-0" />
-            </span>
-          ))}
-        </motion.div>
+          The DravoHome Standard
+        </motion.p>
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="font-inter text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight max-w-4xl leading-[1.1]"
+        >
+          Craft is not a feature.<br />
+          <span className="text-[#86868b]">It’s the foundation.</span>
+        </motion.h2>
       </div>
 
-      {/* ─── Part 3: Three Pillars ─── */}
-      <div className="px-8 md:px-16 lg:px-20 py-24 md:py-32">
-        <div className="max-w-content mx-auto">
-
-          {/* Section intro */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20 md:mb-28">
-            <div className="lg:col-span-5">
-              <motion.h3
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                className="font-secondary text-creme text-3xl md:text-5xl leading-[1.05] tracking-tight"
-              >
-                Craft is not a feature.<br />
-                <em className="font-light not-italic text-creme/40">It is the point.</em>
-              </motion.h3>
-            </div>
-            <div className="lg:col-span-5 lg:col-start-8 flex flex-col justify-end">
-              <motion.p
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.15 }}
-                className="text-creme/40 font-primary text-sm leading-[1.9]"
-              >
-                In a world of mass production and disposable design, we have chosen the opposite path.
-                Every CAFCO piece is made by hand, one at a time, by craftsmen who have devoted their
-                lives to a single discipline.
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-8"
-              >
-                <Link
-                  href="/about"
-                  className="group relative inline-flex items-center gap-2 text-creme/50 text-xs font-primary uppercase tracking-widest pb-2 overflow-hidden hover:text-creme transition-colors duration-300"
-                >
-                  Our Full Story
-                  <span className="absolute bottom-0 left-0 w-full h-[1px] bg-creme/20" />
-                  <span className="absolute bottom-0 left-0 w-full h-[1px] bg-gold transform origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" />
-                  <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Pillar grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-creme/[0.06]">
-            {pillars.map((pillar, i) => (
-              <motion.div
-                key={pillar.index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-                className="bg-alpha p-10 md:p-12 group hover:bg-charcoal/40 transition-colors duration-500"
-              >
-                <span className="block text-[10px] font-primary uppercase tracking-[0.35em] text-gold/60 mb-8">
-                  {pillar.index}
-                </span>
-                <h4 className="font-secondary text-creme text-2xl md:text-3xl mb-6 leading-tight">
-                  {pillar.title}
+      {/* Sticky Storytelling Container */}
+      <div ref={containerRef} className="relative w-full">
+        
+        {/* Mobile View: Linear stack, no sticky images */}
+        <div className="md:hidden flex flex-col px-6 pb-24 gap-24">
+          {storySteps.map((step) => (
+            <div key={`mobile-${step.id}`} className="flex flex-col gap-8">
+              <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden">
+                <Image src={step.image} alt={step.headline} fill className="object-cover" />
+              </div>
+              <div>
+                <h3 className="font-inter text-3xl font-semibold tracking-tight mb-2">
+                  {step.headline}
+                </h3>
+                <h4 className="font-inter text-xl text-[#86868b] font-medium tracking-tight mb-6">
+                  {step.subheadline}
                 </h4>
-                <p className="text-creme/35 font-primary text-sm leading-[1.9] group-hover:text-creme/50 transition-colors duration-500">
-                  {pillar.body}
+                <p className="font-inter text-[#a1a1a6] leading-relaxed">
+                  {step.description}
                 </p>
-              </motion.div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop View: Sticky Images + Scrolling Text */}
+        <div className="hidden md:flex max-w-[1400px] mx-auto px-12 lg:px-24">
+          
+          {/* Left Column: Scrolling Text */}
+          <div className="w-1/2 pb-[30vh]">
+            {storySteps.map((step) => (
+              <div 
+                key={step.id} 
+                className="h-screen flex flex-col justify-center pr-16 lg:pr-24"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ margin: "-20% 0px -20% 0px" }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <h3 className="font-inter text-4xl lg:text-5xl font-semibold tracking-tight mb-2 text-white">
+                    {step.headline}
+                  </h3>
+                  <h4 className="font-inter text-2xl lg:text-3xl text-[#86868b] font-medium tracking-tight mb-8">
+                    {step.subheadline}
+                  </h4>
+                  <p className="font-inter text-lg text-[#a1a1a6] leading-[1.6] max-w-md">
+                    {step.description}
+                  </p>
+                </motion.div>
+              </div>
             ))}
           </div>
+
+          {/* Right Column: Sticky Images */}
+          <div className="w-1/2 h-screen sticky top-0 flex items-center justify-center py-24">
+            <div className="relative w-full h-full rounded-3xl overflow-hidden bg-[#111]">
+              
+              {/* Image 1 */}
+              <motion.div 
+                className="absolute inset-0 will-change-transform"
+                style={{ opacity: img1Opacity, scale: img1Scale }}
+              >
+                <Image src={storySteps[0].image} alt="Materials" fill className="object-cover" priority />
+              </motion.div>
+
+              {/* Image 2 */}
+              <motion.div 
+                className="absolute inset-0 will-change-transform"
+                style={{ opacity: img2Opacity, scale: img2Scale }}
+              >
+                <Image src={storySteps[1].image} alt="Joinery" fill className="object-cover" />
+              </motion.div>
+
+              {/* Image 3 */}
+              <motion.div 
+                className="absolute inset-0 will-change-transform"
+                style={{ opacity: img3Opacity, scale: img3Scale }}
+              >
+                <Image src={storySteps[2].image} alt="Longevity" fill className="object-cover" />
+              </motion.div>
+
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Bottom separator into next section */}
-      <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
     </section>
   );
 }

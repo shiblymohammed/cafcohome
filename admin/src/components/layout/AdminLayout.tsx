@@ -74,7 +74,20 @@ const NAV: NavGroup[] = [
     items: [
       { path: '/blog',         label: 'Blog',              adminOnly: true },
       { path: '/shop-by-room', label: 'Shop By Room',      adminOnly: true },
+      { path: '/promotions',   label: 'Promotions',        adminOnly: true },
       { path: '/backup',       label: 'Backup & Restore',  adminOnly: true },
+    ],
+  },
+  {
+    id: 'phase2', label: 'Phase 2 🚀', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>,
+    color: '#9333ea',
+    items: [
+      { path: '/phase2',              label: 'Overview',          adminOnly: true },
+      { path: '/phase2/coupons',      label: 'Coupons',           adminOnly: true },
+      { path: '/phase2/reviews',      label: 'Reviews',           adminOnly: true },
+      { path: '/phase2/loyalty',      label: 'Loyalty Program',   adminOnly: true },
+      { path: '/phase2/email-campaigns', label: 'Email Campaigns', adminOnly: true },
+      { path: '/phase2/analytics',    label: 'Analytics',         adminOnly: true },
     ],
   },
 ];
@@ -102,9 +115,9 @@ const Sidebar = ({
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="sidebar-logo-mark">C</div>
+        <div className="sidebar-logo-mark">D</div>
         <div className="sidebar-logo-text">
-          <span className="sidebar-brand">CAFCO</span>
+          <span className="sidebar-brand">DravoHome</span>
           <span className="sidebar-brand-sub">Admin</span>
         </div>
       </div>
@@ -204,8 +217,8 @@ const MobileTopBar = ({ userRole, userName }: { userRole: string; userName?: str
       {/* Logo + avatar row */}
       <div className="mobile-topbar-main">
         <div className="mobile-topbar-logo">
-          <div className="sidebar-logo-mark" style={{ width: 28, height: 28, fontSize: 13 }}>C</div>
-          <span className="sidebar-brand" style={{ fontSize: 'var(--text-base)' }}>CAFCO</span>
+          <div className="sidebar-logo-mark" style={{ width: 28, height: 28, fontSize: 13 }}>D</div>
+          <span className="sidebar-brand" style={{ fontSize: 'var(--text-base)' }}>DravoHome</span>
         </div>
         <div className="mobile-topbar-right">
           <div className="sidebar-user-avatar" style={{ width: 30, height: 30, fontSize: 12 }}>

@@ -5,10 +5,10 @@ import ContactClient from "./ContactClient";
 export async function generateMetadata(): Promise<Metadata> {
   return genMeta({
     title: "Contact Us - Get In Touch",
-    description: "Contact CAFCOHOME for inquiries about our furniture collections, design consultations, or showroom visits. We're here to help you find the perfect pieces for your home.",
+    description: "Contact DravoHome for inquiries about our furniture collections, design consultations, or showroom visits. We're here to help you find the perfect pieces for your home.",
     url: "/contact",
     keywords: [
-      "contact CAFCOHOME",
+      "contact DravoHome",
       "furniture showroom",
       "design consultation",
       "furniture inquiry",
@@ -40,7 +40,7 @@ const contactInfo = [
   },
   {
     title: "Email Us",
-    details: ["hello@cafco.com", "support@cafco.com"],
+    details: ["hello@dravohome.com", "support@dravohome.com"],
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />

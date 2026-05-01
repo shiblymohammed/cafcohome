@@ -58,7 +58,7 @@ function SignInForm() {
             Sign <span className="italic font-light text-alpha/80">In</span>
           </h2>
           <p className="text-sm font-primary text-alpha/60 leading-relaxed">
-            Continue your journey with CAFCO's curated collection.
+            Continue your journey with DravoHome's curated collection.
           </p>
         </div>
 

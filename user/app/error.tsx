@@ -69,8 +69,8 @@ export default function Error({
                 Contact Support
               </Link>
               <span className="hidden sm:inline text-alpha/20">•</span>
-              <a href="mailto:support@cafco.com" className="text-alpha hover:text-tango transition-colors">
-                support@cafco.com
+              <a href="mailto:support@dravohome.com" className="text-alpha hover:text-tango transition-colors">
+                support@dravohome.com
               </a>
               <span className="hidden sm:inline text-alpha/20">•</span>
               <a href="tel:+390212345678" className="text-alpha hover:text-tango transition-colors">

@@ -45,18 +45,18 @@ export const IMAGE_TYPES = {
     presets: [ASPECT_RATIOS.PORTRAIT], // 4:5 for products to match storefront
   },
   CATEGORY: {
-    aspectRatio: 16/9,
-    label: 'Category Banner',
-    description: 'Category banners should be 16:9 ratio (1200x675px recommended)',
+    aspectRatio: 4/5,
+    label: 'Category Image',
+    description: 'Category images should be 4:5 ratio (800x1000px recommended) - Portrait orientation',
     allowMultiple: false,
-    presets: [ASPECT_RATIOS.WIDE],
+    presets: [ASPECT_RATIOS.PORTRAIT],
   },
   SUBCATEGORY: {
-    aspectRatio: 16/9,
-    label: 'Subcategory Banner',
-    description: 'Subcategory banners should be 16:9 ratio (1200x675px recommended)',
+    aspectRatio: 4/5,
+    label: 'Subcategory Image',
+    description: 'Subcategory images should be 4:5 ratio (800x1000px recommended) - Portrait orientation',
     allowMultiple: false,
-    presets: [ASPECT_RATIOS.WIDE],
+    presets: [ASPECT_RATIOS.PORTRAIT],
   },
   BRAND: {
     aspectRatio: 1,

@@ -240,7 +240,7 @@ export default function OrderDetailPage() {
                 {order.items.map((item) => {
                   const itemImage =
                     item.product_snapshot?.images?.[0]?.url ||
-                    "/placeholder-product.jpg";
+                    "/placeholder-product.svg";
                   const itemName =
                     item.product_snapshot?.name || item.product.name;
                   const itemPrice = parseFloat(item.unit_price);

@@ -225,31 +225,36 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         """Get active offers that apply to this product."""
         from django.utils import timezone
         from offers.models import Offer
-        
+
         now = timezone.now()
-        
-        # Get active and valid offers
+
+        # Prefetch all M2M relations in a single query set so membership
+        # checks below are done in Python against already-loaded data.
         offers = Offer.objects.filter(
             is_active=True,
             start_date__lte=now,
-            end_date__gte=now
-        )
-        
+            end_date__gte=now,
+        ).prefetch_related('products', 'collections', 'categories', 'brands')
+
         applicable_offers = []
-        
+
         for offer in offers:
             is_applicable = False
-            
-            # Check if offer applies to this product
-            if offer.apply_to == 'product' and obj in offer.products.all():
-                is_applicable = True
-            elif offer.apply_to == 'collection' and obj.category in offer.collections.all():
-                is_applicable = True
-            elif offer.apply_to == 'category' and obj.subcategory in offer.categories.all():
-                is_applicable = True
-            elif offer.apply_to == 'brand' and obj.brand and obj.brand in offer.brands.all():
-                is_applicable = True
-            
+
+            if offer.apply_to == 'product':
+                # offer.products.all() is served from the prefetch cache
+                if obj.id in {p.id for p in offer.products.all()}:
+                    is_applicable = True
+            elif offer.apply_to == 'collection':
+                if obj.category_id in {c.id for c in offer.collections.all()}:
+                    is_applicable = True
+            elif offer.apply_to == 'category':
+                if obj.subcategory_id in {s.id for s in offer.categories.all()}:
+                    is_applicable = True
+            elif offer.apply_to == 'brand' and obj.brand_id:
+                if obj.brand_id in {b.id for b in offer.brands.all()}:
+                    is_applicable = True
+
             if is_applicable:
                 applicable_offers.append({
                     'id': offer.id,
@@ -260,10 +265,10 @@ class ProductDetailSerializer(serializers.ModelSerializer):
                     'end_date': offer.end_date,
                     'is_featured': offer.is_featured,
                 })
-        
+
         # Sort by discount percentage (highest first)
         applicable_offers.sort(key=lambda x: x['discount_percentage'], reverse=True)
-        
+
         return applicable_offers
 
 
@@ -333,36 +338,46 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'sku', 'discount_percentage', 'is_in_stock', 'is_low_stock', 'created_at', 'updated_at']
     
     def get_color_hex(self, obj):
-        """Get hex code for the color."""
+        """Get hex code — uses request context cache to avoid N+1."""
         try:
-            from products.models import Color
-            color = Color.objects.filter(name__iexact=obj.color, is_active=True).first()
-            if color and color.hex_code:
-                return color.hex_code
-            return '#CCCCCC'
+            request = self.context.get('request')
+            cache_key = '_color_hex_cache'
+            if request and not hasattr(request, cache_key):
+                from products.models import Color
+                setattr(request, cache_key, {
+                    c.name.lower(): c.hex_code or '#CCCCCC'
+                    for c in Color.objects.filter(is_active=True).only('name', 'hex_code')
+                })
+            cache = getattr(request, cache_key, {}) if request else {}
+            return cache.get(obj.color.lower(), '#CCCCCC')
         except Exception:
             return '#CCCCCC'
-    
+
     def get_material_image(self, obj):
-        """Get texture image URL for the material."""
+        """Get material image — uses request context cache to avoid N+1."""
         try:
-            from products.models import Material
-            material = Material.objects.filter(name__iexact=obj.material, is_active=True).first()
-            if material and material.image_url:
-                return material.image_url
-            return None
+            request = self.context.get('request')
+            cache_key = '_material_image_cache'
+            if request and not hasattr(request, cache_key):
+                from products.models import Material
+                setattr(request, cache_key, {
+                    m.name.lower(): m.image_url or None
+                    for m in Material.objects.filter(is_active=True).only('name', 'image_url')
+                })
+            cache = getattr(request, cache_key, {}) if request else {}
+            return cache.get(obj.material.lower())
         except Exception:
             return None
 
 
 class ProductVariantListSerializer(serializers.ModelSerializer):
     """Simplified serializer for listing variants."""
-    
+
     product_name = serializers.CharField(source='product.name', read_only=True)
     is_in_stock = serializers.BooleanField(read_only=True)
     color_hex = serializers.SerializerMethodField()
     material_image = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = ProductVariant
         fields = [
@@ -372,26 +387,34 @@ class ProductVariantListSerializer(serializers.ModelSerializer):
             'images', 'is_active', 'is_default', 'is_in_stock'
         ]
         read_only_fields = ['id', 'sku', 'is_in_stock']
-    
+
     def get_color_hex(self, obj):
-        """Get hex code for the color."""
         try:
-            from products.models import Color
-            color = Color.objects.filter(name__iexact=obj.color, is_active=True).first()
-            if color and color.hex_code:
-                return color.hex_code
-            return '#CCCCCC'
+            request = self.context.get('request')
+            cache_key = '_color_hex_cache'
+            if request and not hasattr(request, cache_key):
+                from products.models import Color
+                setattr(request, cache_key, {
+                    c.name.lower(): c.hex_code or '#CCCCCC'
+                    for c in Color.objects.filter(is_active=True).only('name', 'hex_code')
+                })
+            cache = getattr(request, cache_key, {}) if request else {}
+            return cache.get(obj.color.lower(), '#CCCCCC')
         except Exception:
             return '#CCCCCC'
-    
+
     def get_material_image(self, obj):
-        """Get texture image URL for the material."""
         try:
-            from products.models import Material
-            material = Material.objects.filter(name__iexact=obj.material, is_active=True).first()
-            if material and material.image_url:
-                return material.image_url
-            return None
+            request = self.context.get('request')
+            cache_key = '_material_image_cache'
+            if request and not hasattr(request, cache_key):
+                from products.models import Material
+                setattr(request, cache_key, {
+                    m.name.lower(): m.image_url or None
+                    for m in Material.objects.filter(is_active=True).only('name', 'image_url')
+                })
+            cache = getattr(request, cache_key, {}) if request else {}
+            return cache.get(obj.material.lower())
         except Exception:
             return None
 

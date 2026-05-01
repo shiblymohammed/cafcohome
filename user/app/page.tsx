@@ -4,7 +4,7 @@ import ShopByRoom from "@/src/components/homepage/ShopByRoom";
 import CollectionsSection from "@/src/components/homepage/CollectionsSection";
 import BestSellers from "@/src/components/homepage/BestSellers";
 import InstagramFeed from "@/src/components/homepage/InstagramFeed";
-import CraftsmanshipSection from "@/src/components/homepage/CraftsmanshipSection";
+import MaterialsShowcase from "@/src/components/homepage/MaterialsShowcase";
 import HotSelling from "@/src/components/homepage/HotSelling";
 import Categories from "@/src/components/homepage/Categories";
 import Offers from "@/src/components/homepage/Offers";
@@ -17,7 +17,7 @@ import { generateOrganizationSchema } from '@/src/lib/seo/structured-data';
 export async function generateMetadata(): Promise<Metadata> {
   return genMeta({
     title: 'Premium Furniture for Your Home',
-    description: 'Discover premium furniture collections for every room. Shop bestsellers, hot-selling items, and exclusive collections at CAFCOHOME. Transform your space with quality furniture and home decor.',
+    description: 'Discover premium furniture collections for every room. Shop bestsellers, hot-selling items, and exclusive collections at DravoHome. Transform your space with quality furniture and home decor.',
     url: '/',
     keywords: ['furniture', 'home decor', 'premium furniture', 'furniture store', 'home furnishing', 'modern furniture', 'contemporary furniture', 'living room furniture', 'bedroom furniture', 'dining furniture'],
   });
@@ -41,7 +41,7 @@ export default function HomePage() {
           <CollectionsSection />
           <HotSelling />
           <InstagramFeed />
-          <CraftsmanshipSection />
+          <MaterialsShowcase />
           <Offers />
           <AboutSection />
           <BlogSection />

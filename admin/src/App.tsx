@@ -23,7 +23,14 @@ import Users from './pages/Users';
 import Staff from './pages/Staff';
 import Blog from './pages/Blog';
 import ShopByRoom from './pages/ShopByRoom';
+import Promotions from './pages/Promotions';
 import Backup from './pages/Backup';
+import Phase2Overview from './pages/phase2/Phase2Overview';
+import Coupons from './pages/phase2/Coupons';
+import Reviews from './pages/phase2/Reviews';
+import LoyaltyProgram from './pages/phase2/LoyaltyProgram';
+import EmailCampaigns from './pages/phase2/EmailCampaigns';
+import Analytics from './pages/phase2/Analytics';
 
 function App() {
   return (
@@ -46,12 +53,12 @@ function App() {
             }
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
             <Route
               path="categories"
               element={
                 <ProtectedRoute adminOnly>
-                  <CategoriesManagement />
+                  <ErrorBoundary><CategoriesManagement /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -59,7 +66,7 @@ function App() {
               path="collections"
               element={
                 <ProtectedRoute adminOnly>
-                  <Collections />
+                  <ErrorBoundary><Collections /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -67,7 +74,7 @@ function App() {
               path="brands"
               element={
                 <ProtectedRoute adminOnly>
-                  <Brands />
+                  <ErrorBoundary><Brands /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -75,7 +82,7 @@ function App() {
               path="materials-colors"
               element={
                 <ProtectedRoute adminOnly>
-                  <MaterialsColors />
+                  <ErrorBoundary><MaterialsColors /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -83,7 +90,7 @@ function App() {
               path="products"
               element={
                 <ProtectedRoute adminOnly>
-                  <Products />
+                  <ErrorBoundary><Products /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -91,7 +98,7 @@ function App() {
               path="products/add"
               element={
                 <ProtectedRoute adminOnly>
-                  <AddProduct />
+                  <ErrorBoundary><AddProduct /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -99,7 +106,7 @@ function App() {
               path="products/edit/:slug"
               element={
                 <ProtectedRoute adminOnly>
-                  <AddProduct />
+                  <ErrorBoundary><AddProduct /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -107,21 +114,21 @@ function App() {
               path="offers"
               element={
                 <ProtectedRoute adminOnly>
-                  <Offers />
+                  <ErrorBoundary><Offers /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
-            <Route path="orders" element={<Orders />} />
-            <Route path="orders/:orderNumber" element={<OrderDetail />} />
-            <Route path="inventory" element={<Inventory />} />
-            <Route path="stock-management" element={<StockManagement />} />
-            <Route path="stock-movements" element={<StockMovements />} />
-            <Route path="stock-alerts" element={<StockAlerts />} />
+            <Route path="orders" element={<ErrorBoundary><Orders /></ErrorBoundary>} />
+            <Route path="orders/:orderNumber" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
+            <Route path="inventory" element={<ErrorBoundary><Inventory /></ErrorBoundary>} />
+            <Route path="stock-management" element={<ErrorBoundary><StockManagement /></ErrorBoundary>} />
+            <Route path="stock-movements" element={<ErrorBoundary><StockMovements /></ErrorBoundary>} />
+            <Route path="stock-alerts" element={<ErrorBoundary><StockAlerts /></ErrorBoundary>} />
             <Route
               path="users"
               element={
                 <ProtectedRoute adminOnly>
-                  <Users />
+                  <ErrorBoundary><Users /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -129,7 +136,7 @@ function App() {
               path="staff"
               element={
                 <ProtectedRoute adminOnly>
-                  <Staff />
+                  <ErrorBoundary><Staff /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -137,7 +144,7 @@ function App() {
               path="blog"
               element={
                 <ProtectedRoute adminOnly>
-                  <Blog />
+                  <ErrorBoundary><Blog /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -145,7 +152,15 @@ function App() {
               path="shop-by-room"
               element={
                 <ProtectedRoute adminOnly>
-                  <ShopByRoom />
+                  <ErrorBoundary><ShopByRoom /></ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="promotions"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ErrorBoundary><Promotions /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -153,7 +168,55 @@ function App() {
               path="backup"
               element={
                 <ProtectedRoute adminOnly>
-                  <Backup />
+                  <ErrorBoundary><Backup /></ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="phase2"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ErrorBoundary><Phase2Overview /></ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="phase2/coupons"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ErrorBoundary><Coupons /></ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="phase2/reviews"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ErrorBoundary><Reviews /></ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="phase2/loyalty"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ErrorBoundary><LoyaltyProgram /></ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="phase2/email-campaigns"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ErrorBoundary><EmailCampaigns /></ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="phase2/analytics"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ErrorBoundary><Analytics /></ErrorBoundary>
                 </ProtectedRoute>
               }
             />

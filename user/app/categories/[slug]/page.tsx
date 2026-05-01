@@ -138,7 +138,7 @@ export default async function CategoryProductsPage({ params }: { params: Promise
     }
 
     // Fetch subcategories for this category using category ID
-    const subcategoriesResponse = await ApiClient.getSubcategories(category.id.toString());
+    const subcategoriesResponse = await ApiClient.getSubcategories({ category: category.id.toString() });
     const subcategoriesData = subcategoriesResponse.results || subcategoriesResponse;
     const subcategoriesArray = Array.isArray(subcategoriesData) ? subcategoriesData : [];
     const subcategories = subcategoriesArray.filter((c: Subcategory) => c.is_active);

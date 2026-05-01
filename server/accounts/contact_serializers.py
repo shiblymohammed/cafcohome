@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from utils.email import send_contact_form_email
+from utils.email_service import send_contact_form_email
 
 
 class ContactFormSerializer(serializers.Serializer):

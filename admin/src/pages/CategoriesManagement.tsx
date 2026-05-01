@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import apiClient, { extractData } from '../utils/api';
 import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
 import { IMAGE_CONFIGS } from '../config/imageConfig';
@@ -27,12 +27,11 @@ interface SubcategoryFormData {
 // ── Drag-Drop Image Upload ──────────────────────────────────────────────────
 interface DragDropProps {
   value: string; onChange: (url: string) => void;
-  label?: string; error?: string; aspectRatio?: number;
+  label?: string; error?: string; aspectRatio?: number; hint?: string;
 }
-const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 4/3 }: DragDropProps) => {
+const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 4/3, hint }: DragDropProps) => {
   const [dragging, setDragging] = useState(false);
-  const cropperRef = useRef<HTMLInputElement>(null);
-  const hiddenRef = useRef<{ triggerFile: (file: File) => void }>(null);
+  const cropperContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragging(true); };
@@ -54,12 +53,15 @@ const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 4/3 
       <div
         className={`cat-drop-zone ${dragging ? 'dragging' : ''} ${value ? 'has-image' : ''}`}
         onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-        onClick={!value ? handleClick : undefined}
+        onClick={handleClick}
       >
         {value ? (
           <>
             <img src={value} alt="Preview" className="cat-drop-preview" />
-            <button type="button" className="cat-drop-remove" onClick={e => { e.stopPropagation(); onChange(''); }}>
+            <div className="cat-drop-replace-overlay">
+              <span>Click or Drag to Replace</span>
+            </div>
+            <button type="button" className="cat-drop-remove" onClick={e => { e.stopPropagation(); onChange(''); }} title="Remove Image">
               &times;
             </button>
           </>
@@ -71,11 +73,12 @@ const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 4/3 
             </svg>
             <span className="cat-drop-placeholder-title">Drop image here or click to upload</span>
             <span className="cat-drop-placeholder-sub">PNG, JPG, WEBP up to 10MB</span>
+            {hint && <span className="cat-drop-placeholder-sub" style={{ marginTop: '6px', color: '#ab8956', fontWeight: 600 }}>{hint}</span>}
           </div>
         )}
       </div>
       {/* Hidden ImageCropperWithUpload drives the actual upload */}
-      <div style={{ display: 'none' }}>
+      <div ref={cropperContainerRef} style={{ display: 'none' }}>
         <ImageCropperWithUpload
           value={value} onChange={onChange} aspectRatio={aspectRatio}
         />
@@ -85,8 +88,8 @@ const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 4/3 
         onChange={e => {
           const file = e.target.files?.[0];
           if (!file) return;
-          // Find the hidden ImageCropperWithUpload file input and trigger it
-          const hiddenInput = document.querySelector('.image-uploader input[type="file"]') as HTMLInputElement;
+          // Find the hidden ImageCropperWithUpload file input securely within THIS container
+          const hiddenInput = cropperContainerRef.current?.querySelector('input[type="file"]') as HTMLInputElement;
           if (hiddenInput) {
             const dt = new DataTransfer(); dt.items.add(file);
             hiddenInput.files = dt.files;
@@ -491,6 +494,7 @@ const CategoriesManagement = () => {
                     value={catForm.image_url}
                     onChange={url => setCatForm({ ...catForm, image_url: url })}
                     aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
+                    hint={IMAGE_CONFIGS.category.description}
                     error={formErrors.image_url}
                   />
                 </div>
@@ -571,7 +575,8 @@ const CategoriesManagement = () => {
                     label="Subcategory Image"
                     value={subForm.image_url}
                     onChange={url => setSubForm({ ...subForm, image_url: url })}
-                    aspectRatio={IMAGE_CONFIGS.category.aspectRatio}
+                    aspectRatio={IMAGE_CONFIGS.subcategory.aspectRatio}
+                    hint={IMAGE_CONFIGS.subcategory.description}
                   />
                   <DragDropImageUpload
                     label="Featured Icon (SVG/PNG)"

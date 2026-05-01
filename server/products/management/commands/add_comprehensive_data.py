@@ -54,7 +54,7 @@ class Command(BaseCommand):
 
         # Create brands
         brands_data = [
-            {'name': 'CAFCO Home', 'description': 'Premium furniture brand'},
+            {'name': 'DravoHome', 'description': 'Premium furniture brand'},
             {'name': 'Modern Living', 'description': 'Contemporary furniture solutions'},
             {'name': 'Classic Comfort', 'description': 'Traditional and comfortable furniture'},
         ]
@@ -144,7 +144,7 @@ class Command(BaseCommand):
                 'dimensions': {'length': 200, 'width': 90, 'height': 85, 'unit': 'cm'},
                 'collection': 'Living Room',
                 'category': 'Sofas',
-                'brand': 'CAFCO Home',
+                'brand': 'DravoHome',
                 'is_bestseller': True,
                 'variants': [
                     {
@@ -176,7 +176,7 @@ class Command(BaseCommand):
                 'dimensions': {'length': 100, 'width': 95, 'height': 110, 'unit': 'cm'},
                 'collection': 'Living Room',
                 'category': 'Chairs',
-                'brand': 'CAFCO Home',
+                'brand': 'DravoHome',
                 'is_hot_selling': True,
                 'variants': [
                     {

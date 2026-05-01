@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { ApiClient } from '@/src/lib/api/client';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cafcohome.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dravohome.com';
   
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
