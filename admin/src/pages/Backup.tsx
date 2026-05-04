@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import apiClient from '../utils/api';
 import './Backup.css';
 
@@ -31,6 +31,14 @@ const STRATEGY_INFO: Record<Strategy, { label: string; desc: string; color: stri
   rename:    { label: 'Rename',    desc: 'Import conflicting records with a suffix to avoid collisions.',   color: 'var(--color-gamma)' },
 };
 
+interface HistoryEntry {
+  id: number; action: string; status: string; performed_by: string;
+  filename: string; file_size: number | null; strategy: string;
+  records_created: number; records_overwritten: number; records_skipped: number;
+  records_renamed: number; records_errors: number; total_records: number;
+  error_message: string; created_at: string;
+}
+
 export default function Backup() {
   const [phase, setPhase]           = useState<Phase>('idle');
   const [strategy, setStrategy]     = useState<Strategy>('skip');
@@ -39,7 +47,16 @@ export default function Backup() {
   const [error, setError]           = useState('');
   const [backupFile, setBackupFile] = useState<File | null>(null);
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
+  const [history, setHistory]       = useState<HistoryEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchHistory = async () => {
+    try {
+      const res = await apiClient.get('/backup/history/');
+      setHistory(res.data);
+    } catch { /* ignore */ }
+  };
+  useEffect(() => { fetchHistory(); }, []);
 
   /* ── Backup ── */
   const handleBackup = async () => {
@@ -55,6 +72,7 @@ export default function Backup() {
       a.click();
       URL.revokeObjectURL(url);
       setPhase('idle');
+      fetchHistory();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Backup failed. Please try again.');
       setPhase('idle');
@@ -106,6 +124,7 @@ export default function Backup() {
       });
       setRestoreResult(res.data);
       setPhase('done');
+      fetchHistory();
     } catch (e: any) {
       const errorMsg = e.response?.data?.error || e.response?.data?.message || 'Restore failed.';
       const errorDetails = e.response?.data?.details || '';
@@ -542,6 +561,64 @@ export default function Backup() {
               </svg>
               Refresh Page
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── History Section ── */}
+      {history.length > 0 && (
+        <div className="bk-history animate-fadeIn">
+          <h2 className="bk-history-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Backup & Restore History
+          </h2>
+          <div className="bk-history-list">
+            {history.map(h => {
+              const isBackup = h.action === 'backup';
+              const statusClass = h.status === 'success' ? 'success' : h.status === 'partial' ? 'partial' : 'failed';
+              const [expanded, setExpanded] = [expandedTable === `history-${h.id}`, () => setExpandedTable(expandedTable === `history-${h.id}` ? null : `history-${h.id}`)];
+              return (
+                <div key={h.id} className={`bk-history-item bk-history-${statusClass}`}>
+                  <div className={`bk-history-icon ${isBackup ? 'bk-history-icon-backup' : 'bk-history-icon-restore'}`}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      {isBackup
+                        ? <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>
+                        : <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>
+                      }
+                    </svg>
+                  </div>
+                  <div className="bk-history-details">
+                    <div className="bk-history-top">
+                      <span className="bk-history-action">{isBackup ? 'Backup' : 'Restore'}</span>
+                      <span className={`bk-history-status bk-status-${statusClass}`}>{h.status}</span>
+                      {h.strategy && <span className="bk-history-strategy">{h.strategy}</span>}
+                    </div>
+                    <div className="bk-history-meta">
+                      <span>{new Date(h.created_at).toLocaleString()}</span>
+                      {h.performed_by && <span>by {h.performed_by}</span>}
+                      {h.filename && <span className="bk-history-filename">{h.filename}</span>}
+                      {h.file_size && <span>{(h.file_size / 1024).toFixed(1)} KB</span>}
+                    </div>
+                    {!isBackup && (
+                      <div className="bk-history-stats">
+                        {h.records_created > 0 && <span className="bk-hstat-created">+{h.records_created}</span>}
+                        {h.records_overwritten > 0 && <span className="bk-hstat-overwritten">↻{h.records_overwritten}</span>}
+                        {h.records_skipped > 0 && <span className="bk-hstat-skipped">⊘{h.records_skipped}</span>}
+                        {h.records_errors > 0 && <span className="bk-hstat-errors" style={{cursor:'pointer'}} onClick={setExpanded}>⚠{h.records_errors} errors — click to view</span>}
+                      </div>
+                    )}
+                    {isBackup && <div className="bk-history-stats"><span className="bk-hstat-total">{h.total_records} records</span></div>}
+                    {expanded && h.error_message && (
+                      <div className="bk-history-errors">
+                        <pre className="bk-history-errors-pre">{h.error_message}</pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

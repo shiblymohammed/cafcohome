@@ -7,6 +7,7 @@ Supports conflict resolution: overwrite, rename, skip.
 import json
 import io
 import re
+import logging
 from datetime import datetime
 
 from django.core import serializers
@@ -21,6 +22,9 @@ from rest_framework import status
 
 from accounts.authentication import StaffTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from site_settings.models import BackupHistory
+
+logger = logging.getLogger(__name__)
 
 
 # ── Models to include in backup (ordered to respect FK dependencies) ──────────
@@ -121,10 +125,23 @@ class BackupView(APIView):
         ts = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
         filename = f'dravohome_backup_{ts}.json'
 
-        response = HttpResponse(
-            json.dumps(backup_data, indent=2, default=str),
-            content_type='application/json',
-        )
+        content = json.dumps(backup_data, indent=2, default=str)
+
+        # Log to history
+        total = sum(m.get('count', 0) for m in backup_data['meta'].values())
+        try:
+            BackupHistory.objects.create(
+                action='backup',
+                status='success',
+                performed_by=getattr(request.user, 'username', str(request.user)),
+                filename=filename,
+                file_size=len(content.encode('utf-8')),
+                total_records=total,
+            )
+        except Exception:
+            pass  # Don't fail the backup if history logging fails
+
+        response = HttpResponse(content, content_type='application/json')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
@@ -266,69 +283,131 @@ class RestoreView(APIView):
             }
         }
 
-        try:
-            with transaction.atomic():
-                for key, records in backup_data['tables'].items():
-                    app_label, model_name = key.rsplit('.', 1)
-                    Model = get_model_safe(app_label, model_name)
+        for key, records in backup_data['tables'].items():
+            app_label, model_name = key.rsplit('.', 1)
+            Model = get_model_safe(app_label, model_name)
 
-                    table_result = {
-                        'created': 0, 'overwritten': 0,
-                        'skipped': 0, 'renamed': 0, 'errors': [],
-                    }
+            table_result = {
+                'created': 0, 'overwritten': 0,
+                'skipped': 0, 'renamed': 0, 'errors': [],
+            }
 
-                    if Model is None:
-                        table_result['errors'].append(f'Model {key} not found — skipped')
-                        results['tables'][key] = table_result
-                        continue
+            if Model is None:
+                table_result['errors'].append(f'Model {key} not found — skipped')
+                results['tables'][key] = table_result
+                continue
 
-                    for record in records:
-                        pk = record.get('pk')
-                        fields = record.get('fields', {})
+            for record in records:
+                pk = record.get('pk')
+                fields = record.get('fields', {})
 
-                        try:
-                            exists = Model.objects.filter(pk=pk).exists()
+                try:
+                    # Each record in its own transaction so FK checks
+                    # happen immediately and errors are isolated
+                    with transaction.atomic():
+                        exists = Model.objects.filter(pk=pk).exists()
 
-                            if not exists:
-                                # Always create new records
-                                self._create_record(Model, pk, fields)
-                                table_result['created'] += 1
-
-                            elif strategy == 'skip':
-                                table_result['skipped'] += 1
-
-                            elif strategy == 'overwrite':
+                        if strategy == 'overwrite':
+                            # Delete by PK if exists
+                            if exists:
                                 Model.objects.filter(pk=pk).delete()
-                                self._create_record(Model, pk, fields)
-                                table_result['overwritten'] += 1
+                            # Also delete any records that conflict on unique fields
+                            self._delete_unique_conflicts(Model, pk, fields)
+                            self._create_record(Model, pk, fields)
+                            table_result['overwritten' if exists else 'created'] += 1
 
-                            elif strategy == 'rename':
-                                fields = self._rename_fields(Model, fields)
-                                # Insert without the original PK so DB assigns new one
-                                self._create_record(Model, None, fields)
-                                table_result['renamed'] += 1
+                        elif not exists:
+                            # Try to create — auto-delete unique conflicts for new records too
+                            self._delete_unique_conflicts(Model, pk, fields)
+                            self._create_record(Model, pk, fields)
+                            table_result['created'] += 1
 
-                        except Exception as e:
-                            table_result['errors'].append(f'PK {pk}: {str(e)}')
-                            results['summary']['errors'] += 1
+                        elif strategy == 'skip':
+                            table_result['skipped'] += 1
 
-                    results['tables'][key] = table_result
-                    results['summary']['created']     += table_result['created']
-                    results['summary']['overwritten'] += table_result['overwritten']
-                    results['summary']['skipped']     += table_result['skipped']
-                    results['summary']['renamed']     += table_result['renamed']
+                        elif strategy == 'rename':
+                            fields = self._rename_fields(Model, fields)
+                            # Insert without the original PK so DB assigns new one
+                            self._create_record(Model, None, fields)
+                            table_result['renamed'] += 1
 
-        except Exception as e:
-            return Response(
-                {'error': f'Restore failed and was rolled back: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                except Exception as e:
+                    table_result['errors'].append(f'PK {pk}: {str(e)}')
+                    results['summary']['errors'] += 1
+
+            results['tables'][key] = table_result
+            results['summary']['created']     += table_result['created']
+            results['summary']['overwritten'] += table_result['overwritten']
+            results['summary']['skipped']     += table_result['skipped']
+            results['summary']['renamed']     += table_result['renamed']
+
+        # Log to history
+        total = (results['summary']['created'] + results['summary']['overwritten'] +
+                 results['summary']['skipped'] + results['summary']['renamed'] +
+                 results['summary']['errors'])
+        # Collect all errors for history
+        all_errors = []
+        for key, table_result in results['tables'].items():
+            for err in table_result.get('errors', []):
+                all_errors.append(f'[{key}] {err}')
+        error_text = '\n'.join(all_errors[:100])  # Cap at 100 errors
+        try:
+            BackupHistory.objects.create(
+                action='restore',
+                status='success' if results['summary']['errors'] == 0 else 'partial',
+                performed_by=getattr(request.user, 'username', str(request.user)),
+                filename=file_obj.name if file_obj else '',
+                file_size=file_obj.size if file_obj else None,
+                strategy=strategy,
+                records_created=results['summary']['created'],
+                records_overwritten=results['summary']['overwritten'],
+                records_skipped=results['summary']['skipped'],
+                records_renamed=results['summary']['renamed'],
+                records_errors=results['summary']['errors'],
+                total_records=total,
+                error_message=error_text,
             )
+        except Exception:
+            pass  # Don't fail the restore if history logging fails
 
         return Response(results)
 
+    def _delete_unique_conflicts(self, Model, incoming_pk, fields):
+        """
+        Delete any existing records that would conflict on unique fields
+        with the incoming record (excluding the incoming PK itself).
+        This handles cases like: backup has Staff PK=4 username='shibily',
+        but local DB has username='shibily' at PK=1 (temp admin).
+        """
+        from django.db.models import Q
+
+        for field in Model._meta.get_fields():
+            # Only check concrete fields with unique=True
+            if not getattr(field, 'unique', False):
+                continue
+            if not hasattr(field, 'column'):
+                continue
+            fname = field.name
+            if fname == 'id' or field.primary_key:
+                continue
+            if fname not in fields:
+                continue
+
+            value = fields[fname]
+            if value is None:
+                continue
+
+            # Find records with the same unique value but different PK
+            qs = Model.objects.filter(**{fname: value})
+            if incoming_pk is not None:
+                qs = qs.exclude(pk=incoming_pk)
+            if qs.exists():
+                qs.delete()
+
+
     def _create_record(self, Model, pk, fields):
         """Create a model instance from raw field data."""
-        # Remove M2M fields — handle separately
+        # Separate M2M fields and convert FK fields to _id format
         m2m_fields = {}
         clean_fields = {}
 
@@ -337,6 +416,10 @@ class RestoreView(APIView):
                 field = Model._meta.get_field(field_name)
                 if field.many_to_many:
                     m2m_fields[field_name] = value
+                elif field.is_relation and hasattr(field, 'column'):
+                    # FK/OneToOne: use the _id column name so Django
+                    # accepts raw integer PKs instead of model instances
+                    clean_fields[field.attname] = value
                 else:
                     clean_fields[field_name] = value
             except Exception:
@@ -377,3 +460,40 @@ class RestoreView(APIView):
             renamed[fname] = new_val
 
         return renamed
+
+
+class BackupHistoryView(APIView):
+    """
+    GET /api/v1/backup/history/
+    Returns the last 50 backup/restore operations.
+    Admin only.
+    """
+    authentication_classes = [StaffTokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not (request.user and getattr(request.user, 'role', None) == 'admin'):
+            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+
+        entries = BackupHistory.objects.all()[:50]
+        data = [
+            {
+                'id': entry.id,
+                'action': entry.action,
+                'status': entry.status,
+                'performed_by': entry.performed_by,
+                'filename': entry.filename,
+                'file_size': entry.file_size,
+                'strategy': entry.strategy,
+                'records_created': entry.records_created,
+                'records_overwritten': entry.records_overwritten,
+                'records_skipped': entry.records_skipped,
+                'records_renamed': entry.records_renamed,
+                'records_errors': entry.records_errors,
+                'total_records': entry.total_records,
+                'error_message': entry.error_message,
+                'created_at': entry.created_at.isoformat(),
+            }
+            for entry in entries
+        ]
+        return Response(data)
