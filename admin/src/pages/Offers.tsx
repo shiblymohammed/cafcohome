@@ -73,7 +73,7 @@ interface DragDropProps {
   value: string; onChange: (url: string) => void;
   label?: string; error?: string; aspectRatio?: number; hint?: string;
 }
-const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 16/9, hint }: DragDropProps) => {
+const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 16 / 9, hint }: DragDropProps) => {
   const [dragging, setDragging] = useState(false);
   const cropperContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,8 +107,8 @@ const DragDropImageUpload = ({ value, onChange, label, error, aspectRatio = 16/9
         ) : (
           <div className="of-drop-placeholder">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
+              <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
             </svg>
             <span className="of-drop-placeholder-title">Drop banner here or click to upload</span>
             <span className="of-drop-placeholder-sub">PNG, JPG, WEBP · 16:9 recommended</span>
@@ -180,34 +180,34 @@ const Offers = () => {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Data for dropdowns
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [allSubcategories, setAllSubcategories] = useState<Subcategory[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allBrands, setAllBrands] = useState<Brand[]>([]);
-  
+
   // Product selection modal
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  
+
   // Category selection modal
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categorySearchTerm, setCategorySearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-  
+
   // Subcategory selection modal
   const [isSubcategoryModalOpen, setIsSubcategoryModalOpen] = useState(false);
   const [subcategorySearchTerm, setSubcategorySearchTerm] = useState('');
   const [selectedSubcategories, setSelectedSubcategories] = useState<number[]>([]);
-  
+
   // Brand selection modal
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [brandSearchTerm, setBrandSearchTerm] = useState('');
   const [selectedBrands, setSelectedBrands] = useState<number[]>([]);
 
-  useEffect(() => { 
+  useEffect(() => {
     fetchOffers();
     fetchDropdownData();
   }, []);
@@ -294,8 +294,8 @@ const Offers = () => {
   };
 
   const toggleProductSelection = (productId: number) => {
-    setSelectedProducts(prev => 
-      prev.includes(productId) 
+    setSelectedProducts(prev =>
+      prev.includes(productId)
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
@@ -318,8 +318,8 @@ const Offers = () => {
   };
 
   const toggleCategorySelection = (categoryId: number) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryId) 
+    setSelectedCategories(prev =>
+      prev.includes(categoryId)
         ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId]
     );
@@ -342,8 +342,8 @@ const Offers = () => {
   };
 
   const toggleSubcategorySelection = (subcategoryId: number) => {
-    setSelectedSubcategories(prev => 
-      prev.includes(subcategoryId) 
+    setSelectedSubcategories(prev =>
+      prev.includes(subcategoryId)
         ? prev.filter(id => id !== subcategoryId)
         : [...prev, subcategoryId]
     );
@@ -366,8 +366,8 @@ const Offers = () => {
   };
 
   const toggleBrandSelection = (brandId: number) => {
-    setSelectedBrands(prev => 
-      prev.includes(brandId) 
+    setSelectedBrands(prev =>
+      prev.includes(brandId)
         ? prev.filter(id => id !== brandId)
         : [...prev, brandId]
     );
@@ -391,15 +391,15 @@ const Offers = () => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     if (!formData.name.trim()) errors.name = 'Name is required';
-    if (!formData.discount_percentage || parseFloat(formData.discount_percentage) <= 0) 
+    if (!formData.discount_percentage || parseFloat(formData.discount_percentage) <= 0)
       errors.discount_percentage = 'Enter a valid discount percentage';
-    if (parseFloat(formData.discount_percentage) > 100) 
+    if (parseFloat(formData.discount_percentage) > 100)
       errors.discount_percentage = 'Percentage cannot exceed 100';
     if (!formData.start_date) errors.start_date = 'Start date is required';
     if (!formData.end_date) errors.end_date = 'End date is required';
-    if (formData.start_date && formData.end_date && formData.start_date > formData.end_date) 
+    if (formData.start_date && formData.end_date && formData.start_date > formData.end_date)
       errors.end_date = 'End date must be after start date';
-    
+
     // Validate that items are selected based on apply_to
     if (formData.apply_to === 'product' && formData.products.length === 0) {
       errors.products = 'Please select at least one product';
@@ -410,7 +410,7 @@ const Offers = () => {
     } else if (formData.apply_to === 'brand' && formData.brands.length === 0) {
       errors.brands = 'Please select at least one brand';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -472,21 +472,21 @@ const Offers = () => {
           <div className="of-view-toggle">
             <button className={`of-view-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')} title="Grid view">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
               </svg>
             </button>
             <button className={`of-view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="List view">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-                <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
-                <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
               </svg>
             </button>
           </div>
           <button className="of-btn-add" onClick={handleAdd}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             Add Offer
           </button>
@@ -497,7 +497,7 @@ const Offers = () => {
       <div className="of-filters">
         <div className="of-search-wrap">
           <svg className="of-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input className="of-search" type="text" placeholder="Search offers…" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
         </div>
@@ -516,8 +516,8 @@ const Offers = () => {
       ) : filtered.length === 0 ? (
         <div className="of-empty">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
-            <line x1="7" y1="7" x2="7.01" y2="7"/>
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
           </svg>
           <p>No offers found</p>
           <button className="of-btn-add" onClick={handleAdd}>Create first offer</button>
@@ -534,8 +534,8 @@ const Offers = () => {
                   ) : (
                     <div className="of-card-img-placeholder">
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-                        <polyline points="21 15 16 10 5 21"/>
+                        <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
                       </svg>
                     </div>
                   )}
@@ -566,7 +566,7 @@ const Offers = () => {
                   </div>
                   <div className="of-card-dates">
                     <span>{formatDate(offer.start_date)}</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
                     <span>{formatDate(offer.end_date)}</span>
                   </div>
                 </div>
@@ -622,7 +622,7 @@ const Offers = () => {
               <h2 className="of-panel-title">{editingOffer ? 'Edit Offer' : 'New Offer'}</h2>
               <button className="of-panel-close" onClick={() => setIsPanelOpen(false)}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
@@ -654,15 +654,15 @@ const Offers = () => {
                     <input className={`of-form-input ${formErrors.discount_percentage ? 'error' : ''}`}
                       type="number" min="0" max="100" step="0.01"
                       placeholder="0–100"
-                      value={formData.discount_percentage} 
+                      value={formData.discount_percentage}
                       onChange={e => setFormData({ ...formData, discount_percentage: e.target.value })} />
                     {formErrors.discount_percentage && <span className="of-form-error">{formErrors.discount_percentage}</span>}
                   </div>
                   <div className="of-form-group">
                     <label className="of-form-label">Apply To <span>*</span></label>
                     <select className="of-form-select" value={formData.apply_to}
-                      onChange={e => setFormData({ 
-                        ...formData, 
+                      onChange={e => setFormData({
+                        ...formData,
                         apply_to: e.target.value as any,
                         products: [],
                         collections: [],
@@ -682,16 +682,16 @@ const Offers = () => {
                   <div className="of-form-section">
                     <div className="of-form-section-title">Select Products <span>*</span></div>
                     <div className="of-form-group">
-                      <button 
+                      <button
                         type="button"
                         className="of-btn-select-products"
                         onClick={handleOpenProductModal}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 11l3 3L22 4"/>
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 11l3 3L22 4" />
                         </svg>
-                        {formData.products.length === 0 
-                          ? 'Select Products' 
+                        {formData.products.length === 0
+                          ? 'Select Products'
                           : `${formData.products.length} Product${formData.products.length > 1 ? 's' : ''} Selected`
                         }
                       </button>
@@ -702,11 +702,11 @@ const Offers = () => {
                             .map(product => (
                               <span key={product.id} className="of-selected-tag">
                                 {product.name}
-                                <button 
+                                <button
                                   type="button"
-                                  onClick={() => setFormData({ 
-                                    ...formData, 
-                                    products: formData.products.filter(id => id !== product.id) 
+                                  onClick={() => setFormData({
+                                    ...formData,
+                                    products: formData.products.filter(id => id !== product.id)
                                   })}
                                 >×</button>
                               </span>
@@ -723,16 +723,16 @@ const Offers = () => {
                   <div className="of-form-section">
                     <div className="of-form-section-title">Select Categories <span>*</span></div>
                     <div className="of-form-group">
-                      <button 
+                      <button
                         type="button"
                         className="of-btn-select-products"
                         onClick={handleOpenCategoryModal}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 11l3 3L22 4"/>
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 11l3 3L22 4" />
                         </svg>
-                        {formData.collections.length === 0 
-                          ? 'Select Categories' 
+                        {formData.collections.length === 0
+                          ? 'Select Categories'
                           : `${formData.collections.length} ${formData.collections.length > 1 ? 'Categories' : 'Category'} Selected`
                         }
                       </button>
@@ -743,11 +743,11 @@ const Offers = () => {
                             .map(category => (
                               <span key={category.id} className="of-selected-tag">
                                 {category.name}
-                                <button 
+                                <button
                                   type="button"
-                                  onClick={() => setFormData({ 
-                                    ...formData, 
-                                    collections: formData.collections.filter(id => id !== category.id) 
+                                  onClick={() => setFormData({
+                                    ...formData,
+                                    collections: formData.collections.filter(id => id !== category.id)
                                   })}
                                 >×</button>
                               </span>
@@ -764,16 +764,16 @@ const Offers = () => {
                   <div className="of-form-section">
                     <div className="of-form-section-title">Select Subcategories <span>*</span></div>
                     <div className="of-form-group">
-                      <button 
+                      <button
                         type="button"
                         className="of-btn-select-products"
                         onClick={handleOpenSubcategoryModal}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 11l3 3L22 4"/>
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 11l3 3L22 4" />
                         </svg>
-                        {formData.categories.length === 0 
-                          ? 'Select Subcategories' 
+                        {formData.categories.length === 0
+                          ? 'Select Subcategories'
                           : `${formData.categories.length} ${formData.categories.length > 1 ? 'Subcategories' : 'Subcategory'} Selected`
                         }
                       </button>
@@ -784,11 +784,11 @@ const Offers = () => {
                             .map(subcategory => (
                               <span key={subcategory.id} className="of-selected-tag">
                                 {subcategory.name}
-                                <button 
+                                <button
                                   type="button"
-                                  onClick={() => setFormData({ 
-                                    ...formData, 
-                                    categories: formData.categories.filter(id => id !== subcategory.id) 
+                                  onClick={() => setFormData({
+                                    ...formData,
+                                    categories: formData.categories.filter(id => id !== subcategory.id)
                                   })}
                                 >×</button>
                               </span>
@@ -805,16 +805,16 @@ const Offers = () => {
                   <div className="of-form-section">
                     <div className="of-form-section-title">Select Brands <span>*</span></div>
                     <div className="of-form-group">
-                      <button 
+                      <button
                         type="button"
                         className="of-btn-select-products"
                         onClick={handleOpenBrandModal}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 11l3 3L22 4"/>
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 11l3 3L22 4" />
                         </svg>
-                        {formData.brands.length === 0 
-                          ? 'Select Brands' 
+                        {formData.brands.length === 0
+                          ? 'Select Brands'
                           : `${formData.brands.length} ${formData.brands.length > 1 ? 'Brands' : 'Brand'} Selected`
                         }
                       </button>
@@ -825,11 +825,11 @@ const Offers = () => {
                             .map(brand => (
                               <span key={brand.id} className="of-selected-tag">
                                 {brand.name}
-                                <button 
+                                <button
                                   type="button"
-                                  onClick={() => setFormData({ 
-                                    ...formData, 
-                                    brands: formData.brands.filter(id => id !== brand.id) 
+                                  onClick={() => setFormData({
+                                    ...formData,
+                                    brands: formData.brands.filter(id => id !== brand.id)
                                   })}
                                 >×</button>
                               </span>
@@ -869,7 +869,7 @@ const Offers = () => {
                   <DragDropImageUpload
                     value={formData.image_url}
                     onChange={url => setFormData({ ...formData, image_url: url })}
-                    aspectRatio={16/9}
+                    aspectRatio={16 / 9}
                     error={formErrors.image_url}
                   />
                 </div>
@@ -909,19 +909,19 @@ const Offers = () => {
               </div>
               <button className="of-modal-close-btn" onClick={() => setIsProductModalOpen(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            
+
             {/* Search & Actions */}
             <div className="of-product-modal-toolbar">
               <div className="of-product-search-wrapper">
                 <svg className="of-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="of-product-search-input"
                   placeholder="Search products by name..."
                   value={productSearchTerm}
@@ -929,18 +929,18 @@ const Offers = () => {
                   autoFocus
                 />
                 {productSearchTerm && (
-                  <button 
+                  <button
                     className="of-search-clear-btn"
                     onClick={() => setProductSearchTerm('')}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 )}
               </div>
               {selectedProducts.length > 0 && (
-                <button 
+                <button
                   className="of-clear-all-btn"
                   onClick={() => setSelectedProducts([])}
                 >
@@ -954,7 +954,7 @@ const Offers = () => {
               {filteredProducts.length === 0 ? (
                 <div className="of-product-empty-state">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
                   <h4>No products found</h4>
                   <p>Try adjusting your search terms</p>
@@ -964,25 +964,25 @@ const Offers = () => {
                   {filteredProducts.map(product => {
                     const isSelected = selectedProducts.includes(product.id);
                     const firstImage = product.variants?.[0]?.images?.[0]?.url;
-                    
+
                     return (
-                      <div 
-                        key={product.id} 
+                      <div
+                        key={product.id}
                         className={`of-product-item ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleProductSelection(product.id)}
                       >
                         {/* Checkbox */}
                         <div className="of-product-checkbox-wrapper">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="of-product-checkbox-input"
                             checked={isSelected}
-                            onChange={() => {}}
+                            onChange={() => { }}
                           />
                           <div className="of-product-checkbox-box">
                             {isSelected && (
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                <polyline points="20 6 9 17 4 12"/>
+                                <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
                           </div>
@@ -995,9 +995,9 @@ const Offers = () => {
                           ) : (
                             <div className="of-product-image-placeholder">
                               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                <polyline points="21 15 16 10 5 21"/>
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
                               </svg>
                             </div>
                           )}
@@ -1019,20 +1019,20 @@ const Offers = () => {
 
             {/* Footer */}
             <div className="of-product-modal-footer">
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-secondary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-secondary"
                 onClick={() => setIsProductModalOpen(false)}
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-primary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-primary"
                 onClick={handleSaveProductSelection}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12"/>
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
                 Confirm Selection ({selectedProducts.length})
               </button>
@@ -1054,18 +1054,18 @@ const Offers = () => {
               </div>
               <button className="of-modal-close-btn" onClick={() => setIsCategoryModalOpen(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            
+
             <div className="of-product-modal-toolbar">
               <div className="of-product-search-wrapper">
                 <svg className="of-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="of-product-search-input"
                   placeholder="Search categories..."
                   value={categorySearchTerm}
@@ -1075,7 +1075,7 @@ const Offers = () => {
                 {categorySearchTerm && (
                   <button className="of-search-clear-btn" onClick={() => setCategorySearchTerm('')}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 )}
@@ -1091,7 +1091,7 @@ const Offers = () => {
               {filteredCategories.length === 0 ? (
                 <div className="of-product-empty-state">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
                   <h4>No categories found</h4>
                   <p>Try adjusting your search terms</p>
@@ -1101,29 +1101,29 @@ const Offers = () => {
                   {filteredCategories.map(category => {
                     const isSelected = selectedCategories.includes(category.id);
                     return (
-                      <div 
-                        key={category.id} 
+                      <div
+                        key={category.id}
                         className={`of-product-item of-category-item ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleCategorySelection(category.id)}
                       >
                         <div className="of-product-checkbox-wrapper">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="of-product-checkbox-input"
                             checked={isSelected}
-                            onChange={() => {}}
+                            onChange={() => { }}
                           />
                           <div className="of-product-checkbox-box">
                             {isSelected && (
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                <polyline points="20 6 9 17 4 12"/>
+                                <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
                           </div>
                         </div>
                         <div className="of-category-icon">
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+                            <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
                           </svg>
                         </div>
                         <div className="of-product-details">
@@ -1138,20 +1138,20 @@ const Offers = () => {
             </div>
 
             <div className="of-product-modal-footer">
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-secondary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-secondary"
                 onClick={() => setIsCategoryModalOpen(false)}
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-primary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-primary"
                 onClick={handleSaveCategorySelection}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12"/>
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
                 Confirm Selection ({selectedCategories.length})
               </button>
@@ -1173,18 +1173,18 @@ const Offers = () => {
               </div>
               <button className="of-modal-close-btn" onClick={() => setIsSubcategoryModalOpen(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            
+
             <div className="of-product-modal-toolbar">
               <div className="of-product-search-wrapper">
                 <svg className="of-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="of-product-search-input"
                   placeholder="Search subcategories..."
                   value={subcategorySearchTerm}
@@ -1194,7 +1194,7 @@ const Offers = () => {
                 {subcategorySearchTerm && (
                   <button className="of-search-clear-btn" onClick={() => setSubcategorySearchTerm('')}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 )}
@@ -1210,7 +1210,7 @@ const Offers = () => {
               {filteredSubcategories.length === 0 ? (
                 <div className="of-product-empty-state">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
                   <h4>No subcategories found</h4>
                   <p>Try adjusting your search terms</p>
@@ -1220,29 +1220,29 @@ const Offers = () => {
                   {filteredSubcategories.map(subcategory => {
                     const isSelected = selectedSubcategories.includes(subcategory.id);
                     return (
-                      <div 
-                        key={subcategory.id} 
+                      <div
+                        key={subcategory.id}
                         className={`of-product-item of-category-item ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleSubcategorySelection(subcategory.id)}
                       >
                         <div className="of-product-checkbox-wrapper">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="of-product-checkbox-input"
                             checked={isSelected}
-                            onChange={() => {}}
+                            onChange={() => { }}
                           />
                           <div className="of-product-checkbox-box">
                             {isSelected && (
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                <polyline points="20 6 9 17 4 12"/>
+                                <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
                           </div>
                         </div>
                         <div className="of-category-icon">
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM17 14l3 3m0 0l3 3m-3-3l3-3m-3 3l-3 3"/>
+                            <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM17 14l3 3m0 0l3 3m-3-3l3-3m-3 3l-3 3" />
                           </svg>
                         </div>
                         <div className="of-product-details">
@@ -1257,20 +1257,20 @@ const Offers = () => {
             </div>
 
             <div className="of-product-modal-footer">
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-secondary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-secondary"
                 onClick={() => setIsSubcategoryModalOpen(false)}
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-primary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-primary"
                 onClick={handleSaveSubcategorySelection}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12"/>
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
                 Confirm Selection ({selectedSubcategories.length})
               </button>
@@ -1292,18 +1292,18 @@ const Offers = () => {
               </div>
               <button className="of-modal-close-btn" onClick={() => setIsBrandModalOpen(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            
+
             <div className="of-product-modal-toolbar">
               <div className="of-product-search-wrapper">
                 <svg className="of-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="of-product-search-input"
                   placeholder="Search brands..."
                   value={brandSearchTerm}
@@ -1313,7 +1313,7 @@ const Offers = () => {
                 {brandSearchTerm && (
                   <button className="of-search-clear-btn" onClick={() => setBrandSearchTerm('')}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 )}
@@ -1329,7 +1329,7 @@ const Offers = () => {
               {filteredBrands.length === 0 ? (
                 <div className="of-product-empty-state">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
                   <h4>No brands found</h4>
                   <p>Try adjusting your search terms</p>
@@ -1339,29 +1339,29 @@ const Offers = () => {
                   {filteredBrands.map(brand => {
                     const isSelected = selectedBrands.includes(brand.id);
                     return (
-                      <div 
-                        key={brand.id} 
+                      <div
+                        key={brand.id}
                         className={`of-product-item of-category-item ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleBrandSelection(brand.id)}
                       >
                         <div className="of-product-checkbox-wrapper">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="of-product-checkbox-input"
                             checked={isSelected}
-                            onChange={() => {}}
+                            onChange={() => { }}
                           />
                           <div className="of-product-checkbox-box">
                             {isSelected && (
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                <polyline points="20 6 9 17 4 12"/>
+                                <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
                           </div>
                         </div>
                         <div className="of-category-icon">
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                           </svg>
                         </div>
                         <div className="of-product-details">
@@ -1376,20 +1376,20 @@ const Offers = () => {
             </div>
 
             <div className="of-product-modal-footer">
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-secondary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-secondary"
                 onClick={() => setIsBrandModalOpen(false)}
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-primary" 
+              <button
+                type="button"
+                className="of-modal-btn of-modal-btn-primary"
                 onClick={handleSaveBrandSelection}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12"/>
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
                 Confirm Selection ({selectedBrands.length})
               </button>
@@ -1397,148 +1397,148 @@ const Offers = () => {
           </div>
         </div>
       )}
-        <div className="of-product-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setIsProductModalOpen(false); }}>
-          <div className="of-product-modal">
-            {/* Header */}
-            <div className="of-product-modal-header">
-              <div>
-                <h3 className="of-product-modal-title">Select Products</h3>
-                <p className="of-product-modal-subtitle">
-                  {selectedProducts.length} of {allProducts.length} selected
-                </p>
-              </div>
-              <button className="of-modal-close-btn" onClick={() => setIsProductModalOpen(false)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
+      <div className="of-product-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setIsProductModalOpen(false); }}>
+        <div className="of-product-modal">
+          {/* Header */}
+          <div className="of-product-modal-header">
+            <div>
+              <h3 className="of-product-modal-title">Select Products</h3>
+              <p className="of-product-modal-subtitle">
+                {selectedProducts.length} of {allProducts.length} selected
+              </p>
             </div>
-            
-            {/* Search & Actions */}
-            <div className="of-product-modal-toolbar">
-              <div className="of-product-search-wrapper">
-                <svg className="of-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input 
-                  type="text" 
-                  className="of-product-search-input"
-                  placeholder="Search products by name..."
-                  value={productSearchTerm}
-                  onChange={e => setProductSearchTerm(e.target.value)}
-                  autoFocus
-                />
-                {productSearchTerm && (
-                  <button 
-                    className="of-search-clear-btn"
-                    onClick={() => setProductSearchTerm('')}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
-                )}
-              </div>
-              {selectedProducts.length > 0 && (
-                <button 
-                  className="of-clear-all-btn"
-                  onClick={() => setSelectedProducts([])}
+            <button className="of-modal-close-btn" onClick={() => setIsProductModalOpen(false)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Search & Actions */}
+          <div className="of-product-modal-toolbar">
+            <div className="of-product-search-wrapper">
+              <svg className="of-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                className="of-product-search-input"
+                placeholder="Search products by name..."
+                value={productSearchTerm}
+                onChange={e => setProductSearchTerm(e.target.value)}
+                autoFocus
+              />
+              {productSearchTerm && (
+                <button
+                  className="of-search-clear-btn"
+                  onClick={() => setProductSearchTerm('')}
                 >
-                  Clear All
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               )}
             </div>
+            {selectedProducts.length > 0 && (
+              <button
+                className="of-clear-all-btn"
+                onClick={() => setSelectedProducts([])}
+              >
+                Clear All
+              </button>
+            )}
+          </div>
 
-            {/* Products Grid */}
-            <div className="of-product-modal-body">
-              {filteredProducts.length === 0 ? (
-                <div className="of-product-empty-state">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  </svg>
-                  <h4>No products found</h4>
-                  <p>Try adjusting your search terms</p>
-                </div>
-              ) : (
-                <div className="of-product-grid">
-                  {filteredProducts.map(product => {
-                    const isSelected = selectedProducts.includes(product.id);
-                    const firstImage = product.variants?.[0]?.images?.[0]?.url;
-                    
-                    return (
-                      <div 
-                        key={product.id} 
-                        className={`of-product-item ${isSelected ? 'selected' : ''}`}
-                        onClick={() => toggleProductSelection(product.id)}
-                      >
-                        {/* Checkbox */}
-                        <div className="of-product-checkbox-wrapper">
-                          <input 
-                            type="checkbox" 
-                            className="of-product-checkbox-input"
-                            checked={isSelected}
-                            onChange={() => {}}
-                          />
-                          <div className="of-product-checkbox-box">
-                            {isSelected && (
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                <polyline points="20 6 9 17 4 12"/>
-                              </svg>
-                            )}
-                          </div>
-                        </div>
+          {/* Products Grid */}
+          <div className="of-product-modal-body">
+            {filteredProducts.length === 0 ? (
+              <div className="of-product-empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <h4>No products found</h4>
+                <p>Try adjusting your search terms</p>
+              </div>
+            ) : (
+              <div className="of-product-grid">
+                {filteredProducts.map(product => {
+                  const isSelected = selectedProducts.includes(product.id);
+                  const firstImage = product.variants?.[0]?.images?.[0]?.url;
 
-                        {/* Product Image */}
-                        <div className="of-product-image">
-                          {firstImage ? (
-                            <img src={firstImage} alt={product.name} />
-                          ) : (
-                            <div className="of-product-image-placeholder">
-                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                <polyline points="21 15 16 10 5 21"/>
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="of-product-details">
-                          <h4 className="of-product-name">{product.name}</h4>
-                          {product.category && (
-                            <p className="of-product-category">{product.category.name}</p>
+                  return (
+                    <div
+                      key={product.id}
+                      className={`of-product-item ${isSelected ? 'selected' : ''}`}
+                      onClick={() => toggleProductSelection(product.id)}
+                    >
+                      {/* Checkbox */}
+                      <div className="of-product-checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          className="of-product-checkbox-input"
+                          checked={isSelected}
+                          onChange={() => { }}
+                        />
+                        <div className="of-product-checkbox-box">
+                          {isSelected && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
                           )}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
 
-            {/* Footer */}
-            <div className="of-product-modal-footer">
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-secondary" 
-                onClick={() => setIsProductModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button 
-                type="button" 
-                className="of-modal-btn of-modal-btn-primary" 
-                onClick={handleSaveProductSelection}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                Confirm Selection ({selectedProducts.length})
-              </button>
-            </div>
+                      {/* Product Image */}
+                      <div className="of-product-image">
+                        {firstImage ? (
+                          <img src={firstImage} alt={product.name} />
+                        ) : (
+                          <div className="of-product-image-placeholder">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <rect x="3" y="3" width="18" height="18" rx="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="of-product-details">
+                        <h4 className="of-product-name">{product.name}</h4>
+                        {product.category && (
+                          <p className="of-product-category">{product.category.name}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="of-product-modal-footer">
+            <button
+              type="button"
+              className="of-modal-btn of-modal-btn-secondary"
+              onClick={() => setIsProductModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="of-modal-btn of-modal-btn-primary"
+              onClick={handleSaveProductSelection}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Confirm Selection ({selectedProducts.length})
+            </button>
           </div>
         </div>
+      </div>
       )}
     </div>
   );
