@@ -283,6 +283,9 @@ class RestoreView(APIView):
             }
         }
 
+        # Collect deferred M2M assignments to apply after all records exist
+        deferred_m2m = []  # list of (Model, pk, field_name, pks)
+
         for key, records in backup_data['tables'].items():
             app_label, model_name = key.rsplit('.', 1)
             Model = get_model_safe(app_label, model_name)
@@ -313,13 +316,13 @@ class RestoreView(APIView):
                                 Model.objects.filter(pk=pk).delete()
                             # Also delete any records that conflict on unique fields
                             self._delete_unique_conflicts(Model, pk, fields)
-                            self._create_record(Model, pk, fields)
+                            self._create_record(Model, pk, fields, deferred_m2m)
                             table_result['overwritten' if exists else 'created'] += 1
 
                         elif not exists:
                             # Try to create — auto-delete unique conflicts for new records too
                             self._delete_unique_conflicts(Model, pk, fields)
-                            self._create_record(Model, pk, fields)
+                            self._create_record(Model, pk, fields, deferred_m2m)
                             table_result['created'] += 1
 
                         elif strategy == 'skip':
@@ -328,7 +331,7 @@ class RestoreView(APIView):
                         elif strategy == 'rename':
                             fields = self._rename_fields(Model, fields)
                             # Insert without the original PK so DB assigns new one
-                            self._create_record(Model, None, fields)
+                            self._create_record(Model, None, fields, deferred_m2m)
                             table_result['renamed'] += 1
 
                 except Exception as e:
@@ -340,6 +343,19 @@ class RestoreView(APIView):
             results['summary']['overwritten'] += table_result['overwritten']
             results['summary']['skipped']     += table_result['skipped']
             results['summary']['renamed']     += table_result['renamed']
+
+        # ── Apply deferred M2M relationships now that all records exist ──
+        for Model, obj_pk, field_name, pks in deferred_m2m:
+            try:
+                obj = Model.objects.get(pk=obj_pk)
+                # Filter to only PKs that actually exist in the target table
+                field = Model._meta.get_field(field_name)
+                related_model = field.related_model
+                valid_pks = list(related_model.objects.filter(pk__in=pks).values_list('pk', flat=True))
+                if valid_pks:
+                    getattr(obj, field_name).set(valid_pks)
+            except Exception as e:
+                logger.warning(f'Deferred M2M {Model.__name__}.{field_name} (PK {obj_pk}): {e}')
 
         # Log to history
         total = (results['summary']['created'] + results['summary']['overwritten'] +
@@ -405,7 +421,7 @@ class RestoreView(APIView):
                 qs.delete()
 
 
-    def _create_record(self, Model, pk, fields):
+    def _create_record(self, Model, pk, fields, deferred_m2m=None):
         """Create a model instance from raw field data."""
         # Separate M2M fields and convert FK fields to _id format
         m2m_fields = {}
@@ -432,9 +448,16 @@ class RestoreView(APIView):
 
         obj.save()
 
-        # Set M2M
+        # Defer M2M to be set after all tables are restored
         for field_name, pks in m2m_fields.items():
-            getattr(obj, field_name).set(pks)
+            if deferred_m2m is not None:
+                deferred_m2m.append((Model, obj.pk, field_name, pks))
+            else:
+                # Fallback: set immediately (preview/other callers)
+                try:
+                    getattr(obj, field_name).set(pks)
+                except Exception as e:
+                    logger.warning(f'M2M {Model.__name__}.{field_name}: {e}')
 
         return obj
 
