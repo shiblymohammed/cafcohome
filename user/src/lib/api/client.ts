@@ -63,7 +63,7 @@ addRequestInterceptor(async (config) => {
   const isWriteOperation = config.method && !['GET', 'HEAD', 'OPTIONS'].includes(config.method.toUpperCase());
   
   // Check if the URL requires authentication
-  const url = typeof config.url === 'string' ? config.url : '';
+  const url = typeof (config as any).url === 'string' ? (config as any).url : '';
   const requiresAuth = authRequiredEndpoints.some(endpoint => url.includes(endpoint));
   
   // Only add token for write operations or auth-required endpoints
@@ -154,12 +154,12 @@ async function request<T>(
 
   let requestConfig: RequestInit = {
     ...options,
-    url: url, // Add URL to config for interceptors
     headers: {
       ...defaultHeaders,
       ...options.headers,
     },
   };
+  (requestConfig as any).url = url; // Add URL to config for interceptors
 
   // Apply Next.js caching if configured
   if (cacheConfig) {
@@ -319,7 +319,7 @@ export class ApiClient {
 
   // Categories (old Collections)
   static async getCategories() {
-    return request<any[]>(
+    return request<any>(
       "/v1/categories/",
       {},
       {},
@@ -347,7 +347,7 @@ export class ApiClient {
       });
     }
     const queryString = params.toString();
-    return request<any[]>(
+    return request<any>(
       `/v1/subcategories/${queryString ? `?${queryString}` : ''}`,
       {},
       {},
@@ -366,7 +366,7 @@ export class ApiClient {
 
   // Brands
   static async getBrands() {
-    return request<any[]>(
+    return request<any>(
       "/v1/brands/",
       {},
       {},
@@ -385,7 +385,7 @@ export class ApiClient {
 
   // Offers
   static async getOffers() {
-    return request<any[]>(
+    return request<any>(
       "/v1/offers/",
       {},
       {},

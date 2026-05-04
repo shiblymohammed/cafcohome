@@ -32,14 +32,14 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     const subcategory = await ApiClient.getSubcategoryBySlug(slug);
     
     // Fetch products for this subcategory
-    const productsData = await ApiClient.getProducts({
+    const productsData: any = await ApiClient.getProducts({
       subcategory: subcategory.id.toString(),
       page_size: "100",
     });
     const products = productsData.results || productsData;
 
     // Fetch all subcategories in the same category for related subcategories
-    const allSubcategoriesData = await ApiClient.getSubcategories({
+    const allSubcategoriesData: any = await ApiClient.getSubcategories({
       category: subcategory.category.toString(),
     });
     const allSubcategories = allSubcategoriesData.results || allSubcategoriesData;

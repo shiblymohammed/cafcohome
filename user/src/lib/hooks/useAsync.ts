@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback, useEffect } from "react";
-import { ApiClientError } from "@/lib/api";
+import { ApiClientError } from "@/src/lib/api/client";
 
 interface AsyncState<T> {
   data: T | null;
@@ -43,7 +43,7 @@ export function useAsync<T = any>(
         }
         
         return data;
-      } catch (err) {
+      } catch (err: any) {
         let errorMessage = "An unexpected error occurred";
 
         if (err instanceof ApiClientError) {
@@ -55,7 +55,7 @@ export function useAsync<T = any>(
           } else if (err.error.code === "VALIDATION_ERROR" && err.error.details) {
             // Format validation errors
             const fieldErrors = Object.entries(err.error.details)
-              .map(([field, errors]) => `${field}: ${errors.join(", ")}`)
+              .map(([field, errors]: [string, any]) => `${field}: ${(errors as string[]).join(", ")}`)
               .join("; ");
             errorMessage = fieldErrors || errorMessage;
           }
@@ -113,7 +113,7 @@ export function useAsyncEffect<T = any>(
         if (!cancelled) {
           setState({ data, loading: false, error: null });
         }
-      } catch (err) {
+      } catch (err: any) {
         if (!cancelled) {
           let errorMessage = "An unexpected error occurred";
 

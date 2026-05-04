@@ -46,7 +46,7 @@ export default function SearchModal({
 
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout>(undefined);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   /* ── Detect mobile ─────────────────────────────────────── */

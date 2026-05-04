@@ -125,7 +125,7 @@ export default function CollectionClient({ collection, products }: Props) {
                     <ProductCardImageContainer>
                       {badges.length > 0 && <ProductCardBadgeGroup badges={badges} />}
                       <ProductCardImage src={mainImage} alt={product.name} />
-                      <ProductCardWishlist product={product} />
+                      <ProductCardWishlist product={product as any} />
                     </ProductCardImageContainer>
                     <div className="flex flex-col items-start px-1.5 md:px-2 py-2 md:py-3">
                       <ProductCardTitle>{product.name}</ProductCardTitle>

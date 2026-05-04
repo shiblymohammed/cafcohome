@@ -233,7 +233,7 @@ export default function AddressModal({ isOpen, onClose, onSave, initialAddress }
                   name="area"
                   value={formData.area}
                   options={availableAreas}
-                  onChange={handleChange}
+                  onChange={(e: any) => handleChange(e)}
                   className="py-3"
                 />
               ) : (

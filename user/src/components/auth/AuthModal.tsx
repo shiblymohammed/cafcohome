@@ -453,7 +453,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login", isNe
                       name="area"
                       value={formData.area}
                       options={availableAreas}
-                      onChange={handleChange}
+                      onChange={(e: any) => handleChange(e)}
                     />
                   ) : (
                     <input

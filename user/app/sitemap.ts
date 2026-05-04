@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // Fetch dynamic content from backend API
-    const [productsResponse, categories, subcategories, blogsResponse] = await Promise.all([
+    const [productsResponse, categories, subcategories, blogsResponse]: any[] = await Promise.all([
       ApiClient.getProducts({ page_size: '1000' }),
       ApiClient.getCategories(),
       ApiClient.getSubcategories(),

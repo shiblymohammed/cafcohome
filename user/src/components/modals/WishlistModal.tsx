@@ -132,7 +132,7 @@ export default function WishlistModal({ isOpen, onClose }: WishlistModalProps) {
 
                       {/* Price Display */}
                       {(() => {
-                        const selling = Number(product.price || product.selling_price || 0);
+                        const selling = Number((product as any).price || (product as any).selling_price || 0);
                         const mrp = Number(product.mrp || 0);
                         const hasOffer = mrp > selling && selling > 0;
                         const discountPct = hasOffer ? Math.round(((mrp - selling) / mrp) * 100) : 0;

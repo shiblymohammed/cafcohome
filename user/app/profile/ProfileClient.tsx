@@ -381,7 +381,7 @@ export default function ProfileClient({ session: initialSession }: ProfileClient
                   name="area"
                   value={formData.area}
                   options={availableAreas}
-                  onChange={handleChange}
+                  onChange={(e: any) => handleChange(e)}
                   className="py-3"
                 />
               ) : (

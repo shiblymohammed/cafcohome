@@ -277,7 +277,7 @@ export default function MobileNav() {
            setIsSearchOpen(false);
            setSearchQuery('');
          }} 
-         triggerRef={searchButtonRef} 
+         triggerRef={searchButtonRef as any} 
          query={searchQuery}
          setQuery={setSearchQuery}
        />

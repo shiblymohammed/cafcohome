@@ -127,7 +127,7 @@ export default async function CategoryProductsPage({ params }: { params: Promise
   try {
     const { slug } = await params;
     // Fetch all categories and find the one with matching slug
-    const categoriesResponse = await ApiClient.getCategories();
+    const categoriesResponse: any = await ApiClient.getCategories();
     const categoriesData = categoriesResponse.results || categoriesResponse;
     const allCategoriesArray = Array.isArray(categoriesData) ? categoriesData : [];
     
@@ -138,13 +138,13 @@ export default async function CategoryProductsPage({ params }: { params: Promise
     }
 
     // Fetch subcategories for this category using category ID
-    const subcategoriesResponse = await ApiClient.getSubcategories({ category: category.id.toString() });
+    const subcategoriesResponse: any = await ApiClient.getSubcategories({ category: category.id.toString() });
     const subcategoriesData = subcategoriesResponse.results || subcategoriesResponse;
     const subcategoriesArray = Array.isArray(subcategoriesData) ? subcategoriesData : [];
     const subcategories = subcategoriesArray.filter((c: Subcategory) => c.is_active);
 
     // Fetch products for this category using category ID
-    const productsResponse = await ApiClient.getProducts({ category: category.id.toString() });
+    const productsResponse: any = await ApiClient.getProducts({ category: category.id.toString() });
     const productsData = productsResponse.results || productsResponse;
     const products = Array.isArray(productsData) ? productsData : [];
 

@@ -379,7 +379,7 @@ export function ProductCardBadgeGroup({
 
 // Wishlist Button - Floating minimalist
 interface ProductCardWishlistProps {
-  product?: Product;
+  product?: any;
   isActive?: boolean;
   onClick?: () => void;
   className?: string;

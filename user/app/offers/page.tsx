@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function getOffers() {
   try {
-    const data = await ApiClient.getOffers();
+    const data: any = await ApiClient.getOffers();
     return Array.isArray(data) ? data : (data?.results || []);
   } catch (error) {
     console.error("Error fetching offers:", error);

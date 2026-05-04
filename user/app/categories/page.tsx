@@ -28,7 +28,7 @@ export default function CategoriesPage() {
     async function loadCategories() {
       try {
         setLoading(true);
-        const data = await ApiClient.getCategories();
+        const data: any = await ApiClient.getCategories();
         
         // Handle paginated response
         const categoriesData = data.results || data;
