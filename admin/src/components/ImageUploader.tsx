@@ -51,7 +51,10 @@ const ImageUploader = ({ value, onChange, label, error }: ImageUploaderProps) =>
       );
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Cloudinary error response:', errorData);
+        console.error('Cloud name:', cloudinaryCloudName, 'Preset:', cloudinaryUploadPreset);
+        throw new Error(errorData?.error?.message || 'Upload failed');
       }
 
       const data = await response.json();
