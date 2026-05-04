@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import apiClient, { extractData } from '../utils/api';
 import ImageCropperWithUpload from '../components/ImageCropperWithUpload';
 import { IMAGE_CONFIGS } from '../config/imageConfig';
@@ -58,7 +58,7 @@ const Blog = () => {
       if (filterStatus !== 'all') params.status = filterStatus;
       if (searchTerm) params.search = searchTerm;
       const r = await apiClient.get('/blog/', { params });
-      const data = extractData(r.data);
+      const data = extractData(r.data) as BlogPost[];
       setPosts(Array.isArray(data) ? data : []);
     } catch { alert('Failed to load blog posts'); setPosts([]); }
     finally { setLoading(false); }

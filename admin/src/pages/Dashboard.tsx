@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -37,7 +37,6 @@ interface DashboardData {
   fulfillment_funnel: { stage: string; count: number; pct: number }[];
   customer_retention: { month: string; new: number; returning: number }[];
   stock_health: { category: string; in_stock: number; low_stock: number; out_stock: number }[];
-  top_categories: { name: string; product_count: number }[];
   recent_orders: RecentOrder[];
   calendar_data: Record<string, number>;
 }
@@ -562,7 +561,7 @@ const Dashboard = () => {
               <Tooltip content={<DarkTooltip prefix="₹" />} />
               <Bar dataKey="revenue" name="Revenue (₹)" radius={[0, 6, 6, 0]}>
                 <LabelList dataKey="revenue" position="right" style={{ fill: C.text, fontSize: 10 }}
-                  formatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`} />
+                  formatter={(v: any) => `₹${(Number(v) / 1000).toFixed(0)}k`} />
                 {data.revenue_by_category.map((_, i) => (
                   <Cell key={i} fill={[C.delta, C.alpha, C.beta, C.gamma, C.zeta, C.epsilon, '#ec4899', '#8b5cf6'][i % 8]} />
                 ))}

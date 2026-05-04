@@ -372,7 +372,7 @@ export default function Backup() {
           <div className="bk-restore-actions">
             <button className="bk-btn-cancel" onClick={reset}>Cancel</button>
             <button className="bk-btn-restore" onClick={handleRestore} disabled={isLoading}>
-              {phase === 'restoring' ? (
+              {(phase as Phase) === 'restoring' ? (
                 <><div className="bk-spinner" /> Restoring…</>
               ) : (
                 <>

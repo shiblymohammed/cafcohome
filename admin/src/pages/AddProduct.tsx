@@ -139,7 +139,7 @@ const AddProduct = () => {
   const fetchCategories = async () => {
     try {
       const response = await apiClient.get('/categories/');
-      setCategories(extractData(response.data));
+      setCategories(extractData(response.data) as Category[]);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
@@ -149,7 +149,7 @@ const AddProduct = () => {
     try {
       const params = categoryId ? { category: categoryId } : {};
       const response = await apiClient.get('/subcategories/', { params });
-      setSubcategories(extractData(response.data));
+      setSubcategories(extractData(response.data) as Subcategory[]);
     } catch (error) {
       console.error('Failed to fetch subcategories:', error);
     }
@@ -158,7 +158,7 @@ const AddProduct = () => {
   const fetchBrands = async () => {
     try {
       const response = await apiClient.get('/brands/');
-      setBrands(extractData(response.data));
+      setBrands(extractData(response.data) as Brand[]);
     } catch (error) {
       console.error('Failed to fetch brands:', error);
     }
@@ -167,7 +167,7 @@ const AddProduct = () => {
   const fetchColors = async () => {
     try {
       const response = await apiClient.get('/colors/');
-      setColors(extractData(response.data).filter((c: Color) => c.is_active));
+      setColors((extractData(response.data) as Color[]).filter((c: Color) => c.is_active));
     } catch (error) {
       console.error('Failed to fetch colors:', error);
     }
@@ -176,7 +176,7 @@ const AddProduct = () => {
   const fetchMaterials = async () => {
     try {
       const response = await apiClient.get('/materials/');
-      setMaterials(extractData(response.data).filter((m: Material) => m.is_active));
+      setMaterials((extractData(response.data) as Material[]).filter((m: Material) => m.is_active));
     } catch (error) {
       console.error('Failed to fetch materials:', error);
     }

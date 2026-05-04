@@ -8,6 +8,7 @@ interface Color {
   id: number;
   name: string;
   hex_code: string;
+  is_active: boolean;
 }
 
 interface MaterialColor {
@@ -59,7 +60,7 @@ const Materials = () => {
     try {
       setLoading(true);
       const r = await apiClient.get('/materials/');
-      setMaterials(extractData(r.data));
+      setMaterials(extractData(r.data) as Material[]);
     } catch { alert('Failed to load materials'); }
     finally { setLoading(false); }
   };
@@ -67,7 +68,7 @@ const Materials = () => {
   const fetchColors = async () => {
     try {
       const r = await apiClient.get('/colors/');
-      setColors(extractData(r.data).filter((c: Color) => c.is_active));
+      setColors((extractData(r.data) as Color[]).filter((c: Color) => c.is_active));
     } catch { console.error('Failed to fetch colors'); }
   };
 
