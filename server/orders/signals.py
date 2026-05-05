@@ -16,15 +16,29 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=Order)
 def send_order_confirmation_email(sender, instance, created, **kwargs):
     """
-    Send order confirmation email when a new order is created.
+    Send order confirmation email and WhatsApp when a new order is created.
     
     This signal is triggered after an Order is saved.
-    It sends a confirmation email to the customer with order details.
+    It sends a confirmation email and WhatsApp message to the customer.
     """
     if not created:
-        # Only send email for new orders
+        # Only send for new orders
         return
     
+    # Get first product image for WhatsApp
+    first_image_url = None
+    try:
+        first_item = instance.items.first()
+        if first_item and first_item.product_snapshot:
+            images = first_item.product_snapshot.get('images', [])
+            if images and len(images) > 0:
+                # images can be list of dicts with 'url' key or list of strings
+                img = images[0]
+                first_image_url = img.get('url', img) if isinstance(img, dict) else img
+    except Exception:
+        pass
+    
+    # Send Email
     from utils.email_service import EmailService
     
     try:
@@ -36,8 +50,26 @@ def send_order_confirmation_email(sender, instance, created, **kwargs):
             logger.warning(f"Order confirmation email failed for order {instance.order_number}")
         
     except Exception as e:
-        # Log error but don't raise exception to avoid breaking order creation
         logger.error(f"Failed to send order confirmation email for order {instance.order_number}: {str(e)}", exc_info=True)
+    
+    # Send WhatsApp
+    try:
+        from utils.whatsapp import send_order_confirmation
+        
+        result = send_order_confirmation(
+            phone_number=instance.phone_number,
+            customer_name=instance.user.name,
+            order_number=instance.order_number,
+            image_url=first_image_url
+        )
+        
+        if isinstance(result, dict) and result.get('error'):
+            logger.warning(f"WhatsApp order confirmation failed for {instance.order_number}: {result.get('error')}")
+        else:
+            logger.info(f"WhatsApp order confirmation sent for {instance.order_number}")
+    
+    except Exception as e:
+        logger.error(f"Failed to send WhatsApp confirmation for {instance.order_number}: {str(e)}", exc_info=True)
 
 
 @receiver(post_save, sender=OrderTracking)

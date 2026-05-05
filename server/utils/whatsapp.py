@@ -37,7 +37,8 @@ def send_whatsapp_template(
     to: str,
     template_name: str = 'hello_world',
     language_code: str = 'en_US',
-    parameters: List[str] = None
+    parameters: List[str] = None,
+    image_url: str = None
 ) -> Dict[str, Any]:
     """
     Sends a template message via WhatsApp Cloud API
@@ -46,7 +47,8 @@ def send_whatsapp_template(
         to: Recipient phone number in E.164 format (e.g., +1234567890)
         template_name: Name of the approved template
         language_code: Language code (default: en_US)
-        parameters: List of parameter values for the template
+        parameters: List of parameter values for the template body
+        image_url: Optional image URL for template header
     
     Returns:
         Dict containing API response
@@ -69,12 +71,28 @@ def send_whatsapp_template(
         }
     }
     
-    # Add parameters if provided
+    # Build components list
+    components = []
+    
+    # Add image header if provided
+    if image_url:
+        components.append({
+            'type': 'header',
+            'parameters': [{
+                'type': 'image',
+                'image': {'link': image_url}
+            }]
+        })
+    
+    # Add body parameters if provided
     if parameters:
-        template_payload['components'] = [{
+        components.append({
             'type': 'body',
             'parameters': [{'type': 'text', 'text': param} for param in parameters]
-        }]
+        })
+    
+    if components:
+        template_payload['components'] = components
     
     payload = {
         'messaging_product': 'whatsapp',
@@ -440,22 +458,29 @@ def send_quotation(
     items: List[Dict[str, Any]],
     subtotal: Decimal,
     discount: Decimal,
-    total: Decimal
+    total: Decimal,
+    image_url: str = None
 ) -> Dict[str, Any]:
     """
     Sends order quotation notification via WhatsApp template
     
     Uses 'dravohome_quotation' template with parameters:
     {{1}} = customer_name, {{2}} = order_number, {{3}} = total_amount
+    Header: product image (optional)
     """
     logger.info(f"Sending quotation for {order_number} to {phone_number}")
+    
+    # Try to get first product image if not provided
+    if not image_url and items:
+        image_url = items[0].get('image_url') or items[0].get('main_image')
     
     try:
         result = send_whatsapp_template(
             to=phone_number,
             template_name='dravohome_quotation',
             language_code='en_US',
-            parameters=[customer_name, order_number, format_currency(total)]
+            parameters=[customer_name, order_number, format_currency(total)],
+            image_url=image_url
         )
         
         if result.get('error'):
@@ -561,17 +586,20 @@ def send_tracking_update(
 def send_order_confirmation(
     phone_number: str,
     customer_name: str,
-    order_number: str
+    order_number: str,
+    image_url: str = None
 ) -> Dict[str, Any]:
     """
     Sends an order confirmation via WhatsApp template
     
     Uses 'dravohome_order_confirmed' template with parameters:
     {{1}} = customer_name, {{2}} = order_number
+    Header: product image (optional)
     """
     return send_whatsapp_template(
         to=phone_number,
         template_name='dravohome_order_confirmed',
         language_code='en_US',
-        parameters=[customer_name, order_number]
+        parameters=[customer_name, order_number],
+        image_url=image_url
     )
