@@ -592,13 +592,13 @@ def send_order_confirmation(
     """
     Sends an order confirmation via WhatsApp template
     
-    Uses 'dravohome_order_confirmed' template with parameters:
+    Uses 'dravohome_order_confirm' template with parameters:
     {{1}} = customer_name, {{2}} = order_number
     Header: product image (optional)
     """
     return send_whatsapp_template(
         to=phone_number,
-        template_name='dravohome_order_confirmed',
+        template_name='dravohome_order_confirm',
         language_code='en_US',
         parameters=[customer_name, order_number],
         image_url=image_url

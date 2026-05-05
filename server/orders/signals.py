@@ -25,18 +25,20 @@ def send_order_confirmation_email(sender, instance, created, **kwargs):
         # Only send for new orders
         return
     
-    # Get first product image for WhatsApp
-    first_image_url = None
+    # Get all product images from order items for WhatsApp
+    all_image_urls = []
     try:
-        first_item = instance.items.first()
-        if first_item and first_item.product_snapshot:
-            images = first_item.product_snapshot.get('images', [])
-            if images and len(images) > 0:
-                # images can be list of dicts with 'url' key or list of strings
-                img = images[0]
-                first_image_url = img.get('url', img) if isinstance(img, dict) else img
+        for item in instance.items.all():
+            if item.product_snapshot:
+                images = item.product_snapshot.get('images', [])
+                for img in images:
+                    url = img.get('url', img) if isinstance(img, dict) else img
+                    if url and url not in all_image_urls:
+                        all_image_urls.append(url)
     except Exception:
         pass
+    
+    first_image_url = all_image_urls[0] if all_image_urls else None
     
     # Send Email
     from utils.email_service import EmailService
@@ -54,7 +56,7 @@ def send_order_confirmation_email(sender, instance, created, **kwargs):
     
     # Send WhatsApp
     try:
-        from utils.whatsapp import send_order_confirmation
+        from utils.whatsapp import send_order_confirmation, send_whatsapp_image
         
         result = send_order_confirmation(
             phone_number=instance.phone_number,
@@ -67,6 +69,18 @@ def send_order_confirmation_email(sender, instance, created, **kwargs):
             logger.warning(f"WhatsApp order confirmation failed for {instance.order_number}: {result.get('error')}")
         else:
             logger.info(f"WhatsApp order confirmation sent for {instance.order_number}")
+            
+            # Send remaining product images as follow-up messages
+            remaining_images = all_image_urls[1:6]  # Send up to 5 more images
+            for idx, img_url in enumerate(remaining_images):
+                try:
+                    send_whatsapp_image(
+                        to=instance.phone_number,
+                        image_url=img_url,
+                        caption=f"Product image {idx + 2} - Order {instance.order_number}"
+                    )
+                except Exception as img_err:
+                    logger.warning(f"Failed to send follow-up image {idx + 2}: {str(img_err)}")
     
     except Exception as e:
         logger.error(f"Failed to send WhatsApp confirmation for {instance.order_number}: {str(e)}", exc_info=True)
