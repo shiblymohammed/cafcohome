@@ -443,43 +443,30 @@ def send_quotation(
     total: Decimal
 ) -> Dict[str, Any]:
     """
-    Sends order notification using hello_world template
+    Sends order quotation notification via WhatsApp template
     
-    NOTE: Using hello_world template for now since free-form messages 
-    require Business Account approval. Create custom template for 
-    detailed quotations.
-    
-    Args:
-        phone_number: Customer phone number
-        customer_name: Name of the customer
-        order_number: Order number
-        items: List of order items with product details
-        subtotal: Subtotal amount
-        discount: Discount amount
-        total: Total amount
-    
-    Returns:
-        Dict containing API response
+    Uses 'dravohome_quotation' template with parameters:
+    {{1}} = customer_name, {{2}} = order_number, {{3}} = total_amount
     """
-    logger.info(f"Sending order notification for {order_number} to {phone_number}")
+    logger.info(f"Sending quotation for {order_number} to {phone_number}")
     
     try:
-        # Send hello_world template notification
         result = send_whatsapp_template(
             to=phone_number,
-            template_name='hello_world',
-            language_code='en_US'
+            template_name='dravohome_quotation',
+            language_code='en_US',
+            parameters=[customer_name, order_number, format_currency(total)]
         )
         
         if result.get('error'):
-            logger.error(f"Failed to send notification: {result.get('error')}")
+            logger.error(f"Failed to send quotation: {result.get('error')}")
             return {'success': False, 'error': result.get('error')}
         
-        logger.info(f"Order notification sent successfully for {order_number}")
+        logger.info(f"Quotation sent successfully for {order_number}")
         return {'success': True, 'message_id': result.get('messages', [{}])[0].get('id')}
         
     except Exception as e:
-        logger.error(f"Error sending notification: {str(e)}", exc_info=True)
+        logger.error(f"Error sending quotation: {str(e)}", exc_info=True)
         return {'error': str(e), 'success': False}
 
 
@@ -549,26 +536,26 @@ def send_tracking_update(
     stage_display: str
 ) -> Dict[str, Any]:
     """
-    Sends an order tracking update to a customer
+    Sends an order tracking update via WhatsApp template
     
-    Args:
-        phone_number: Customer phone number in E.164 format
-        customer_name: Name of the customer
-        order_number: Order number
-        stage: Order stage code (order_received, processing, shipped, delivered)
-        stage_display: Human-readable stage name
-    
-    Returns:
-        Dict containing API response
+    Uses 'dravohome_order_update' template with parameters:
+    {{1}} = name, {{2}} = emoji, {{3}} = order_number, {{4}} = status, {{5}} = detail
     """
-    message = format_tracking_update_message(
-        customer_name,
-        order_number,
-        stage,
-        stage_display
-    )
+    stage_info = {
+        'order_received': ('✅', 'We have received your order and are preparing it for processing.'),
+        'processing': ('📦', 'Your order is being processed and prepared for shipment.'),
+        'shipped': ('🚚', 'Your order has been shipped and is on its way to you!'),
+        'delivered': ('🎉', 'Your order has been delivered! We hope you love your new furniture!'),
+    }
     
-    return send_whatsapp_message(phone_number, message)
+    emoji, detail = stage_info.get(stage, ('📋', 'Your order status has been updated.'))
+    
+    return send_whatsapp_template(
+        to=phone_number,
+        template_name='dravohome_order_update',
+        language_code='en_US',
+        parameters=[customer_name, emoji, order_number, stage_display, detail]
+    )
 
 
 def send_order_confirmation(
@@ -577,26 +564,14 @@ def send_order_confirmation(
     order_number: str
 ) -> Dict[str, Any]:
     """
-    Sends an order confirmation message
+    Sends an order confirmation via WhatsApp template
     
-    Args:
-        phone_number: Customer phone number in E.164 format
-        customer_name: Name of the customer
-        order_number: Order number
-    
-    Returns:
-        Dict containing API response
+    Uses 'dravohome_order_confirmed' template with parameters:
+    {{1}} = customer_name, {{2}} = order_number
     """
-    message = f"""Hello {customer_name}! 👋
-
-Thank you for your order with DravoHome! 🛋️
-
-*Order Number:* {order_number}
-
-Your order has been received and we will send you a detailed quotation shortly.
-
-Our team will contact you to confirm the details and arrange delivery. 📞
-
-Thank you for choosing DravoHome! ✨"""
-    
-    return send_whatsapp_message(phone_number, message)
+    return send_whatsapp_template(
+        to=phone_number,
+        template_name='dravohome_order_confirmed',
+        language_code='en_US',
+        parameters=[customer_name, order_number]
+    )
