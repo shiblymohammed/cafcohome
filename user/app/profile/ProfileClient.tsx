@@ -231,277 +231,273 @@ export default function ProfileClient({ session: initialSession }: ProfileClient
   };
 
   return (
-    <div className="min-h-screen bg-creme py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-creme pt-40 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-alpha/5 rounded-full blur-[100px]" />
+      
+      <div className="max-w-3xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <span className="text-xs font-primary uppercase tracking-[0.25em] text-alpha/60 mb-2 flex items-center justify-center gap-4">
-            <span className="w-12 h-[1px] bg-alpha/30"></span>
-            Account
-            <span className="w-12 h-[1px] bg-alpha/30"></span>
-          </span>
           <h1 className="text-4xl md:text-5xl font-secondary text-alpha leading-tight tracking-tight mb-3">
-            My <span className="italic font-light text-alpha/80">Profile</span>
+            My Profile
           </h1>
-          <p className="text-sm font-primary text-alpha/60 leading-relaxed">
+          <p className="text-[13px] font-medium text-alpha/60 leading-relaxed">
             Manage your personal information and preferences
           </p>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white shadow-lg border border-alpha/10 overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-2xl rounded-[2.5rem] shadow-sm border border-alpha/5 overflow-hidden">
           {isLoading ? (
-            <div className="p-12 text-center">
+            <div className="p-16 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-alpha"></div>
-              <p className="mt-4 text-sm text-alpha/60">Loading profile...</p>
+              <p className="mt-4 text-[13px] font-medium text-alpha/60">Loading profile...</p>
             </div>
           ) : (
             <>
               {/* Profile Header */}
-              <div className="bg-alpha/5 px-8 py-6 border-b border-alpha/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-alpha/10 flex items-center justify-center">
-                      <svg className="w-8 h-8 text-alpha/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
+              <div className="bg-alpha/5 px-8 py-8 border-b border-alpha/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                  <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm flex items-center justify-center">
+                      <span className="text-2xl font-secondary text-alpha">
+                        {(formData.name || session?.user?.name || initialSession?.user?.name || 'U').charAt(0).toUpperCase()}
+                      </span>
                     </div>
                     <div>
-                      <h2 className="text-xl font-secondary text-alpha">{formData.name || session?.user?.name || initialSession?.user?.name}</h2>
-                      <p className="text-sm font-primary text-alpha/60">{formData.email || session?.user?.email || initialSession?.user?.email}</p>
+                      <h2 className="text-2xl font-secondary text-alpha">{formData.name || session?.user?.name || initialSession?.user?.name}</h2>
+                      <p className="text-[13px] font-medium text-alpha/60">{formData.email || session?.user?.email || initialSession?.user?.email}</p>
+                    </div>
+                  </div>
+                  {!isEditing && (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="px-6 py-3 bg-white border border-alpha/10 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-alpha hover:border-alpha/20 hover:shadow-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      Edit Profile
+                    </button>
+                  )}
                 </div>
               </div>
-              {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-6 py-2 text-xs font-primary uppercase tracking-[0.2em] border border-alpha/20 text-alpha hover:bg-alpha hover:text-creme transition-colors duration-300"
-                >
-                  Edit Profile
-                </button>
+
+              {/* Messages */}
+              {error && (
+                <div className="mx-8 mt-6 bg-red-50/80 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-[13px] font-medium">
+                  {error}
+                </div>
               )}
-            </div>
-          </div>
-
-          {/* Messages */}
-          {error && (
-            <div className="mx-8 mt-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm font-primary">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mx-8 mt-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm font-primary">
-              {success}
-            </div>
-          )}
-
-          {/* Profile Form */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            {/* Name */}
-            <div>
-              <label htmlFor="name" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                disabled={!isEditing}
-                required
-                className={`w-full bg-transparent border-b py-3 text-base font-primary text-alpha placeholder:text-alpha/30 focus:outline-none transition-colors duration-300 ${
-                  isEditing ? 'border-alpha/20 focus:border-alpha' : 'border-alpha/10 cursor-not-allowed'
-                }`}
-              />
-            </div>
-
-            {/* Email (Read-only) */}
-            <div>
-              <label htmlFor="email" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                disabled
-                className="w-full bg-alpha/5 border-b border-alpha/10 py-3 text-base font-primary text-alpha/50 cursor-not-allowed"
-              />
-              <p className="text-xs font-primary text-alpha/40 mt-2">Email cannot be changed</p>
-            </div>
-
-            {/* Phone Number */}
-            <div>
-              <label htmlFor="phone_number" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone_number"
-                name="phone_number"
-                value={formData.phone_number}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className={`w-full bg-transparent border-b py-3 text-base font-primary text-alpha placeholder:text-alpha/30 focus:outline-none transition-colors duration-300 ${
-                  isEditing ? 'border-alpha/20 focus:border-alpha' : 'border-alpha/10 cursor-not-allowed'
-                }`}
-                placeholder="Enter your phone number"
-              />
-            </div>
-
-            {/* Pin Code */}
-            <div>
-              <label htmlFor="pin_code" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                Pin Code
-              </label>
-              <input
-                type="text"
-                id="pin_code"
-                name="pin_code"
-                value={formData.pin_code}
-                onChange={handlePincodeChange}
-                disabled={!isEditing}
-                maxLength={6}
-                className={`w-full bg-transparent border-b py-3 text-base font-primary text-alpha placeholder:text-alpha/30 focus:outline-none transition-colors duration-300 ${
-                  isEditing ? 'border-alpha/20 focus:border-alpha' : 'border-alpha/10 cursor-not-allowed'
-                }`}
-                placeholder="Enter 6-digit pin code"
-              />
-            </div>
-
-            {/* Area / Locality */}
-            <div>
-              <label htmlFor="area" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                Area / Locality {availableAreas.length > 1 && <span className="text-tango">({availableAreas.length} options)</span>}
-              </label>
-              {availableAreas.length > 1 && isEditing ? (
-                <CustomSelect
-                  id="area"
-                  name="area"
-                  value={formData.area}
-                  options={availableAreas}
-                  onChange={(e: any) => handleChange(e)}
-                  className="py-3"
-                />
-              ) : (
-                <input
-                  type="text"
-                  id="area"
-                  name="area"
-                  value={formData.area}
-                  readOnly
-                  className="w-full bg-alpha/5 border-b border-alpha/10 py-3 text-base font-primary text-alpha/60 cursor-not-allowed"
-                  placeholder="Auto-filled from pin code"
-                />
+              {success && (
+                <div className="mx-8 mt-6 bg-green-50/80 border border-green-100 text-green-600 px-4 py-3 rounded-xl text-[13px] font-medium">
+                  {success}
+                </div>
               )}
-            </div>
 
-            {/* District and State */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="district" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                  District
-                </label>
-                <input
-                  type="text"
-                  id="district"
-                  name="district"
-                  value={formData.district}
-                  readOnly
-                  className="w-full bg-alpha/5 border-b border-alpha/10 py-3 text-base font-primary text-alpha/60 cursor-not-allowed"
-                  placeholder="Auto-filled from pin code"
-                />
+              {/* Profile Form */}
+              <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Name */}
+                  <div>
+                    <label htmlFor="name" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      required
+                      className={`w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha placeholder:text-alpha/40 focus:outline-none transition-all duration-300 ${
+                        isEditing ? 'focus:border-alpha/20 focus:bg-white shadow-inner' : 'opacity-60 cursor-not-allowed'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Email (Read-only) */}
+                  <div>
+                    <label htmlFor="email" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      disabled
+                      className="w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha/50 cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* Phone Number */}
+                  <div>
+                    <label htmlFor="phone_number" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone_number"
+                      name="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      className={`w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha placeholder:text-alpha/40 focus:outline-none transition-all duration-300 ${
+                        isEditing ? 'focus:border-alpha/20 focus:bg-white shadow-inner' : 'opacity-60 cursor-not-allowed'
+                      }`}
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+
+                  {/* Pin Code */}
+                  <div>
+                    <label htmlFor="pin_code" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                      Pin Code
+                    </label>
+                    <input
+                      type="text"
+                      id="pin_code"
+                      name="pin_code"
+                      value={formData.pin_code}
+                      onChange={handlePincodeChange}
+                      disabled={!isEditing}
+                      maxLength={6}
+                      className={`w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha placeholder:text-alpha/40 focus:outline-none transition-all duration-300 ${
+                        isEditing ? 'focus:border-alpha/20 focus:bg-white shadow-inner' : 'opacity-60 cursor-not-allowed'
+                      }`}
+                      placeholder="Enter 6-digit pin code"
+                    />
+                  </div>
+                </div>
+
+                {/* Area / Locality */}
+                <div>
+                  <label htmlFor="area" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                    Area / Locality {availableAreas.length > 1 && <span className="text-tango text-[9px]">({availableAreas.length} options)</span>}
+                  </label>
+                  {availableAreas.length > 1 && isEditing ? (
+                    <CustomSelect
+                      id="area"
+                      name="area"
+                      value={formData.area}
+                      options={availableAreas}
+                      onChange={(e: any) => handleChange(e)}
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      id="area"
+                      name="area"
+                      value={formData.area}
+                      readOnly
+                      className="w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha/60 cursor-not-allowed"
+                      placeholder="Auto-filled from pin code"
+                    />
+                  )}
+                </div>
+
+                {/* District and State */}
+                <div className="grid grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="district" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                      District
+                    </label>
+                    <input
+                      type="text"
+                      id="district"
+                      name="district"
+                      value={formData.district}
+                      readOnly
+                      className="w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha/60 cursor-not-allowed"
+                      placeholder="Auto-filled"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="state" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      id="state"
+                      name="state"
+                      value={formData.state}
+                      readOnly
+                      className="w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha/60 cursor-not-allowed"
+                      placeholder="Auto-filled"
+                    />
+                  </div>
+                </div>
+
+                {/* Street Address */}
+                <div>
+                  <label htmlFor="address" className="block text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-2 pl-1">
+                    Street Address
+                  </label>
+                  <textarea
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    rows={3}
+                    className={`w-full bg-alpha/5 border border-transparent rounded-2xl px-5 py-3.5 text-sm font-medium text-alpha placeholder:text-alpha/40 focus:outline-none transition-all duration-300 resize-none ${
+                      isEditing ? 'focus:border-alpha/20 focus:bg-white shadow-inner' : 'opacity-60 cursor-not-allowed'
+                    }`}
+                    placeholder="House/Flat no, Street, Area"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                {isEditing && (
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex-1 bg-alpha text-white py-3.5 rounded-2xl text-[12px] font-bold uppercase tracking-widest hover:bg-tango shadow-sm hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      disabled={isSaving}
+                      className="flex-1 bg-white border border-alpha/10 py-3.5 rounded-2xl text-[12px] font-bold uppercase tracking-widest text-alpha hover:border-alpha/20 hover:bg-alpha/5 transition-all duration-300 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </form>
+
+              {/* Account Actions */}
+              <div className="border-t border-alpha/5 px-8 py-6 bg-alpha/5">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-4 pl-1">
+                  Account Actions
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => router.push('/orders')}
+                    className="w-full px-5 py-4 bg-white rounded-2xl border border-alpha/5 text-[13px] font-medium text-alpha hover:border-alpha/20 hover:shadow-sm transition-all duration-300 flex items-center justify-between group"
+                  >
+                    <span>View My Orders</span>
+                    <span className="transform group-hover:translate-x-1 transition-transform duration-300">→</span>
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-5 py-4 bg-white rounded-2xl border border-red-100 text-[13px] font-medium text-red-500 hover:border-red-200 hover:bg-red-50 hover:shadow-sm transition-all duration-300 flex items-center justify-between"
+                  >
+                    <span>Logout Account</span>
+                  </button>
+                </div>
               </div>
-
-              <div>
-                <label htmlFor="state" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                  State
-                </label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  value={formData.state}
-                  readOnly
-                  className="w-full bg-alpha/5 border-b border-alpha/10 py-3 text-base font-primary text-alpha/60 cursor-not-allowed"
-                  placeholder="Auto-filled from pin code"
-                />
-              </div>
-            </div>
-
-            {/* Street Address */}
-            <div>
-              <label htmlFor="address" className="block text-[0.6rem] font-primary uppercase tracking-[0.2em] text-alpha/60 mb-3">
-                Street Address
-              </label>
-              <textarea
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                disabled={!isEditing}
-                rows={3}
-                className={`w-full bg-transparent border-b py-3 text-base font-primary text-alpha placeholder:text-alpha/30 focus:outline-none transition-colors duration-300 resize-none ${
-                  isEditing ? 'border-alpha/20 focus:border-alpha' : 'border-alpha/10 cursor-not-allowed'
-                }`}
-                placeholder="House/Flat no, Street, Area"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            {isEditing && (
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex-1 bg-alpha text-creme py-4 text-xs font-primary uppercase tracking-[0.2em] hover:bg-tango transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="flex-1 border border-alpha/20 text-alpha py-4 text-xs font-primary uppercase tracking-[0.2em] hover:bg-alpha/5 transition-colors duration-300 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-          </form>
-
-          {/* Account Actions */}
-          <div className="border-t border-alpha/10 px-8 py-6 bg-alpha/5">
-            <h3 className="text-sm font-primary uppercase tracking-[0.2em] text-alpha/60 mb-4">
-              Account Actions
-            </h3>
-            <div className="space-y-3">
-              <button
-                onClick={() => router.push('/orders')}
-                className="w-full text-left px-4 py-3 border border-alpha/10 text-sm font-primary text-alpha hover:bg-white transition-colors duration-300 flex items-center justify-between"
-              >
-                <span>View My Orders</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-3 border border-red-200 text-sm font-primary text-red-600 hover:bg-red-50 transition-colors duration-300"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
             </>
           )}
         </div>
 
         {/* Account Info */}
         <div className="mt-8 text-center">
-          <p className="text-xs font-primary text-alpha/40">
-            Member since {new Date((session?.user?.email || initialSession?.user?.email) ? '2024-01-01' : Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          <p className="text-[11px] font-bold uppercase tracking-widest text-alpha/30">
+            Member since {new Date((session?.user?.email || initialSession?.user?.email) ? '2024-01-01' : Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
           </p>
         </div>
       </div>

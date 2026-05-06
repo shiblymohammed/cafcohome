@@ -41,64 +41,71 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-alpha/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-alpha/40 backdrop-blur-md"
             onClick={onClose}
           />
 
-          {/* Drawer Panel — slides in from right */}
+          {/* Modal Window */}
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="relative bg-creme w-full max-w-md h-full flex flex-col shadow-2xl"
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-full max-w-2xl max-h-[85vh] bg-white/95 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] border border-alpha/10 overflow-hidden flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-alpha/10">
-              <div>
-                <h2 className="text-xl font-secondary text-alpha">Your Cart</h2>
-                <p className="text-[10px] text-alpha/50 font-primary mt-0.5 uppercase tracking-widest">
-                  {itemCount} {itemCount === 1 ? "item" : "items"}
-                </p>
+            <div className="flex items-center justify-between px-8 py-6 border-b border-alpha/5 bg-alpha/5 flex-shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-[1.2rem] bg-white shadow-sm flex items-center justify-center">
+                  <ShoppingBag className="w-6 h-6 text-alpha" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-secondary text-alpha">Your Cart</h2>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-alpha/50 mt-1">
+                    {itemCount} {itemCount === 1 ? "Item" : "Items"}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-alpha/5 transition-colors"
+                className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-alpha/50 hover:text-alpha hover:shadow-sm transition-all"
                 aria-label="Close cart"
               >
-                <X className="w-5 h-5 text-alpha" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Content */}
             {items.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-                <ShoppingBag className="w-16 h-16 text-alpha/15 mb-6" />
-                <h3 className="text-2xl font-secondary text-alpha mb-2 italic">
+              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                <div className="w-24 h-24 rounded-[2rem] bg-alpha/5 flex items-center justify-center mb-6">
+                  <ShoppingBag className="w-12 h-12 text-alpha/30" />
+                </div>
+                <h3 className="text-2xl font-secondary text-alpha mb-3">
                   Your cart is empty
                 </h3>
-                <p className="text-sm text-alpha/50 font-primary mb-8 leading-relaxed max-w-[220px]">
+                <p className="text-[13px] font-medium text-alpha/60 max-w-[260px] leading-relaxed mb-8">
                   Discover beautiful pieces crafted to last a lifetime.
                 </p>
                 <button
                   onClick={onClose}
-                  className="inline-flex items-center gap-2 bg-alpha text-creme px-8 py-3 text-[10px] uppercase tracking-widest hover:bg-alpha/90 transition font-primary group"
+                  className="inline-flex items-center gap-2 bg-alpha text-white px-8 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest hover:bg-tango hover:shadow-lg transition-all duration-300 group hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Browse Collection
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             ) : (
               <>
                 {/* Cart Items — Scrollable */}
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+                <div className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
                   {items.map((item) => (
                     <CartItem
                       key={item.product.id}
@@ -110,30 +117,32 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-alpha/10 px-6 py-6 bg-ivory/30">
-                  <div className="flex items-center justify-between mb-5 px-1">
-                    <span className="text-sm font-primary text-alpha/70 uppercase tracking-widest">Subtotal</span>
-                    <span className="text-xl font-secondary text-alpha">
+                <div className="border-t border-alpha/5 px-8 py-6 bg-alpha/5 flex-shrink-0">
+                  <div className="flex items-end justify-between mb-6">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-alpha/50 block mb-1">Subtotal</span>
+                      <p className="text-[11px] font-medium text-alpha/40">Shipping calculated at checkout</p>
+                    </div>
+                    <span className="text-3xl font-secondary text-alpha">
                       ₹{items.reduce((sum, item) => sum + ((item.variantPrice || Number(item.product.price) || 0) * item.quantity), 0).toLocaleString("en-IN")}
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-3">
+                  <div className="flex gap-4">
+                    <button
+                      onClick={onClose}
+                      className="flex-1 bg-white border border-alpha/10 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest text-alpha hover:border-alpha/30 hover:shadow-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      Keep Shopping
+                    </button>
                     <Link
                       href="/checkout"
                       onClick={onClose}
-                      className="group w-full bg-alpha text-creme text-center px-6 py-4 hover:bg-tango transition-colors duration-300 font-primary text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
+                      className="flex-[1.5] group bg-alpha text-white text-center py-4 rounded-2xl hover:bg-tango shadow-sm hover:shadow-lg transition-all duration-300 text-[12px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      Proceed to Checkout
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      Checkout Now
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
-
-                    <button
-                      onClick={onClose}
-                      className="w-full border border-alpha/20 text-alpha text-center px-6 py-3 hover:border-alpha transition-colors font-primary text-[10px] uppercase tracking-widest"
-                    >
-                      Continue Shopping
-                    </button>
                   </div>
                 </div>
               </>

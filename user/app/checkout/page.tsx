@@ -188,88 +188,84 @@ export default function CheckoutPage() {
 
   if (orderPlaced) {
     return (
-      <div className="bg-creme min-h-screen pt-24 md:pt-32 pb-16">
-        <div className="max-w-lg mx-auto px-4 text-center">
-          <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-success" />
-          </div>
-          <h1 className="text-3xl font-secondary text-alpha mb-4">Order Confirmed!</h1>
-          {orderNumber && (
-            <p className="text-lg text-alpha/80 mb-2 font-medium">
-              Order #{orderNumber}
+      <div className="bg-creme min-h-screen pt-32 pb-16 relative overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-success/5 rounded-full blur-[100px]" />
+        <div className="max-w-xl mx-auto px-4 text-center relative z-10">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-12 shadow-sm border border-alpha/5">
+            <div className="w-24 h-24 bg-success/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
+              <Check className="w-10 h-10 text-success" />
+            </div>
+            <h1 className="text-4xl font-secondary text-alpha mb-4">Order Confirmed!</h1>
+            {orderNumber && (
+              <p className="text-sm font-bold tracking-widest uppercase text-alpha/60 mb-6">
+                Order #{orderNumber}
+              </p>
+            )}
+            <p className="text-[13px] font-medium text-alpha/70 mb-3">
+              Your order details have been sent to your WhatsApp.
             </p>
-          )}
-          <p className="text-alpha/70 mb-2">
-            Your order details have been sent to your WhatsApp.
-          </p>
-          <p className="text-sm text-alpha/50 mb-8">
-            <MessageCircle className="w-4 h-4 inline mr-1" />
-            {getWhatsappNumber()}
-          </p>
-          <div className="p-4 bg-sand/30 border border-alpha/10 mb-8">
-            <p className="text-sm text-alpha/70">
-              Our team will contact you shortly to confirm your order and arrange delivery details.
-            </p>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#25D366]/10 text-[#25D366] rounded-2xl text-[12px] font-bold tracking-wider mb-8">
+              <MessageCircle className="w-4 h-4" />
+              {getWhatsappNumber()}
+            </div>
+            <div className="p-5 bg-alpha/5 rounded-2xl border border-alpha/5 mb-10">
+              <p className="text-[12px] font-medium text-alpha/70 leading-relaxed">
+                <strong className="block text-alpha mb-1">What's Next?</strong>
+                Our team will contact you shortly to confirm your order and arrange delivery details.
+              </p>
+            </div>
+            <a
+              href="/"
+              className="inline-block bg-alpha text-white px-10 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest hover:bg-tango hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Continue Shopping
+            </a>
           </div>
-          <a
-            href="/"
-            className="inline-block bg-alpha text-creme px-8 py-4 text-xs uppercase tracking-[0.2em] hover:bg-alpha/90 transition-colors"
-          >
-            Continue Shopping
-          </a>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-creme min-h-screen pt-20 md:pt-24 pb-16">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="bg-creme min-h-screen pt-28 pb-16 relative overflow-hidden">
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-alpha/5 rounded-full blur-[100px]" />
+      
+      <div className="max-w-[1200px] mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-secondary text-alpha mb-2">Checkout</h1>
-          <p className="text-sm text-alpha/60">Review your order and confirm</p>
+        <div className="mb-10 text-center lg:text-left">
+          <h1 className="text-4xl md:text-5xl font-secondary text-alpha mb-2 tracking-tight">Checkout</h1>
+          <p className="text-[13px] font-medium text-alpha/60">Review your order and confirm</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Left - Order Items */}
           <div className="lg:col-span-3 space-y-6">
             {/* Delivery Address */}
-            <div className="border border-alpha/10 bg-white">
-              <div className="px-5 py-4 border-b border-alpha/10 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-alpha" />
-                <h2 className="text-sm font-primary uppercase tracking-widest text-alpha">Delivery Address</h2>
-              </div>
-              <div className="p-5">
-                {/* Debug Info */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-xs">
-                    <p><strong>Debug Info:</strong></p>
-                    <p>Loading: {loading ? 'Yes' : 'No'}</p>
-                    <p>Has Profile: {userProfile ? 'Yes' : 'No'}</p>
-                    <p>Has Address: {hasAddress ? 'Yes' : 'No'}</p>
-                    <p>Address: {userProfile?.address || 'empty'}</p>
-                    <p>Phone: {userProfile?.phone_number || 'empty'}</p>
-                    <p>Pincode: {userProfile?.pin_code || 'empty'}</p>
-                    <p>Area: {userProfile?.area || 'empty'}</p>
-                    <p>District: {userProfile?.district || 'empty'}</p>
-                    <p>State: {userProfile?.state || 'empty'}</p>
+            <div className="bg-white rounded-[2rem] shadow-sm border border-alpha/5 overflow-hidden">
+              <div className="px-6 py-5 border-b border-alpha/5 flex items-center justify-between bg-alpha/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-[1rem] bg-white flex items-center justify-center shadow-sm">
+                    <MapPin className="w-4 h-4 text-alpha" />
                   </div>
-                )}
-                
+                  <h2 className="text-[11px] font-bold uppercase tracking-widest text-alpha">Delivery Address</h2>
+                </div>
+              </div>
+              <div className="p-6">
                 {loading ? (
-                  <p className="text-sm text-alpha/60">Loading address...</p>
+                  <div className="flex justify-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-alpha"></div>
+                  </div>
                 ) : hasAddress ? (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-sand/20 border border-alpha/10">
-                      <div className="text-sm text-alpha/80 leading-relaxed space-y-1">
-                        <p className="font-medium text-alpha">{userProfile.name}</p>
+                  <div className="space-y-5">
+                    <div className="p-5 bg-alpha/5 rounded-2xl border border-alpha/5 relative group">
+                      <div className="text-[13px] text-alpha/70 leading-relaxed space-y-1">
+                        <p className="font-bold text-base text-alpha mb-2">{userProfile.name}</p>
                         <p>{userProfile.address}</p>
                         <p>{userProfile.area}</p>
                         <p>{userProfile.district}, {userProfile.state} - {userProfile.pin_code}</p>
                         {userProfile.phone_number && (
-                          <p className="mt-2 flex items-center gap-1">
-                            <Phone className="w-3.5 h-3.5" />
+                          <p className="mt-3 flex items-center gap-2 font-medium">
+                            <Phone className="w-4 h-4 text-alpha/50" />
                             {userProfile.phone_number}
                           </p>
                         )}
@@ -277,19 +273,21 @@ export default function CheckoutPage() {
                     </div>
                     <button
                       onClick={() => setShowAddressModal(true)}
-                      className="flex items-center gap-2 text-xs uppercase tracking-widest text-alpha border border-alpha/20 px-4 py-2.5 hover:border-alpha hover:bg-alpha/5 transition-colors"
+                      className="flex items-center justify-center gap-2 w-full sm:w-auto text-[11px] font-bold uppercase tracking-widest text-alpha bg-white border border-alpha/10 px-6 py-3.5 rounded-2xl hover:border-alpha/30 hover:shadow-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      <Edit className="w-3.5 h-3.5" />
+                      <Edit className="w-4 h-4" />
                       Edit Address
                     </button>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <MapPin className="w-12 h-12 text-alpha/20 mx-auto mb-3" />
-                    <p className="text-sm text-alpha/60 mb-4">No delivery address added</p>
+                  <div className="text-center py-10">
+                    <div className="w-16 h-16 bg-alpha/5 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4">
+                      <MapPin className="w-8 h-8 text-alpha/40" />
+                    </div>
+                    <p className="text-[13px] font-medium text-alpha/60 mb-6">No delivery address added</p>
                     <button
                       onClick={() => setShowAddressModal(true)}
-                      className="bg-alpha text-creme px-6 py-3 text-xs uppercase tracking-widest hover:bg-alpha/90 transition-colors inline-flex items-center gap-2"
+                      className="bg-alpha text-white px-8 py-3.5 rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-tango shadow-sm hover:shadow-md transition-all duration-300 inline-flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <MapPin className="w-4 h-4" />
                       Add Address
@@ -300,31 +298,34 @@ export default function CheckoutPage() {
             </div>
 
             {/* Cart Items */}
-            <div className="border border-alpha/10 bg-white">
-              <div className="px-5 py-4 border-b border-alpha/10">
-                <h2 className="text-sm font-primary uppercase tracking-widest text-alpha">Your Items ({itemCount})</h2>
+            <div className="bg-white rounded-[2rem] shadow-sm border border-alpha/5 overflow-hidden">
+              <div className="px-6 py-5 border-b border-alpha/5 flex items-center gap-3 bg-alpha/5">
+                <div className="w-8 h-8 rounded-[1rem] bg-white flex items-center justify-center shadow-sm">
+                  <span className="text-[10px] font-bold">{itemCount}</span>
+                </div>
+                <h2 className="text-[11px] font-bold uppercase tracking-widest text-alpha">Your Items</h2>
               </div>
               {items.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="text-alpha/60">Your cart is empty</p>
+                <div className="p-10 text-center">
+                  <p className="text-[13px] font-medium text-alpha/60">Your cart is empty</p>
                 </div>
               ) : (
-                <div className="divide-y divide-alpha/10">
+                <div className="divide-y divide-alpha/5">
                   {items.map((item) => {
                     const mainImage = item.product.images && item.product.images.length > 0
                       ? item.product.images[0].url 
-                      : '/placeholder-product.svg';
+                      : "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=800&fit=crop";
                     return (
-                      <div key={item.product.id} className="p-5 flex gap-4">
-                        <div className="relative w-20 h-24 bg-sand flex-shrink-0">
-                          <Image src={mainImage} alt={item.product.name} fill className="object-cover" />
+                      <div key={item.product.id} className="p-6 flex gap-5 group">
+                        <div className="relative w-24 h-24 rounded-2xl bg-alpha/5 overflow-hidden flex-shrink-0">
+                          <Image src={mainImage} alt={item.product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-sm font-primary text-alpha">{item.product.name}</h3>
-                          <p className="text-xs text-alpha/60 mt-0.5">{item.product.category_name}</p>
-                          <div className="flex justify-between items-end mt-2">
-                            <p className="text-xs text-alpha/60">Qty: {item.quantity}</p>
-                            <p className="text-sm font-primary font-bold text-alpha">
+                        <div className="flex-1 flex flex-col justify-center">
+                          <h3 className="text-base font-secondary text-alpha line-clamp-2 leading-tight">{item.product.name}</h3>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-alpha/40 mt-1">{item.product.category_name}</p>
+                          <div className="flex justify-between items-end mt-3">
+                            <p className="text-[12px] font-medium text-alpha/60 bg-alpha/5 px-3 py-1 rounded-lg">Qty: {item.quantity}</p>
+                            <p className="text-sm font-bold text-alpha">
                               ₹{((item.variantPrice || Number(item.product.price) || 0) * item.quantity).toLocaleString("en-IN")}
                             </p>
                           </div>
@@ -337,38 +338,40 @@ export default function CheckoutPage() {
             </div>
 
             {/* WhatsApp Number Selection */}
-            <div className="border border-alpha/10 bg-white">
-              <div className="px-5 py-4 border-b border-alpha/10 flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                <h2 className="text-sm font-primary uppercase tracking-widest text-alpha">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-alpha/5 overflow-hidden">
+              <div className="px-6 py-5 border-b border-alpha/5 flex items-center gap-3 bg-alpha/5">
+                <div className="w-8 h-8 rounded-[1rem] bg-white flex items-center justify-center shadow-sm">
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                </div>
+                <h2 className="text-[11px] font-bold uppercase tracking-widest text-alpha">
                   WhatsApp for Order Details
                 </h2>
               </div>
-              <div className="p-5 space-y-4">
-                <p className="text-xs text-alpha/60">
-                  Select where you&apos;d like to receive your order confirmation and details.
+              <div className="p-6 space-y-5">
+                <p className="text-[12px] font-medium text-alpha/60">
+                  Select where you'd like to receive your order confirmation and details.
                 </p>
 
                 {/* Option 1: Use Phone Number from Address */}
                 {userProfile?.phone_number && (
                   <label
-                    className={`flex items-center gap-4 p-4 border cursor-pointer transition-colors ${
+                    className={`flex items-center gap-4 p-5 rounded-2xl border cursor-pointer transition-all duration-300 ${
                       whatsappOption === "address"
-                        ? "border-alpha bg-sand/20"
-                        : "border-alpha/20 hover:border-alpha/40"
+                        ? "border-alpha bg-alpha/5 shadow-sm"
+                        : "border-alpha/10 hover:border-alpha/30 hover:bg-alpha/5"
                     }`}
                   >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                       whatsappOption === "address" ? "border-alpha" : "border-alpha/30"
                     }`}>
                       {whatsappOption === "address" && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-alpha"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-alpha scale-in"></div>
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-primary text-alpha">Use phone number provided in address</p>
-                      <p className="text-xs text-alpha/60 mt-0.5 flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
+                      <p className="text-[13px] font-bold text-alpha">Use address phone number</p>
+                      <p className="text-[12px] font-medium text-alpha/60 mt-1 flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5" />
                         {userProfile.phone_number}
                       </p>
                     </div>
@@ -384,21 +387,21 @@ export default function CheckoutPage() {
 
                 {/* Option 2: Use Different WhatsApp Number */}
                 <label
-                  className={`block p-4 border cursor-pointer transition-colors ${
+                  className={`block p-5 rounded-2xl border cursor-pointer transition-all duration-300 ${
                     whatsappOption === "custom"
-                      ? "border-alpha bg-sand/20"
-                      : "border-alpha/20 hover:border-alpha/40"
+                      ? "border-alpha bg-alpha/5 shadow-sm"
+                      : "border-alpha/10 hover:border-alpha/30 hover:bg-alpha/5"
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                       whatsappOption === "custom" ? "border-alpha" : "border-alpha/30"
                     }`}>
                       {whatsappOption === "custom" && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-alpha"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-alpha scale-in"></div>
                       )}
                     </div>
-                    <p className="text-sm font-primary text-alpha">Use a different WhatsApp number</p>
+                    <p className="text-[13px] font-bold text-alpha">Use a different WhatsApp number</p>
                     <input
                       type="radio"
                       name="whatsapp"
@@ -409,14 +412,14 @@ export default function CheckoutPage() {
                   </div>
                   
                   {whatsappOption === "custom" && (
-                    <div className="mt-4 ml-9">
-                      <div className="flex gap-2">
+                    <div className="mt-5 ml-9 animate-fade-in">
+                      <div className="flex gap-3">
                         {/* Country Code Dropdown */}
                         <div className="relative">
                           <button
                             type="button"
                             onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                            className="flex items-center gap-2 px-3 py-3 border border-alpha/20 bg-white text-sm font-primary hover:border-alpha/40 transition-colors min-w-[100px]"
+                            className="flex items-center gap-2 px-4 py-3.5 bg-white border border-alpha/10 rounded-2xl text-[13px] font-medium hover:border-alpha/30 transition-all min-w-[110px]"
                           >
                             <span>{selectedCountry?.flag}</span>
                             <span>{selectedCountryCode}</span>
@@ -430,7 +433,7 @@ export default function CheckoutPage() {
                                 onClick={() => setShowCountryDropdown(false)} 
                               />
                               <div 
-                                className="absolute bottom-full left-0 mb-1 w-48 bg-white border border-alpha/20 shadow-dropdown z-20 max-h-60 overflow-y-auto overscroll-contain"
+                                className="absolute bottom-full left-0 mb-2 w-56 bg-white/95 backdrop-blur-xl border border-alpha/10 rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] z-20 max-h-60 overflow-y-auto overscroll-contain py-2"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {countryCodes.map((country) => (
@@ -441,13 +444,13 @@ export default function CheckoutPage() {
                                       setSelectedCountryCode(country.code);
                                       setShowCountryDropdown(false);
                                     }}
-                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left hover:bg-sand/30 transition-colors ${
-                                      selectedCountryCode === country.code ? "bg-sand/50" : ""
+                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-left hover:bg-alpha/5 transition-colors ${
+                                      selectedCountryCode === country.code ? "bg-alpha/5 text-alpha" : "text-alpha/70"
                                     }`}
                                   >
-                                    <span>{country.flag}</span>
-                                    <span className="text-alpha">{country.country}</span>
-                                    <span className="text-alpha/50 ml-auto">{country.code}</span>
+                                    <span className="text-base">{country.flag}</span>
+                                    <span>{country.country}</span>
+                                    <span className="text-alpha/40 ml-auto">{country.code}</span>
                                   </button>
                                 ))}
                               </div>
@@ -461,10 +464,10 @@ export default function CheckoutPage() {
                           value={customWhatsapp}
                           onChange={(e) => setCustomWhatsapp(e.target.value.replace(/[^0-9\s]/g, ''))}
                           placeholder="Phone number"
-                          className="flex-1 px-4 py-3 border border-alpha/20 bg-white text-sm font-primary placeholder:text-alpha/40 focus:outline-none focus:border-alpha transition-colors"
+                          className="flex-1 px-5 py-3.5 bg-white border border-alpha/10 rounded-2xl text-[13px] font-medium text-alpha placeholder:text-alpha/40 focus:outline-none focus:border-alpha/30 focus:shadow-inner transition-all"
                         />
                       </div>
-                      <p className="text-[10px] text-alpha/50 mt-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-alpha/30 mt-3 pl-2">
                         Example: 98765 43210
                       </p>
                     </div>
@@ -476,55 +479,57 @@ export default function CheckoutPage() {
 
           {/* Right - Summary */}
           <div className="lg:col-span-2">
-            <div className="border border-alpha/10 bg-white sticky top-24">
-              <div className="px-5 py-4 border-b border-alpha/10">
-                <h2 className="text-sm font-primary uppercase tracking-widest text-alpha">Summary</h2>
+            <div className="bg-white rounded-[2rem] shadow-sm border border-alpha/5 overflow-hidden sticky top-28">
+              <div className="px-6 py-5 border-b border-alpha/5 bg-alpha/5">
+                <h2 className="text-[11px] font-bold uppercase tracking-widest text-alpha">Order Summary</h2>
               </div>
-              <div className="p-5 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-alpha/70">Total Items</span>
-                  <span className="text-alpha">{itemCount}</span>
+              <div className="p-6 space-y-5">
+                <div className="flex justify-between items-center text-[13px] font-medium">
+                  <span className="text-alpha/60">Total Items</span>
+                  <span className="text-alpha font-bold">{itemCount}</span>
                 </div>
                 {cartTotalMrp > cartSubtotal && (
-                  <div className="flex justify-between text-sm text-alpha/70">
+                  <div className="flex justify-between items-center text-[13px] font-medium text-alpha/60">
                     <span>Total MRP</span>
                     <span className="line-through">₹{cartTotalMrp.toLocaleString("en-IN")}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-alpha/70">Subtotal</span>
-                  <span className="font-medium text-alpha">₹{cartSubtotal.toLocaleString("en-IN")}</span>
+                <div className="flex justify-between items-center text-[13px] font-medium">
+                  <span className="text-alpha/60">Subtotal</span>
+                  <span className="text-alpha font-bold">₹{cartSubtotal.toLocaleString("en-IN")}</span>
                 </div>
                 {totalDiscount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
+                  <div className="flex justify-between items-center text-[13px] font-bold text-success bg-success/5 p-3 rounded-xl">
                     <span>Discount</span>
                     <span>-₹{totalDiscount.toLocaleString("en-IN")}</span>
                   </div>
                 )}
-                <div className="h-px bg-alpha/10"></div>
-                <div className="flex justify-between font-secondary text-lg">
-                  <span className="text-alpha">Total</span>
-                  <span className="text-alpha">₹{cartSubtotal.toLocaleString("en-IN")}</span>
+                <div className="h-px bg-alpha/5 my-2"></div>
+                <div className="flex justify-between items-end font-secondary">
+                  <span className="text-alpha text-xl">Total</span>
+                  <span className="text-alpha text-2xl">₹{cartSubtotal.toLocaleString("en-IN")}</span>
                 </div>
 
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={!hasAddress || (whatsappOption === "custom" && !customWhatsapp) || items.length === 0}
-                  className="w-full bg-alpha text-creme py-4 text-xs uppercase tracking-[0.2em] hover:bg-alpha/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Place Order
-                </button>
+                <div className="pt-4">
+                  <button
+                    onClick={handlePlaceOrder}
+                    disabled={!hasAddress || (whatsappOption === "custom" && !customWhatsapp) || items.length === 0}
+                    className="w-full bg-alpha text-white py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest hover:bg-tango hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Place Order
+                  </button>
 
-                {!hasAddress && (
-                  <p className="text-[10px] text-red-600 text-center">
-                    Please add delivery address to continue
+                  {!hasAddress && (
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-tango text-center mt-4">
+                      Please add delivery address
+                    </p>
+                  )}
+                  
+                  <p className="text-[11px] font-medium text-alpha/40 text-center mt-4 bg-alpha/5 p-3 rounded-xl">
+                    Order details will be sent to your WhatsApp
                   </p>
-                )}
-                
-                <p className="text-[10px] text-alpha/50 text-center">
-                  Order details will be sent to your WhatsApp
-                </p>
+                </div>
               </div>
             </div>
           </div>
@@ -534,96 +539,94 @@ export default function CheckoutPage() {
       {/* Consent Modal */}
       {showConsentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-alpha/50 backdrop-blur-sm" onClick={() => setShowConsentModal(false)} />
-          <div className="relative bg-creme w-full max-w-md border border-alpha/10 shadow-modal">
+          <div className="absolute inset-0 bg-alpha/40 backdrop-blur-md transition-opacity" onClick={() => setShowConsentModal(false)} />
+          <div className="relative bg-white/95 backdrop-blur-2xl w-full max-w-md rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] border border-alpha/10 overflow-hidden transform scale-100 animate-fade-in">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-alpha/10">
-              <h3 className="text-lg font-secondary text-alpha">Confirm Your Order</h3>
+            <div className="flex items-center justify-between px-8 py-6 border-b border-alpha/5 bg-alpha/5">
+              <h3 className="text-2xl font-secondary text-alpha">Confirm Order</h3>
               <button
                 onClick={() => setShowConsentModal(false)}
-                className="w-8 h-8 flex items-center justify-center text-alpha/50 hover:text-alpha transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-alpha/50 hover:text-alpha hover:shadow-sm transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-5">
+            <div className="p-8 space-y-6">
               {/* WhatsApp Info */}
-              <div className="flex items-center gap-3 p-4 bg-[#25D366]/10 border border-[#25D366]/20">
-                <MessageCircle className="w-6 h-6 text-[#25D366]" />
+              <div className="flex items-center gap-4 p-5 bg-[#25D366]/10 rounded-2xl border border-[#25D366]/20">
+                <div className="w-10 h-10 rounded-[1rem] bg-white flex items-center justify-center shadow-sm flex-shrink-0">
+                  <MessageCircle className="w-5 h-5 text-[#25D366]" />
+                </div>
                 <div>
-                  <p className="text-sm font-primary text-alpha">Order details will be sent to:</p>
-                  <p className="text-sm text-alpha/70">{getWhatsappNumber()}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#25D366]/80 mb-0.5">Sent to WhatsApp</p>
+                  <p className="text-[13px] font-bold text-alpha">{getWhatsappNumber()}</p>
                 </div>
               </div>
 
               {/* Order Summary */}
-              <div className="space-y-2">
-                <p className="text-xs uppercase tracking-widest text-alpha/50">Order Summary</p>
+              <div className="space-y-3 bg-alpha/5 p-5 rounded-2xl">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-alpha/50 mb-3">Order Summary</p>
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex justify-between text-sm">
+                  <div key={item.product.id} className="flex justify-between text-[13px] font-medium">
                     <span className="text-alpha/70 truncate mr-4">{item.product.name} × {item.quantity}</span>
-                    <span className="text-alpha font-medium shrink-0">
+                    <span className="text-alpha font-bold shrink-0">
                       ₹{((item.variantPrice || Number(item.product.price) || 0) * item.quantity).toLocaleString("en-IN")}
                     </span>
                   </div>
                 ))}
-                <div className="h-px bg-alpha/10 my-2"></div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span className="text-alpha">Total Items</span>
-                  <span className="text-alpha">{itemCount}</span>
-                </div>
-                <div className="flex justify-between text-base font-bold mt-2">
-                  <span className="text-alpha">Total Value</span>
-                  <span className="text-alpha">₹{cartSubtotal.toLocaleString("en-IN")}</span>
+                <div className="h-px bg-alpha/10 my-3"></div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-alpha/60">Total</span>
+                  <span className="text-lg font-bold text-alpha">₹{cartSubtotal.toLocaleString("en-IN")}</span>
                 </div>
               </div>
 
               {/* Consent Checkbox */}
-              <label className="flex items-start gap-3 cursor-pointer">
-                <div className="mt-0.5">
+              <label className="flex items-start gap-4 cursor-pointer p-2">
+                <div className="mt-0.5 relative">
                   <input
                     type="checkbox"
                     checked={consentChecked}
                     onChange={(e) => setConsentChecked(e.target.checked)}
                     className="sr-only"
                   />
-                  <div className={`w-5 h-5 border-2 flex items-center justify-center transition-colors ${
-                    consentChecked ? "bg-alpha border-alpha" : "border-alpha/30"
+                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
+                    consentChecked ? "bg-alpha border-alpha shadow-sm" : "border-alpha/20 bg-white"
                   }`}>
-                    {consentChecked && <Check className="w-3 h-3 text-creme" />}
+                    {consentChecked && <Check className="w-3.5 h-3.5 text-white scale-in" />}
                   </div>
                 </div>
-                <span className="text-sm text-alpha/70 leading-relaxed">
+                <span className="text-[12px] font-medium text-alpha/70 leading-relaxed">
                   I consent to receive my order details and updates via WhatsApp. I understand that DravoHome will contact me on the provided number.
                 </span>
               </label>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-alpha/10 flex gap-3">
+            <div className="px-8 py-6 border-t border-alpha/5 bg-alpha/5 flex gap-3">
               <button
                 onClick={() => setShowConsentModal(false)}
                 disabled={placingOrder}
-                className="flex-1 py-3 border border-alpha/20 text-xs uppercase tracking-widest text-alpha hover:bg-sand/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-4 bg-white border border-alpha/10 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-alpha hover:border-alpha/30 hover:shadow-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmOrder}
                 disabled={!consentChecked || placingOrder}
-                className="flex-1 py-3 bg-alpha text-creme text-xs uppercase tracking-widest hover:bg-alpha/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-[1.5] py-4 bg-alpha text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-tango hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {placingOrder ? (
                   <>
                     <span className="animate-spin">⏳</span>
-                    Placing Order...
+                    Placing...
                   </>
                 ) : (
                   <>
                     <MessageCircle className="w-4 h-4" />
-                    Confirm Order
+                    Confirm
                   </>
                 )}
               </button>

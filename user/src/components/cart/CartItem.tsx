@@ -39,94 +39,92 @@ export default function CartItem({
   };
 
   return (
-    <div className="flex gap-4 py-6 border-b border-alpha/10">
+    <div className="flex gap-4 md:gap-6 py-6 border-b border-alpha/5 last:border-0 group">
       {/* Product Image */}
       <Link
         href={`/product/${product.slug}`}
-        className="flex-shrink-0 w-24 h-24 relative overflow-hidden bg-ivory"
+        className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 relative overflow-hidden rounded-2xl bg-alpha/5"
       >
         <Image
           src={primaryImage}
           alt={product.name}
           fill
-          className="object-cover"
-          sizes="96px"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="(max-width: 768px) 96px, 128px"
         />
       </Link>
 
       {/* Product Details */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
         <Link
           href={`/product/${product.slug}`}
-          className="font-secondary text-alpha hover:text-alpha/70 line-clamp-2 text-lg"
+          className="font-secondary text-alpha group-hover:text-tango transition-colors duration-300 line-clamp-2 text-lg leading-tight"
         >
           {product.name}
         </Link>
 
         {/* Price Display */}
         <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-          <span className="text-sm font-primary font-bold text-alpha">
+          <span className="text-sm font-bold text-alpha">
             ₹{((item.variantPrice || Number(product.price) || 0) * quantity).toLocaleString("en-IN")}
           </span>
           {quantity > 1 && (
-            <span className="text-[10px] text-alpha/50 font-primary">
+            <span className="text-[11px] font-bold tracking-widest uppercase text-alpha/40">
               (₹{(item.variantPrice || Number(product.price) || 0).toLocaleString("en-IN")} each)
             </span>
           )}
           {item.variantMrp && item.variantMrp > (item.variantPrice || 0) && (
-            <span className="text-xs font-primary text-alpha/40 line-through ml-1">
+            <span className="text-[11px] font-bold text-alpha/30 line-through ml-1">
               ₹{(item.variantMrp * quantity).toLocaleString("en-IN")}
             </span>
           )}
         </div>
 
         {/* Product Attributes */}
-        <div className="mt-2 text-xs font-primary text-alpha/60 space-y-1">
-          {product.dimensions.length &&
-            product.dimensions.width &&
-            product.dimensions.height && (
+        <div className="mt-2 text-[10px] font-bold uppercase tracking-wider text-alpha/40 space-y-1">
+          {product.dimensions?.length &&
+            product.dimensions?.width &&
+            product.dimensions?.height && (
               <p>
-                Dimensions: {product.dimensions.length} x{" "}
-                {product.dimensions.width} x {product.dimensions.height}{" "}
+                {product.dimensions.length} x {product.dimensions.width} x {product.dimensions.height}{" "}
                 {product.dimensions.unit || "cm"}
               </p>
             )}
         </div>
 
         {/* Quantity Controls */}
-        <div className="mt-4 flex items-center gap-4">
-          <div className="flex items-center border border-alpha/20">
+        <div className="mt-4 flex items-center gap-3">
+          <div className="flex items-center bg-alpha/5 rounded-xl border border-transparent hover:border-alpha/10 transition-colors">
             <button
               onClick={handleDecrement}
-              className="p-2 hover:bg-alpha/5 transition"
+              className="p-2 text-alpha/60 hover:text-alpha transition"
               aria-label="Decrease quantity"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3.5 h-3.5" />
             </button>
             <input
               type="number"
               value={quantity}
               onChange={handleQuantityChange}
-              className="w-12 text-center border-x border-alpha/20 focus:outline-none bg-transparent font-primary text-sm"
+              className="w-10 text-center focus:outline-none bg-transparent font-bold text-xs text-alpha"
               min="1"
             />
             <button
               onClick={handleIncrement}
-              className="p-2 hover:bg-alpha/5 transition"
+              className="p-2 text-alpha/60 hover:text-alpha transition"
               aria-label="Increase quantity"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Remove Button */}
           <button
             onClick={() => onRemove(product.id)}
-            className="text-red-600 hover:text-red-700 transition flex items-center gap-1 text-xs uppercase tracking-wider font-primary"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
             aria-label="Remove item"
           >
-            <Trash2 className="w-4 h-4" />
-            Remove
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

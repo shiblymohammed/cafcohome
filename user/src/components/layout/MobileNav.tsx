@@ -116,7 +116,8 @@ export default function MobileNav() {
 
           {/* Logo Button - Rectangle (flex-1 to fill remaining space) */}
           <button
-            className={`h-12 flex-1 flex items-center justify-center text-3xl font-['brand-primary'] relative overflow-hidden ${showSolidNavbar ? "text-alpha border-l border-r border-alpha/50" : "text-creme"
+            onClick={() => router.push('/')}
+            className={`h-12 flex-1 flex items-center justify-center relative overflow-hidden ${showSolidNavbar ? "text-alpha border-l border-r border-alpha/50" : "text-creme"
               }`}
             style={{
               transition: 'color 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.06s',
@@ -130,8 +131,12 @@ export default function MobileNav() {
                 transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.06s',
               }}
             />
-            <span className="relative z-10">
-              DRAVO
+            <span className="relative z-10 flex items-center justify-center">
+              <img 
+                src={showSolidNavbar ? "/logo/logo_dark.png" : "/logo/logo_light.png"} 
+                alt="DRAVO Logo" 
+                className="h-[0.85rem] w-auto object-contain"
+              />
             </span>
           </button>
 
