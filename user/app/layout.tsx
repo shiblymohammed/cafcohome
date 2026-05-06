@@ -18,6 +18,7 @@ const hammersmith = Hammersmith_One({
     weight: "400",
     variable: "--font-hammersmith",
     display: "swap",
+    preload: false,
 });
 
 const playfair = Playfair_Display({
@@ -26,6 +27,7 @@ const playfair = Playfair_Display({
     style: ["normal", "italic"],
     variable: "--font-playfair",
     display: "swap",
+    preload: false,
 });
 
 const inter = Inter({
@@ -33,6 +35,7 @@ const inter = Inter({
     weight: ["300", "400", "500", "600", "700"],
     variable: "--font-inter",
     display: "swap",
+    preload: false,
 });
 
 const abrilFatface = Abril_Fatface({
@@ -40,6 +43,7 @@ const abrilFatface = Abril_Fatface({
     weight: "400",
     variable: "--font-abril",
     display: "swap",
+    preload: false,
 });
 
 export const metadata: Metadata = {
